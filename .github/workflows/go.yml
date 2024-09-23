@@ -22,7 +22,8 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
       - name: Build
-        run: go build -v main.go
+        # run: go build -v ./...
+        run: go build -o "$BIN_PATH" -trimpath -buildvcs=false
       - name: Run go vet
         run: go vet ./...
       - name: Install staticcheck
