@@ -21,9 +21,19 @@ jobs:
           cache-dependency-path: subdir/go.sum
       - name: Verify dependencies
         run: go mod verify
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Install dependencies
+        run: go mod tidy
       - name: Build
-        # run: go build -v ./...
-        run: go build -o "$BIN_PATH" -trimpath -buildvcs=false
+        run: go build -v ./...
       - name: Run go vet
         run: go vet ./...
       - name: Install staticcheck
