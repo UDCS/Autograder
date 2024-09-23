@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: go mod tidy
       - name: Build
-        run: go build -v ./...
+        run: cd web && yarn && yarn run build && go build -v ./... && cd ..
       - name: Run go vet
         run: go vet ./...
       - name: Install staticcheck
