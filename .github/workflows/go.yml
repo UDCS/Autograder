@@ -31,7 +31,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Install dependencies
-        run: go mod tidy
+        run: go get .
       - name: Build
         run: cd web && yarn && yarn run build && go build -v ./... && cd ..
       - name: Run go vet
@@ -44,8 +44,6 @@ jobs:
         run: go install golang.org/x/lint/golint@latest
       - name: Run golint
         run: golint ./...
-      - name: Install dependencies
-        run: go get .
       - name: Test with Go
         run: go test -race -vet=off -json > TestResults-${{ matrix.go-version }}.json
       - name: Upload Go test results
