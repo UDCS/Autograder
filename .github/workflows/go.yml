@@ -22,7 +22,7 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
       - name: Build
-        run: go build -v ./...
+        run: go build -v main.go
       - name: Run go vet
         run: go vet ./...
       - name: Install staticcheck
