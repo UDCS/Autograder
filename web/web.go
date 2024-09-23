@@ -13,10 +13,11 @@ var (
 	indexHTML embed.FS
 
 	distDirFS     = echo.MustSubFS(dist, "dist")
-	distIndexHtml = echo.MustSubFS(indexHTML, "dist")
+	distIndexHTML = echo.MustSubFS(indexHTML, "dist")
 )
 
+// RegisterHandlers registers the web handlers to serve the frontend
 func RegisterHandlers(e *echo.Echo) {
-	e.FileFS("/", "index.html", distIndexHtml)
+	e.FileFS("/", "index.html", distIndexHTML)
 	e.StaticFS("/", distDirFS)
 }
