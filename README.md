@@ -2,7 +2,7 @@
 
 ## How to setup the development environment (Linux/Mac)
 
-1. Make sure you have `go` and `yarn` installed on your computer
+1. Make sure you have `go` (v1.23 preferably) and `yarn` installed on your computer
 2. On the terminal, run `chmod +x ./dev.sh` to modify permissions
 3. On the terminal, run `cd web && yarn && yarn run dev` to install the React dependencies. Once you see the `build in <time>ms` message, you can exit out of the command using `Ctrl+C`
 4. Add the following to `~/.bashrc` on Linux or `~/.zshrc` on Mac:
