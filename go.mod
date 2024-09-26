@@ -4,6 +4,7 @@ go 1.23.1
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
+	github.com/air-verse/air v1.60.0 // indirect
 	github.com/bep/godartsass v1.2.0 // indirect
 	github.com/bep/godartsass/v2 v2.1.0 // indirect
 	github.com/bep/golibsass v1.2.0 // indirect
