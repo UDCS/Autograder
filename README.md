@@ -16,6 +16,14 @@ export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 6. On the terminal, run `./dev.sh`
 7. Open http://localhost:8080/ to access the web app.
 
+## How to setup the development environment (Windows w/o WSL)
+
+1. Install [`go`](https://go.dev/dl/) and [`nodejs`](https://nodejs.org/en)
+2. Install `yarn` with the command `npm install --global yarn`
+3. If yarn cannot run because of security restrictions, run the command `Set-ExecutionPolicy -ExecutionPolicy Unrestricted` in PowerShell as an admin. (read [this](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.4) for more info)
+4. With the terminal opened from the project, run `cd web` `yarn` then `yarn run dev`. It will show in the terminal "built in <x>ms" after it is finished, during which point you can Ctrl+C to exit out of the command.
+5. With the terminal opened from the main project folder, run `go install github.com/air-verse/air@latest` to install air
+
 ## How to build the binary
 
 ### For Linux / Mac
@@ -28,5 +36,5 @@ Run `env GOOS=windows GOARCH=arm64 go build main.go` on the terminal.
 
 If the above doesn't generate a binary or generates a binary that doesn't run on your computer, change the `GOARCH` value from `arm64` to the correct one for your CPU. You can find the list for valid `GOARCH` values [here](https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63#goarch-values).
 
-You can now run the using `main.exe`
+You can now run the using `main.exe` or with `go run main.go`
 
