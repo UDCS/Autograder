@@ -36,6 +36,8 @@ You can now run the binary using `./main` on the terminal.
 ### For Windows
 Run `env GOOS=windows GOARCH=arm64 go build main.go` on the terminal.
 
+If you don't have WSL set up, try `set GOOS=windows; set GOARCH=arm64; go build main.go`
+
 If the above doesn't generate a binary or generates a binary that doesn't run on your computer, change the `GOARCH` value from `arm64` to the correct one for your CPU. You can find the list for valid `GOARCH` values [here](https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63#goarch-values).
 
 You can now run the using `main.exe`
