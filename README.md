@@ -1,6 +1,8 @@
 # Autograder
 
-## How to setup the development environment (Linux/Mac)
+## How to setup the development environment 
+
+### On Linux/Mac
 
 1. Make sure you have [`go`](https://go.dev/dl/) (v1.23 preferably) and `yarn` installed on your computer. (Mac) `brew` seems to have issues on Mac with installing go for this project. Downloading it from the official [website](https://go.dev/dl/) seems to work. Just download and run the installer.
 2. On the terminal, run `chmod +x ./dev.sh` to modify permissions
@@ -16,7 +18,7 @@ export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 6. On the terminal, run `./dev.sh`
 7. Open http://localhost:8080/ to access the web app.
 
-## How to setup the development environment (Windows w/o WSL)
+### On Windows w/o WSL
 
 1. Install [`go`](https://go.dev/dl/) and [`nodejs`](https://nodejs.org/en)
 2. Install `yarn` with the command `npm install --global yarn`
@@ -36,5 +38,5 @@ Run `env GOOS=windows GOARCH=arm64 go build main.go` on the terminal.
 
 If the above doesn't generate a binary or generates a binary that doesn't run on your computer, change the `GOARCH` value from `arm64` to the correct one for your CPU. You can find the list for valid `GOARCH` values [here](https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63#goarch-values).
 
-You can now run the using `main.exe` or with `go run main.go`
+You can now run the using `main.exe`
 
