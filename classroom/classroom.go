@@ -46,6 +46,6 @@ func MakeClassroom(c echo.Context) error {
 	classroom.ID = classIndex
 	classroom.Created_At = time.Now()
 	classrooms[classIndex-1] = classroom
-	// printClassrooms()
-	return c.String(http.StatusOK, "yay!")
+	//printClassrooms()
+	return c.NoContent(http.StatusOK)
 }
