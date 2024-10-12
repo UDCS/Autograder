@@ -25,14 +25,14 @@ func (c Classroom) String() string {
 }
 
 // prints all the classrooms
-func printClassrooms() {
+/*func printClassrooms() {
 	fmt.Println("The classrooms:")
 	for i := 0; i < classIndex; i++ {
 		c := classrooms[i]
 		fmt.Println(c)
 	}
 	fmt.Println()
-}
+}*/
 
 // makes a new classroom
 // only adds it to an array at this point until the database is set up
