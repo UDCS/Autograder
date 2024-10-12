@@ -15,6 +15,6 @@ func main() {
 	e.GET("/api", func(c echo.Context) error {
 		return c.String(http.StatusOK, "This is coming in from an internal API!")
 	})
-	e.GET("/api/room", classroom.MakeClassroom)
+	e.POST("/api/room/", classroom.MakeClassroom)
 	e.Logger.Fatal(e.Start(":8080"))
 }
