@@ -8,18 +8,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// type for classrooms
 type Classroom struct {
 	ID         int
 	Name       string `json:"name"`
 	CreatedAt time.Time
 }
 
-// temporary array for storing classrooms
 var classrooms [1024]Classroom
 var classIndex = 0
 
-// converts classroom to string format
 func (c Classroom) String() string {
 	return fmt.Sprintf("{ID: %d, name: %v, created_at: %v}", c.ID, c.Name, c.CreatedAt.String())
 }
@@ -34,8 +31,6 @@ func (c Classroom) String() string {
 	fmt.Println()
 }*/
 
-// makes a new classroom
-// only adds it to an array at this point until the database is set up
 func MakeClassroom(c echo.Context) error {
 	classroom := Classroom{}
 	if err := c.Bind(&classroom); err != nil {
