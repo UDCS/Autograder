@@ -21,16 +21,6 @@ func (c Classroom) String() string {
 	return fmt.Sprintf("{ID: %d, name: %v, created_at: %v}", c.ID, c.Name, c.CreatedAt.String())
 }
 
-// prints all the classrooms
-/*func printClassrooms() {
-	fmt.Println("The classrooms:")
-	for i := 0; i < classIndex; i++ {
-		c := classrooms[i]
-		fmt.Println(c)
-	}
-	fmt.Println()
-}*/
-
 func MakeClassroom(c echo.Context) error {
 	classroom := Classroom{}
 	if err := c.Bind(&classroom); err != nil {
