@@ -12,7 +12,7 @@ import (
 type Classroom struct {
 	ID         int
 	Name       string `json:"name"`
-	Created_At time.Time
+	CreatedAt time.Time
 }
 
 // temporary array for storing classrooms
@@ -21,7 +21,7 @@ var classIndex = 0
 
 // converts classroom to string format
 func (c Classroom) String() string {
-	return fmt.Sprintf("{ID: %d, name: %v, created_at: %v}", c.ID, c.Name, c.Created_At.String())
+	return fmt.Sprintf("{ID: %d, name: %v, created_at: %v}", c.ID, c.Name, c.CreatedAt.String())
 }
 
 // prints all the classrooms
@@ -44,7 +44,7 @@ func MakeClassroom(c echo.Context) error {
 
 	classIndex++
 	classroom.ID = classIndex
-	classroom.Created_At = time.Now()
+	classroom.CreatedAt = time.Now()
 	classrooms[classIndex-1] = classroom
 	//printClassrooms()
 	return c.NoContent(http.StatusOK)
