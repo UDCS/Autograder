@@ -14,9 +14,11 @@ export GOPATH=$HOME/go
 export GOBIN=$GOPATH/bin
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 ```
-5. Install `air` by running `go install github.com/air-verse/air@latest`
-6. On the terminal, run `./dev.sh`
-7. Open http://localhost:8080/ to access the web app.
+5. Install `air` (live-reload for go applications) and `goose` (database migration tool) and by running `go install github.com/air-verse/air@latest github.com/pressly/goose/v3/cmd/goose@latest`
+6. [Install postgres](#how-to-install-postgres) and create a database named `autograder`. Make sure you postgres is up and running. You can download [Beekeeper Studio](https://www.beekeeperstudio.io/get-community) as a database explorer if you don't already have one.
+7. Run `source .envrc` to export the variables of `.envrc` on your local machine. 
+7. On the terminal, run `./dev.sh`
+8. Open http://localhost:8080/ to access the web app.
 
 ### On Windows w/o WSL
 
@@ -25,6 +27,15 @@ export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 3. If yarn cannot run because of security restrictions, run the command `Set-ExecutionPolicy -ExecutionPolicy Unrestricted` in PowerShell as an admin. (read [this](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.4) for more info)
 4. With the terminal opened from the project, run `cd web` `yarn` then `yarn run dev`. It will show in the terminal "built in <x>ms" after it is finished, during which point you can Ctrl+C to exit out of the command.
 5. With the terminal opened from the main project folder, run `go install github.com/air-verse/air@latest` to install air
+
+## How to install postgres
+
+### Mac
+1. Download the most recent version of postgres via their [installer](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads) under the column "Mac OS X"
+2. Go through the steps in the installer. When it prompts you to set up your database admin make the username `postgres` and password `postgres`.
+3. After the install is finished, open pgAdmin which will prompt you to type in your password (`postgres`) to connect to your local server that's been setup via the installation.
+4. On the left column under the dropdown menu for `PosgreSQL [Version #]` right click `Databases` and click `Create` > `Database...`.
+5. Name it `autograder` and click Save
 
 ## How to build the binary
 
@@ -39,4 +50,3 @@ Run `env GOOS=windows GOARCH=arm64 go build main.go` on the terminal.
 If the above doesn't generate a binary or generates a binary that doesn't run on your computer, change the `GOARCH` value from `arm64` to the correct one for your CPU. You can find the list for valid `GOARCH` values [here](https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63#goarch-values).
 
 You can now run the using `main.exe`
-
