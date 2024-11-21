@@ -14,7 +14,7 @@ export GOPATH=$HOME/go
 export GOBIN=$GOPATH/bin
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 ```
-5. Install `air` (live-reload for go applications) and `goose` (database migration tool) and by running `go install github.com/air-verse/air@latest github.com/pressly/goose/v3/cmd/goose@latest`
+5. Install `air` (live-reload for go applications) and `goose` (database migration tool) by running `go install github.com/air-verse/air@latest github.com/pressly/goose/v3/cmd/goose@latest`
 6. [Install postgres](#how-to-install-postgres) and create a database named `autograder`. Make sure you postgres is up and running. You can download [Beekeeper Studio](https://www.beekeeperstudio.io/get-community) as a database explorer if you don't already have one.
 7. Run `source .envrc` to export the variables of `.envrc` on your local machine. 
 7. On the terminal, run `./dev.sh`
