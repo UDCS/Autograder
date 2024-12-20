@@ -3,6 +3,12 @@ module github.com/UDCS/Autograder
 go 1.23.1
 
 require (
+	github.com/jmoiron/sqlx v1.4.0
+	github.com/labstack/echo/v4 v4.12.0
+	github.com/lib/pq v1.10.9
+)
+
+require (
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/air-verse/air v1.60.0 // indirect
 	github.com/bep/godartsass v1.2.0 // indirect
@@ -14,7 +20,6 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gohugoio/hugo v0.134.3 // indirect
-	github.com/labstack/echo/v4 v4.12.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

@@ -15,8 +15,10 @@ export GOBIN=$GOPATH/bin
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 ```
 5. Install `air` by running `go install github.com/air-verse/air@latest`
-6. On the terminal, run `./dev.sh`
-7. Open http://localhost:8080/ to access the web app.
+6. Install postgres and create a database named `autograder`. Make sure you postgres is up and running. You can download [Beeker Studio](https://www.beekeeperstudio.io/get-community) to you are able to connect to postgres. 
+7. Run `source .envrc` to export the variables of `.envrc` on your local machine. 
+7. On the terminal, run `./dev.sh`
+8. Open http://localhost:8080/ to access the web app.
 
 ### On Windows w/o WSL
 
