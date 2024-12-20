@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/UDCS/Autograder/classroom"
 	"github.com/UDCS/Autograder/web"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -37,6 +38,6 @@ func main() {
 	e.GET("/api", func(c echo.Context) error {
 		return c.String(http.StatusOK, "This is coming in from an internal API!")
 	})
-
+	e.POST("/api/room/", classroom.MakeClassroom)
 	e.Logger.Fatal(e.Start(":8080"))
 }
