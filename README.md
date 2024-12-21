@@ -8,7 +8,8 @@
 2. Install `yarn` installed on your computer using `npm install --global yarn`. Note that you will need to install `npm` first if you haven't already.
 3. On the terminal, run `chmod +x ./dev.sh` to modify permissions
 4. On the terminal, run `cd web && yarn && yarn run dev` to install the React dependencies. Once you see the `build in <time>ms` message, you can exit out of the command using `Ctrl+C`
-5. Add the following to `~/.bashrc` on Linux or `~/.zshrc` on Mac. Then either restart the terminal or run `source ~/.zshrc`
+5. Add the following to `~/.bashrc` on Linux or `~/.zshrc` on Mac. Then run `source ~/.bashrc` on Linux or `source ~/.zshrc` on Mac.
+
 ```
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
