@@ -4,10 +4,11 @@
 
 ### On Linux/Mac
 
-1. Make sure you have [`go`](https://go.dev/dl/) (v1.23 preferably) and `yarn` installed on your computer. (Mac) `brew` seems to have issues on Mac with installing go for this project. Downloading it from the official [website](https://go.dev/dl/) seems to work. Just download and run the installer.
-2. On the terminal, run `chmod +x ./dev.sh` to modify permissions
-3. On the terminal, run `cd web && yarn && yarn run dev` to install the React dependencies. Once you see the `build in <time>ms` message, you can exit out of the command using `Ctrl+C`
-4. Add the following to `~/.bashrc` on Linux or `~/.zshrc` on Mac. Then either restart the terminal or run `source ~/.zshrc`
+1. Make sure you have [`go`](https://go.dev/dl/) (v1.23 preferably). (Mac) `brew` seems to have issues on Mac with installing go for this project. Downloading it from the official [website](https://go.dev/dl/) seems to work. Just download and run the installer.
+2. Install `yarn` installed on your computer using `npm install --global yarn`. Note that you will need to install `npm` first if you haven't already.
+3. On the terminal, run `chmod +x ./dev.sh` to modify permissions
+4. On the terminal, run `cd web && yarn && yarn run dev` to install the React dependencies. Once you see the `build in <time>ms` message, you can exit out of the command using `Ctrl+C`
+5. Add the following to `~/.bashrc` on Linux or `~/.zshrc` on Mac. Then either restart the terminal or run `source ~/.zshrc`
 ```
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
