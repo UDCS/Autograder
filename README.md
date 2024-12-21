@@ -8,18 +8,23 @@
 2. Install `yarn` installed on your computer using `npm install --global yarn`. Note that you will need to install `npm` first if you haven't already.
 3. On the terminal, run `chmod +x ./dev.sh` to modify permissions
 4. On the terminal, run `cd web && yarn && yarn run dev` to install the React dependencies. Once you see the `build in <time>ms` message, you can exit out of the command using `Ctrl+C`
-5. Add the following to `~/.bashrc` on Linux or `~/.zshrc` on Mac. Then run `source ~/.bashrc` on Linux or `source ~/.zshrc` on Mac.
-
+5. Add the following to `~/.bashrc` on Linux or `~/.zshrc` on Mac.
 ```
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
 export GOBIN=$GOPATH/bin
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 ```
-5. Install `air` (live-reload for go applications) and `goose` (database migration tool) by running `go install github.com/air-verse/air@latest github.com/pressly/goose/v3/cmd/goose@latest`
-6. [Install postgres](#how-to-install-postgres) and create a database named `autograder`. Make sure you postgres is up and running. You can download [Beekeeper Studio](https://www.beekeeperstudio.io/get-community) as a database explorer if you don't already have one.
-7. Run `source .envrc` to export the variables of `.envrc` on your local machine. 
-8. Open http://localhost:8080/ to access the web app.
+Then, run `source ~/.bashrc` on Linux or `source ~/.zshrc` on Mac.
+
+6. Install `air` (live-reload for go applications) and `goose` (database migration tool) by running
+```
+go install github.com/air-verse/air@latest
+go install github.com/pressly/goose/v3/cmd/goose@latest
+```
+7. [Install postgres](#how-to-install-postgres) and create a database named `autograder`. Make sure you postgres is up and running. You can download [Beekeeper Studio](https://www.beekeeperstudio.io/get-community) as a database explorer if you don't already have one.
+8. Run `source .envrc` to export the variables of `.envrc` on your local machine. 
+9. Open http://localhost:8080/ to access the web app.
 
 ### On Windows w/o WSL
 
