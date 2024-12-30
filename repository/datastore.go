@@ -1,7 +1,6 @@
-package datastore
+package repository
 
 import (
-	"context"
 	"log"
 	"os"
 
@@ -9,8 +8,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Store interface {
-	CreateClassroom(ctx context.Context, classroom entities.Classroom) error
+type Datastore interface {
+	CreateClassroom(classroom entities.Classroom) (entities.Classroom, error)
 }
 
 type PostgresStore struct {
@@ -26,9 +25,9 @@ func New() PostgresStore {
 
 	db := sqlx.MustConnect("postgres", ConnString)
 
-	err := db.QueryRow("SELECT 1")
+	err := db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("could not connect to the database: %v", err)
 	}
 
 	return PostgresStore{

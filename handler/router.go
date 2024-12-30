@@ -4,38 +4,42 @@ import (
 	"context"
 
 	"github.com/UDCS/Autograder/service"
-	"github.com/gin-gonic/gin"
+	"github.com/UDCS/Autograder/web"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type Handler interface {
-	CreateClassroom(c context.Context, name string) error
+	CreateClassroom(c context.Context) error
 }
 
 type HttpRouter struct {
-	engine *gin.Engine
+	engine *echo.Echo
 	app    service.App
 }
 
-func New(appLayer service.App) *HttpRouter {
+func New(app service.App) *HttpRouter {
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
+
 	router := &HttpRouter{
-		engine: gin.New(),
-		app:    appLayer,
+		engine: e,
+		app:    app,
 	}
 	router.SetupRoutes()
 	return router
 }
 
 func (router *HttpRouter) SetupRoutes() {
-	router.engine.Use(gin.Recovery())
 	api := router.engine.Group("/api")
-	{
-		classroom := api.Group("/classroom")
-		{
-			classroom.POST("", router.CreateClassroom)
-		}
-	}
+
+	classroom := api.Group("/classroom")
+	classroom.POST("/create", router.CreateClassroom)
 }
 
 func (router *HttpRouter) Engage() {
-	router.engine.Run()
+	web.RegisterHandlers(router.engine)
+	router.engine.Logger.Fatal(router.engine.Start(":8080")) // TODO: Get port from config
 }

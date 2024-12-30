@@ -1,21 +1,19 @@
 package service
 
 import (
-	"context"
-
-	"github.com/UDCS/Autograder/datastore"
 	"github.com/UDCS/Autograder/entities"
+	"github.com/UDCS/Autograder/repository"
 )
 
 type App interface {
-	CreateClassroom(c context.Context, classroom entities.Classroom) error
+	CreateClassroom(classroom entities.Classroom) (entities.Classroom, error)
 }
 
 type GraderApp struct {
-	store datastore.Store
+	store repository.Datastore
 }
 
-func New(store datastore.Store) *GraderApp {
+func New(store repository.Datastore) *GraderApp {
 	return &GraderApp{
 		store: store,
 	}

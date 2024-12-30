@@ -1,35 +1,37 @@
 package handler
 
 import (
+	"log"
 	"net/http"
+	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/UDCS/Autograder/entities"
+	"github.com/fossoreslp/go-uuid-v4"
+	"github.com/labstack/echo/v4"
 )
 
-func (router *HttpRouter) CreateClassroom(c *gin.Context) {
+func (router *HttpRouter) CreateClassroom(c echo.Context) error {
+	var newClassroom = &entities.Classroom{}
+	err := c.Bind(&newClassroom)
+	if err != nil {
+		log.Fatalf("failed to parse request body to classroom: %v", err)
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, err)
+	}
 
-	// TODO
+	id, err := uuid.New()
+	if err != nil {
+		log.Fatalf("failed to generate UUID: %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
 
-	// newPost := &post{}
-	// err := c.BindJSON(newPost)
-	// if err != nil {
-	// 	logrus.Error("failed to bind in create post: %v", err)
-	// 	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-	// 		"message": err.Error(),
-	// 	})
-	// 	return
-	// }
+	newClassroom.ID = id
+	newClassroom.CreatedAt = time.Now().Format(time.RFC3339)
+	newClassroom.UpdatedAt = time.Now().Format(time.RFC3339)
 
-	// // TODO: should set post.owner from auth
-	// err = router.app.CreatePost(c, newPost.Content, "noodle")
-	// if err != nil {
-	// 	logrus.Error("failed to create post: %v", err)
-	// 	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-	// 		"message": err.Error(),
-	// 	})
-	// 	return
-	// }
-	c.JSON(http.StatusAccepted, gin.H{
-		"message": "created successfully",
-	})
+	createdClassroom, err := router.app.CreateClassroom(*newClassroom)
+	if err != nil {
+		log.Fatalf("failed to create classroom: %v", err)
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusCreated, createdClassroom)
 }
