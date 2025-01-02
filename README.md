@@ -23,7 +23,7 @@ go install github.com/air-verse/air@latest
 go install github.com/pressly/goose/v3/cmd/goose@latest
 ```
 7. [Install postgres](#how-to-install-postgres) and create a database named `autograder`. Make sure you postgres is up and running. You can download [Beekeeper Studio](https://www.beekeeperstudio.io/get-community) as a database explorer if you don't already have one.
-8. Run `source .envrc` to export the variables of `.envrc` on your local machine. 
+8. Run `source .envrc` to export the variables of `.envrc` on your local machine. Run `goose up` to run all the required database migrations. 
 9. Open http://localhost:8080/ to access the web app.
 
 ### On Windows w/o WSL
@@ -36,12 +36,20 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 
 ## How to install postgres
 
-### Mac
+### Mac (option 1)
 1. Download the most recent version of postgres via their [installer](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads) under the column "Mac OS X"
 2. Go through the steps in the installer. When it prompts you to set up your database admin make the username `postgres` and password `postgres`.
 3. After the install is finished, open pgAdmin which will prompt you to type in your password (`postgres`) to connect to your local server that's been setup via the installation.
 4. On the left column under the dropdown menu for `PosgreSQL [Version #]` right click `Databases` and click `Create` > `Database...`.
-5. Name it `autograder` and click Save
+5. Name it `autograder` and click Save.
+
+### Mac (option 2)
+1. Install postgres using `brew install postgresql`.
+2. Start postgres using `brew services start postgresql`.
+3. Run `psql postgres`.
+4. On the postgres command line, run `CREATE USER postgres WITH PASSWORD 'postgres';`. **Note**: If needed, you can run `ALTER USER postgres WITH SUPERUSER;` to give the new user privledges (this might not be required).
+5. Run `CREATE DATABASE autograder;` to create the database.
+6. Type `\q` to exit.
 
 ## How to build the binary
 
