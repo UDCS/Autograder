@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/UDCS/Autograder/entities"
-	"github.com/fossoreslp/go-uuid-v4"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -18,11 +18,11 @@ func (router *HttpRouter) CreateClassroom(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, err)
 	}
 
-	id, err := uuid.New()
-	if err != nil {
-		log.Fatalf("failed to generate UUID: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	if newClassroom.Name == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "name is required")
 	}
+
+	id := uuid.New()
 
 	newClassroom.ID = id
 	newClassroom.CreatedAt = time.Now().Format(time.RFC3339)

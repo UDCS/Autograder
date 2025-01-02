@@ -13,9 +13,9 @@ func (store PostgresStore) CreateClassroom(classroom entities.Classroom) (entiti
 	)
 
 	createdClassroom := entities.Classroom{}
-	err := result.Scan(createdClassroom.ID, createdClassroom.Name, createdClassroom.CreatedAt, createdClassroom.UpdatedAt)
+	err := result.Scan(&createdClassroom.ID, &createdClassroom.Name, &createdClassroom.CreatedAt, &createdClassroom.UpdatedAt)
 	if err != nil {
-		log.Fatalf("failed to create classroom: %v", err)
+		log.Fatalf("failed to successfully update the database: %v", err)
 		return entities.Classroom{}, err
 	}
 	return createdClassroom, nil

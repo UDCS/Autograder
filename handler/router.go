@@ -35,11 +35,10 @@ func New(app service.App) *HttpRouter {
 func (router *HttpRouter) SetupRoutes() {
 	api := router.engine.Group("/api")
 
-	classroom := api.Group("/classroom")
-	classroom.POST("/create", router.CreateClassroom)
+	api.POST("/classroom", router.CreateClassroom)
 }
 
-func (router *HttpRouter) Engage() {
+func (router *HttpRouter) Engage(port string) {
 	web.RegisterHandlers(router.engine)
-	router.engine.Logger.Fatal(router.engine.Start(":8080")) // TODO: Get port from config
+	router.engine.Logger.Fatal(router.engine.Start(":" + port))
 }

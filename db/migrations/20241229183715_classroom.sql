@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE classroom (
+CREATE TABLE classrooms (
     id uuid PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -10,5 +10,5 @@ CREATE TABLE classroom (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE classroom;
+DROP TABLE classrooms;
 -- +goose StatementEnd

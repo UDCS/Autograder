@@ -1,7 +1,5 @@
 package config
 
-// TODO: complete this
-
 import (
 	"strings"
 	"sync"
@@ -16,15 +14,16 @@ type (
 	}
 
 	Server struct {
-		Port int
+		Port string
 	}
 
 	Db struct {
 		Host     string
-		Port     int
+		Port     string
 		User     string
 		Password string
 		DBName   string
+		SslMode  string
 	}
 )
 

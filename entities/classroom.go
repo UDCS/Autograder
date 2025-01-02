@@ -1,6 +1,6 @@
 package entities
 
-import "github.com/fossoreslp/go-uuid-v4"
+import "github.com/google/uuid"
 
 type Classroom struct {
 	ID        uuid.UUID `json:"id"`
