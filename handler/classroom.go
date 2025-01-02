@@ -19,7 +19,7 @@ func (router *HttpRouter) CreateClassroom(c echo.Context) error {
 	}
 
 	if newClassroom.Name == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "name is required")
+		return echo.NewHTTPError(http.StatusBadRequest, "cannot create a classroom without a `name`")
 	}
 
 	id := uuid.New()
