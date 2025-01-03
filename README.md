@@ -64,3 +64,8 @@ Run `env GOOS=windows GOARCH=arm64 go build main.go` on the terminal.
 If the above doesn't generate a binary or generates a binary that doesn't run on your computer, change the `GOARCH` value from `arm64` to the correct one for your CPU. You can find the list for valid `GOARCH` values [here](https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63#goarch-values).
 
 You can now run the using `main.exe`
+
+## The Three-Layered Architecture
+The backend for this project makes use of a slightly modified version of the Three-Layered Architecture. The incoming requests are parsed into the correspoding entity (defined inside `entities`) by the `handler` layer. A valid request passes from the `handler` into the `service` layer, where all the business logic is performed. The next step after the `service` layer is the `datastore` layer, where the necessary database operation is performed. 
+
+Such an architecture allows one layer to be modified and tested independently of other operations in addition to providing all the benefits of modularity.
