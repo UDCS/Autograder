@@ -1,6 +1,5 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TYPE ROLE AS ENUM ('admin', 'instructor', 'assistant', 'student');
 CREATE TABLE users (
   id uuid PRIMARY KEY,
   name VARCHAR(64) NOT NULL,
