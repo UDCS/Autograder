@@ -3,20 +3,20 @@ package repository
 import (
 	"log"
 
-	"github.com/UDCS/Autograder/entities"
+	"github.com/UDCS/Autograder/models"
 )
 
-func (store PostgresStore) CreateClassroom(classroom entities.Classroom) (entities.Classroom, error) {
+func (store PostgresStore) CreateClassroom(classroom models.Classroom) (models.Classroom, error) {
 	result := store.db.QueryRow(
 		"INSERT INTO classrooms (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING id, name, created_at, updated_at;",
 		classroom.ID, classroom.Name, classroom.CreatedAt, classroom.UpdatedAt,
 	)
 
-	createdClassroom := entities.Classroom{}
+	createdClassroom := models.Classroom{}
 	err := result.Scan(&createdClassroom.ID, &createdClassroom.Name, &createdClassroom.CreatedAt, &createdClassroom.UpdatedAt)
 	if err != nil {
 		log.Fatalf("failed to successfully update the database: %v", err)
-		return entities.Classroom{}, err
+		return models.Classroom{}, err
 	}
 	return createdClassroom, nil
 }

@@ -1,12 +1,12 @@
 package service
 
 import (
-	"github.com/UDCS/Autograder/entities"
+	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/repository"
 )
 
 type App interface {
-	CreateClassroom(classroom entities.Classroom) (entities.Classroom, error)
+	CreateClassroom(classroom models.Classroom) (models.Classroom, error)
 }
 
 type GraderApp struct {

@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/UDCS/Autograder/entities"
+	"github.com/UDCS/Autograder/models"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 func (router *HttpRouter) CreateClassroom(c echo.Context) error {
-	var newClassroom = &entities.Classroom{}
+	var newClassroom = &models.Classroom{}
 	err := c.Bind(&newClassroom)
 	if err != nil {
 		log.Fatalf("failed to parse request body to classroom: %v", err)

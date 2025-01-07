@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/UDCS/Autograder/config"
-	"github.com/UDCS/Autograder/entities"
+	"github.com/UDCS/Autograder/models"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 type Datastore interface {
-	CreateClassroom(classroom entities.Classroom) (entities.Classroom, error)
+	CreateClassroom(classroom models.Classroom) (models.Classroom, error)
 }
 
 type PostgresStore struct {
