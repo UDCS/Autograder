@@ -8,3 +8,6 @@ db:
   password: postgres
   dbname: autograder
   sslmode: disable
+
+auth:
+  jwtsecret: secret # Change this to a long random string

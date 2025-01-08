@@ -2,15 +2,19 @@ package repository
 
 import (
 	"fmt"
+	"net/mail"
 
-	"github.com/UDCS/Autograder/config"
 	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/config"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 type Datastore interface {
+	// Classroom
 	CreateClassroom(classroom models.Classroom) (models.Classroom, error)
+	// Auth
+	GetUserInfo(email mail.Address) (models.User, error)
 }
 
 type PostgresStore struct {

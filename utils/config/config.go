@@ -11,6 +11,7 @@ type (
 	Config struct {
 		Server *Server
 		Db     *Db
+		Auth   *Auth
 	}
 
 	Server struct {
@@ -24,6 +25,10 @@ type (
 		Password string
 		DBName   string
 		SslMode  string
+	}
+
+	Auth struct {
+		JWTSecret string
 	}
 )
 

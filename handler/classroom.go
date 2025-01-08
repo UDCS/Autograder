@@ -11,27 +11,32 @@ import (
 )
 
 func (router *HttpRouter) CreateClassroom(c echo.Context) error {
-	var newClassroom = &models.Classroom{}
-	err := c.Bind(&newClassroom)
+	var request = &CreateClassroomRequest{}
+	err := c.Bind(&request)
 	if err != nil {
-		log.Fatalf("failed to parse request body to classroom: %v", err)
-		return echo.NewHTTPError(http.StatusUnprocessableEntity, err)
+		log.Fatalf("failed to parse request body: %v", err)
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, "failed to parse request body")
 	}
 
-	if newClassroom.Name == "" {
+	if request.Name == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "cannot create a classroom without a `name`")
 	}
 
-	id := uuid.New()
-
-	newClassroom.ID = id
-	newClassroom.CreatedAt = time.Now().Format(time.RFC3339)
-	newClassroom.UpdatedAt = time.Now().Format(time.RFC3339)
+	newClassroom := &models.Classroom{
+		Name:      request.Name,
+		ID:        uuid.New(),
+		CreatedAt: time.Now().Format(time.RFC3339),
+		UpdatedAt: time.Now().Format(time.RFC3339),
+	}
 
 	createdClassroom, err := router.app.CreateClassroom(*newClassroom)
 	if err != nil {
 		log.Fatalf("failed to create classroom: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to create classroom")
 	}
 	return c.JSON(http.StatusCreated, createdClassroom)
+}
+
+type CreateClassroomRequest struct {
+	Name string `json:"name"`
 }
