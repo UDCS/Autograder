@@ -1,41 +1,33 @@
 package password
 
 import (
-	"crypto/rand"
-	"crypto/sha512"
-	"encoding/hex"
 	"errors"
+	"log"
 	"regexp"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
-func Hash(password string, salt string) string {
-	passwordBytes := []byte(password)
-	passwordBytes = append(passwordBytes, []byte(salt)...)
-
-	sha512Hasher := sha512.New()
-	sha512Hasher.Write(passwordBytes)
-	hashedPasswordBytes := sha512Hasher.Sum(nil)
-	hashedPasswordHex := hex.EncodeToString(hashedPasswordBytes)
-
-	return hashedPasswordHex
+func HashAndSalt(password []byte) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword(password, bcrypt.MinCost)
+	return string(hash), err
 }
 
-func GenerateRandomSalt(saltSize int) (string, error) {
-	var salt = make([]byte, saltSize)
-	_, err := rand.Read(salt[:])
+func ComparePasswords(hashedPassword string, plainPassword string) bool {
+	byteHash := []byte(hashedPassword)
+	bytePlain := []byte(plainPassword)
+	err := bcrypt.CompareHashAndPassword(byteHash, bytePlain)
+	if err != nil {
+		log.Println(err)
+		return false
+	}
 
-	return string(salt), err
-}
-
-func CheckPassword(hashedPassword, currPassword string, salt string) bool {
-	currPasswordHash := Hash(currPassword, salt)
-
-	return hashedPassword == currPasswordHash
+	return true
 }
 
 func CheckPasswordSecurity(password string) (string, error) {
-	if len(password) < 8 {
-		return "", errors.New("password must be at least 8 characters long")
+	if len(password) < 8 || len(password) > 72 {
+		return "", errors.New("password must be at 8-72 characters long")
 	}
 
 	var (

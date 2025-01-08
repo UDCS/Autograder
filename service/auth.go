@@ -31,7 +31,7 @@ func (app *GraderApp) Login(userWithPassword models.UserWithPassword) error {
 		return fmt.Errorf("error retrieving user's info: %v", err)
 	}
 
-	validCredentials := password.CheckPassword(retrievedUser.PasswordHash, userWithPassword.Password, retrievedUser.PasswordSalt)
+	validCredentials := password.ComparePasswords(retrievedUser.PasswordHash, userWithPassword.Password)
 	if !validCredentials {
 		return fmt.Errorf("invalid credentials")
 	}
