@@ -22,4 +22,13 @@ type (
 		User     User   `json:"user"`
 		Password string `json:"password"`
 	}
+
+	UserRole int
+)
+
+const (
+	Admin UserRole = iota
+	Instructor
+	Assistant
+	Student
 )

@@ -19,8 +19,9 @@ func (app *GraderApp) CreateInvitation(invitation models.Invitation) (models.Inv
 
 func (app *GraderApp) SignUp(user models.UserWithInvitation) error {
 	// TODO
-	// check if the invitation is valid
-	// hash the password
+	// check if the invitation is valid using the `invitation_id` and `token`
+	// retrieve the role from the invitation
+	// hash the given password
 	// store the user in the database with the role
 	return nil
 }

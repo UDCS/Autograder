@@ -17,6 +17,7 @@ type Handler interface {
 	SignUp(c context.Context) error
 	Login(c context.Context) error
 	Logout(c context.Context) error
+	PasswordReset(c context.Context) error
 	// Classroom
 	CreateClassroom(c context.Context) error
 }

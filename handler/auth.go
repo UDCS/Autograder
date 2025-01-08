@@ -29,7 +29,6 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 
 	invitation := &models.Invitation{
 		Email:     *parsedEmail,
-		UserRole:  request.UserRole, // TODO: make roles an enum
 		ID:        uuid.New(),
 		CreatedAt: time.Now().Format(time.RFC3339),
 		UpdatedAt: time.Now().Format(time.RFC3339),
@@ -45,7 +44,7 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 }
 
 func (router *HttpRouter) SignUp(c echo.Context) error {
-	request := LoginRequest{}
+	request := SignUpRequest{}
 	err := c.Bind(&request)
 	if err != nil {
 		log.Fatalf("failed to parse request body: %v", err)
@@ -61,6 +60,8 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	user := &models.User{
 		ID:        uuid.New(),
 		Email:     *parsedEmail,
+		FirstName: request.FirstName,
+		LastName:  request.LastName,
 		CreatedAt: time.Now().Format(time.RFC3339),
 		UpdatedAt: time.Now().Format(time.RFC3339),
 	}
@@ -105,14 +106,9 @@ func (router *HttpRouter) Login(c echo.Context) error {
 		UpdatedAt: time.Now().Format(time.RFC3339),
 	}
 
-	parsedPassword, err := password.CheckPasswordSecurity(request.Password)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
-	}
-
 	userWithPassword := &models.UserWithPassword{
 		User:     *user,
-		Password: parsedPassword,
+		Password: request.Password,
 	}
 
 	err = router.app.Login(*userWithPassword)
@@ -125,6 +121,12 @@ func (router *HttpRouter) Login(c echo.Context) error {
 }
 
 func (router *HttpRouter) Logout(c echo.Context) error {
+	// TODO
+	return nil
+}
+
+func (router *HttpRouter) PasswordReset(c echo.Context) error {
+	// TODO
 	return nil
 }
 
@@ -132,6 +134,13 @@ type (
 	CreateInvitationRequest struct {
 		Email    string `json:"email"`
 		UserRole string `json:"user_role"`
+	}
+
+	SignUpRequest struct {
+		Email     string `json:"email"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Password  string `json:"password"`
 	}
 
 	LoginRequest struct {
