@@ -30,6 +30,7 @@ type HttpRouter struct {
 
 func New(app service.App, authConfig *config.Auth) *HttpRouter {
 	e := echo.New()
+	// e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache") // TODO: figure out how to set HTTPS
 	// e.Pre(middleware.HTTPSRedirect()) // TODO: enable this when we have a valid SSL certificate
 
 	e.Use(middleware.Secure())
@@ -37,7 +38,7 @@ func New(app service.App, authConfig *config.Auth) *HttpRouter {
 	e.Use(middleware.BodyLimit("10M")) // limiting request body size to 10MB
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
+	e.Use(middleware.CORS()) // TODO: restrict API access domain to local
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(10))))
 
 	router := &HttpRouter{
