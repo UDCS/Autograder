@@ -23,8 +23,9 @@ type Handler interface {
 }
 
 type HttpRouter struct {
-	engine *echo.Echo
-	app    service.App
+	engine     *echo.Echo
+	app        service.App
+	authConfig *config.Auth
 }
 
 func New(app service.App, authConfig *config.Auth) *HttpRouter {
@@ -40,8 +41,9 @@ func New(app service.App, authConfig *config.Auth) *HttpRouter {
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(10))))
 
 	router := &HttpRouter{
-		engine: e,
-		app:    app,
+		engine:     e,
+		app:        app,
+		authConfig: authConfig,
 	}
 	router.SetupRoutes()
 	return router

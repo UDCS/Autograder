@@ -12,9 +12,9 @@ import (
 
 type Datastore interface {
 	// Classroom
-	CreateClassroom(classroom models.Classroom) (models.Classroom, error)
+	CreateClassroom(classroom models.Classroom) (*models.Classroom, error)
 	// Auth
-	GetUserInfo(email mail.Address) (models.User, error)
+	GetUserInfo(email mail.Address) (*models.User, error)
 }
 
 type PostgresStore struct {

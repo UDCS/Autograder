@@ -8,23 +8,30 @@ import (
 	"net/mail"
 
 	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/middlewares"
 	"github.com/UDCS/Autograder/utils/password"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 func (router *HttpRouter) CreateInvitation(c echo.Context) error {
+	claims, err := middlewares.IsAuthorized(c, router.authConfig.JWTSecret)
+	if err != nil {
+		log.Fatalf("failed to parse cookie: %v", err)
+		return c.JSON(401, echo.Map{"error": "unauthorized"})
+	}
+
 	request := CreateInvitationRequest{}
-	err := c.Bind(&request)
+	err = c.Bind(&request)
 	if err != nil {
 		log.Fatalf("failed to parse request body: %v", err)
-		return echo.NewHTTPError(http.StatusUnprocessableEntity, "failed to parse request body")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
 	parsedEmail, err := mail.ParseAddress(request.Email)
 	if err != nil {
 		log.Fatalf("failed to parse email: %v", err)
-		return echo.NewHTTPError(http.StatusBadRequest, "failed to parse email")
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "failed to parse email"})
 	}
 
 	invitation := &models.Invitation{
@@ -35,10 +42,10 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 		ExpiresAt: time.Now().AddDate(0, 0, 7).Format(time.RFC3339), // expires 7 days from now
 	}
 
-	invitationWithToken, err := router.app.CreateInvitation(*invitation)
+	invitationWithToken, err := router.app.CreateInvitation(claims, *invitation)
 	if err != nil {
 		log.Fatalf("failed to create invitation: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to create invitation")
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create invitation"})
 	}
 	return c.JSON(http.StatusCreated, invitationWithToken)
 }
@@ -48,13 +55,13 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	err := c.Bind(&request)
 	if err != nil {
 		log.Fatalf("failed to parse request body: %v", err)
-		return echo.NewHTTPError(http.StatusUnprocessableEntity, "failed to parse request body")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
 	parsedEmail, err := mail.ParseAddress(request.Email)
 	if err != nil {
 		log.Fatalf("failed to parse email: %v", err)
-		return echo.NewHTTPError(http.StatusBadRequest, "failed to parse email")
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "failed to parse email"})
 	}
 
 	user := &models.User{
@@ -68,7 +75,7 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 
 	parsedPassword, err := password.CheckPasswordSecurity(request.Password)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	userWithPassword := &models.UserWithInvitation{
@@ -76,13 +83,24 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 		Password: parsedPassword,
 	}
 
-	err = router.app.SignUp(*userWithPassword)
+	generatedTokenDetails, err := router.app.SignUp(*userWithPassword)
 
 	if err != nil {
 		log.Fatalf("registration failed: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "registration failed")
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "registration failed"})
 	}
-	return c.JSON(http.StatusOK, "registration successful")
+
+	cookie := &http.Cookie{
+		Name:     "token",
+		Value:    generatedTokenDetails.TokenString,
+		Path:     "/",
+		Expires:  generatedTokenDetails.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	}
+	c.SetCookie(cookie)
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "registration successful"})
 }
 
 func (router *HttpRouter) Login(c echo.Context) error {
@@ -90,13 +108,13 @@ func (router *HttpRouter) Login(c echo.Context) error {
 	err := c.Bind(&request)
 	if err != nil {
 		log.Fatalf("failed to parse request body: %v", err)
-		return echo.NewHTTPError(http.StatusUnprocessableEntity, "failed to parse request body")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
 	parsedEmail, err := mail.ParseAddress(request.Email)
 	if err != nil {
 		log.Fatalf("failed to parse email: %v", err)
-		return echo.NewHTTPError(http.StatusBadRequest, "failed to parse email")
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "failed to parse email"})
 	}
 
 	user := &models.User{
@@ -111,18 +129,38 @@ func (router *HttpRouter) Login(c echo.Context) error {
 		Password: request.Password,
 	}
 
-	err = router.app.Login(*userWithPassword)
+	generatedTokenDetails, err := router.app.Login(*userWithPassword)
 
 	if err != nil {
-		log.Fatalf("failed to login: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to login")
+		log.Fatalf("login failed: %v", err)
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "login failed"})
 	}
-	return c.JSON(http.StatusOK, "login successful")
+
+	cookie := &http.Cookie{
+		Name:     "token",
+		Value:    generatedTokenDetails.TokenString,
+		Path:     "/",
+		Expires:  generatedTokenDetails.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	}
+	c.SetCookie(cookie)
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "login successful"})
 }
 
 func (router *HttpRouter) Logout(c echo.Context) error {
-	// TODO
-	return nil
+	cookie := &http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now(),
+		Secure:   true,
+		HttpOnly: true,
+	}
+	c.SetCookie(cookie)
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "logout successful"})
 }
 
 func (router *HttpRouter) PasswordReset(c echo.Context) error {

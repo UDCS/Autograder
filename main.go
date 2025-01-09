@@ -11,7 +11,7 @@ func main() {
 	config := config.GetConfig()
 
 	graderDatastore := repository.New(config.Db)
-	graderService := service.New(graderDatastore)
+	graderService := service.New(graderDatastore, config.Auth)
 	graderHandler := handler.New(graderService, config.Auth)
 
 	graderHandler.SetupRoutes()

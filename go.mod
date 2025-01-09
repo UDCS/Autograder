@@ -194,7 +194,6 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/fossoreslp/go-uuid-v4 v1.0.0
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
-	github.com/gin-gonic/gin v1.10.0
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gohugoio/hugo v0.140.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible

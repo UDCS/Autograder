@@ -6,7 +6,7 @@ import (
 	"github.com/UDCS/Autograder/models"
 )
 
-func (store PostgresStore) GetUserInfo(email mail.Address) (models.User, error) {
+func (store PostgresStore) GetUserInfo(email mail.Address) (*models.User, error) {
 	var user models.User
 	err := store.db.Get(
 		&user,
@@ -14,5 +14,5 @@ func (store PostgresStore) GetUserInfo(email mail.Address) (models.User, error) 
 		email,
 	)
 
-	return user, err
+	return &user, err
 }

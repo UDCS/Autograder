@@ -6,33 +6,41 @@ import (
 	"time"
 
 	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/middlewares"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 func (router *HttpRouter) CreateClassroom(c echo.Context) error {
-	var request = &CreateClassroomRequest{}
-	err := c.Bind(&request)
+	claims, err := middlewares.IsAuthorized(c, router.authConfig.JWTSecret)
+	if err != nil {
+		log.Fatalf("failed to parse cookie: %v", err)
+		return c.JSON(401, echo.Map{"error": "unauthorized"})
+	}
+
+	var request CreateClassroomRequest
+
+	err = c.Bind(&request)
 	if err != nil {
 		log.Fatalf("failed to parse request body: %v", err)
-		return echo.NewHTTPError(http.StatusUnprocessableEntity, "failed to parse request body")
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
 	if request.Name == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "cannot create a classroom without a `name`")
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "cannot create a classroom without a `name`"})
 	}
 
-	newClassroom := &models.Classroom{
+	newClassroom := models.Classroom{
 		Name:      request.Name,
 		ID:        uuid.New(),
 		CreatedAt: time.Now().Format(time.RFC3339),
 		UpdatedAt: time.Now().Format(time.RFC3339),
 	}
 
-	createdClassroom, err := router.app.CreateClassroom(*newClassroom)
+	createdClassroom, err := router.app.CreateClassroom(claims, newClassroom)
 	if err != nil {
 		log.Fatalf("failed to create classroom: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "failed to create classroom")
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create classroom"})
 	}
 	return c.JSON(http.StatusCreated, createdClassroom)
 }

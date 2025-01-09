@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func HashAndSalt(password []byte) (string, error) {
+func GenerateHashPassword(password []byte) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword(password, bcrypt.MinCost)
 	return string(hash), err
 }
@@ -26,8 +26,8 @@ func ComparePasswords(hashedPassword string, plainPassword string) bool {
 }
 
 func CheckPasswordSecurity(password string) (string, error) {
-	if len(password) < 8 || len(password) > 72 {
-		return "", errors.New("password must be at 8-72 characters long")
+	if len(password) < 8 || len(password) > 64 {
+		return "", errors.New("password must be at 8-64 characters long")
 	}
 
 	var (
