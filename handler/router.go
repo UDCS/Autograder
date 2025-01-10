@@ -58,7 +58,7 @@ func (router *HttpRouter) SetupRoutes() {
 
 	auth := api.Group("/auth")
 	auth.POST("/invite", router.CreateInvitation)
-	auth.POST("/register", router.SignUp)
+	auth.POST("/register/:invitationId", router.SignUp)
 	auth.POST("/login", router.Login)
 	auth.POST("/logout", router.Logout)
 }

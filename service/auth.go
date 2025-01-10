@@ -2,10 +2,13 @@ package service
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/email"
 	"github.com/UDCS/Autograder/utils/jwt_token"
 	"github.com/UDCS/Autograder/utils/password"
+	"github.com/UDCS/Autograder/utils/token"
 )
 
 func (app *GraderApp) CreateInvitation(claims *models.Claims, invitation models.Invitation) (*models.InvitationWithToken, error) {
@@ -13,11 +16,21 @@ func (app *GraderApp) CreateInvitation(claims *models.Claims, invitation models.
 		return nil, fmt.Errorf("unauthorized: only an admin or an instructor can invite users")
 	}
 
-	// TODO
-	// take user's role in request
-	// generate a token
-	// email the invitation with the token
-	// store the token hash and invtiation in database
+	if claims.Role != models.Admin && invitation.UserRole == models.Admin {
+		return nil, fmt.Errorf("unauthorized: only an admin can grant `admin` role")
+	}
+
+	token, tokenHash, err := token.GenerateRandomTokenAndHash()
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: email the invitation with the token
+	email.Send(token)
+
+	invitation.TokenHash = tokenHash
+	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7).Format(time.RFC3339)
+	app.store.CreateInvitation(invitation)
 
 	return nil, nil
 }

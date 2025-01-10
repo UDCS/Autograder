@@ -19,6 +19,13 @@ type (
 		UpdatedAt    string       `json:"updated_at"`
 	}
 
+	UserWithInvitation struct {
+		User            User   `json:"user"`
+		Password        string `json:"password"`
+		InvitationId    string `json:"invitation_id"`
+		InvitationToken string `json:"invitation_token"`
+	}
+
 	UserWithPassword struct {
 		User     User   `json:"user"`
 		Password string `json:"password"`

@@ -11,3 +11,4 @@ db:
 
 auth:
   jwtsecret: secret # Change this to a long random string
+  admin: [admin@udallas.edu] # TODO: invite all given users to be admin when application is set up

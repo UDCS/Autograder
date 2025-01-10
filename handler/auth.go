@@ -35,11 +35,11 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 	}
 
 	invitation := &models.Invitation{
-		Email:     *parsedEmail,
 		ID:        uuid.New(),
+		Email:     *parsedEmail,
+		UserRole:  request.UserRole,
 		CreatedAt: time.Now().Format(time.RFC3339),
 		UpdatedAt: time.Now().Format(time.RFC3339),
-		ExpiresAt: time.Now().AddDate(0, 0, 7).Format(time.RFC3339), // expires 7 days from now
 	}
 
 	invitationWithToken, err := router.app.CreateInvitation(claims, *invitation)
@@ -51,12 +51,10 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 }
 
 func (router *HttpRouter) SignUp(c echo.Context) error {
+	invitationId := c.Param("invitationId")
+	invitationToken := c.QueryParam("token")
+
 	request := SignUpRequest{}
-	err := c.Bind(&request)
-	if err != nil {
-		log.Fatalf("failed to parse request body: %v", err)
-		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
-	}
 
 	parsedEmail, err := mail.ParseAddress(request.Email)
 	if err != nil {
@@ -78,12 +76,14 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	userWithPassword := &models.UserWithInvitation{
-		User:     *user,
-		Password: parsedPassword,
+	UserWithInvitation := models.UserWithInvitation{
+		User:            *user,
+		Password:        parsedPassword,
+		InvitationId:    invitationId,
+		InvitationToken: invitationToken,
 	}
 
-	generatedTokenDetails, err := router.app.SignUp(*userWithPassword)
+	generatedTokenDetails, err := router.app.SignUp(UserWithInvitation)
 
 	if err != nil {
 		log.Fatalf("registration failed: %v", err)
@@ -170,8 +170,8 @@ func (router *HttpRouter) PasswordReset(c echo.Context) error {
 
 type (
 	CreateInvitationRequest struct {
-		Email    string `json:"email"`
-		UserRole string `json:"user_role"`
+		Email    string          `json:"email"`
+		UserRole models.UserRole `json:"user_role"`
 	}
 
 	SignUpRequest struct {
