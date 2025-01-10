@@ -11,13 +11,23 @@ import (
 	"github.com/UDCS/Autograder/utils/token"
 )
 
-func (app *GraderApp) CreateInvitation(claims *models.Claims, invitation models.Invitation) (*models.InvitationWithToken, error) {
+func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invitation) (*models.InvitationWithToken, error) {
+	claims, err := jwt_token.ParseTokenString(jwksToken, app.authConfig.JWTSecret)
+	if err != nil {
+		return nil, fmt.Errorf("invalid autorization credentials")
+	}
+
 	if claims.Role != models.Admin && claims.Role != models.Instructor {
 		return nil, fmt.Errorf("unauthorized: only an admin or an instructor can invite users")
 	}
 
 	if claims.Role != models.Admin && invitation.UserRole == models.Admin {
 		return nil, fmt.Errorf("unauthorized: only an admin can grant `admin` role")
+	}
+
+	retrievedUser, _ := app.store.GetUserInfo(invitation.Email)
+	if retrievedUser != nil {
+		return nil, fmt.Errorf("user already exists")
 	}
 
 	token, tokenHash, err := token.GenerateRandomTokenAndHash()
@@ -35,10 +45,15 @@ func (app *GraderApp) CreateInvitation(claims *models.Claims, invitation models.
 	return nil, nil
 }
 
-func (app *GraderApp) SignUp(user models.UserWithInvitation) (*models.JWTTokenDetails, error) {
+func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation) (*models.JWTTokenDetails, error) {
+	retrievedUser, _ := app.store.GetUserInfo(userWithInvitation.User.Email)
+	if retrievedUser != nil {
+		return nil, fmt.Errorf("user already exists")
+	}
+
 	// TODO
-	// check if the invitation is valid using the `invitation_id` and `token`
-	// retrieve the role from the invitation
+	// retrieve invitation by checking if the invitation is valid using the `invitation_id` and `token`
+	// get the role from the invitation
 	// hash the given password
 	// store the user in the database with the role
 	return nil, nil
@@ -58,8 +73,4 @@ func (app *GraderApp) Login(userWithPassword models.UserWithPassword) (*models.J
 	tokenDetails, err := jwt_token.CreateJWTToken(retrievedUser.Email.Address, retrievedUser.Role, app.authConfig.JWTSecret)
 
 	return tokenDetails, err
-}
-
-func (app *GraderApp) Logout(claims *models.Claims, user models.User) (*models.JWTTokenDetails, error) {
-	return nil, nil
 }

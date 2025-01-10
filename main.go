@@ -12,7 +12,7 @@ func main() {
 
 	graderDatastore := repository.New(config.Db)
 	graderService := service.New(graderDatastore, config.Auth)
-	graderHandler := handler.New(graderService, config.Auth)
+	graderHandler := handler.New(graderService)
 
 	graderHandler.SetupRoutes()
 	graderHandler.Engage(config.Server.Port)

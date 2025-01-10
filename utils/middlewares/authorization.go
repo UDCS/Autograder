@@ -2,19 +2,22 @@ package middlewares
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/UDCS/Autograder/models"
-	"github.com/UDCS/Autograder/utils/jwt_token"
 	"github.com/labstack/echo/v4"
 )
 
-func IsAuthorized(c echo.Context, JWTSecret string) (*models.Claims, error) {
+func ParseCookie(c echo.Context) (tokenString string, err error) {
 	cookie, err := c.Cookie("token")
+
 	if err != nil {
-		return nil, fmt.Errorf("could not find `token` cookie: %v", err)
+		return "", fmt.Errorf("could not find `token` cookie: %v", err)
 
 	}
 
-	claims, err := jwt_token.ParseCookie(*cookie, JWTSecret)
-	return claims, err
+	if cookie.Expires.After(time.Now()) {
+		return "", fmt.Errorf("expired authentication credentials")
+	}
+
+	return cookie.Value, nil
 }

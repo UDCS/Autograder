@@ -2,7 +2,6 @@ package jwt_token
 
 import (
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
@@ -32,12 +31,8 @@ func CreateJWTToken(userEmail string, userRole models.UserRole, JWTSecret string
 	return &tokenDetails, nil
 }
 
-func ParseCookie(cookie http.Cookie, JWTSecret string) (*models.Claims, error) {
-	if cookie.Expires.After(time.Now()) {
-		return nil, fmt.Errorf("expired authentication credentials")
-	}
-
-	token, err := jwt.ParseWithClaims(cookie.Value, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
+func ParseTokenString(tokenString string, JWTSecret string) (*models.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(JWTSecret), nil
 	})
 

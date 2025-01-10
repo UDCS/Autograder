@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/UDCS/Autograder/service"
-	"github.com/UDCS/Autograder/utils/config"
 	"github.com/UDCS/Autograder/web"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -23,12 +22,11 @@ type Handler interface {
 }
 
 type HttpRouter struct {
-	engine     *echo.Echo
-	app        service.App
-	authConfig *config.Auth
+	engine *echo.Echo
+	app    service.App
 }
 
-func New(app service.App, authConfig *config.Auth) *HttpRouter {
+func New(app service.App) *HttpRouter {
 	e := echo.New()
 	// e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache") // TODO: figure out how to set HTTPS
 	// e.Pre(middleware.HTTPSRedirect()) // TODO: enable this when we have a valid SSL certificate
@@ -42,9 +40,8 @@ func New(app service.App, authConfig *config.Auth) *HttpRouter {
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(10))))
 
 	router := &HttpRouter{
-		engine:     e,
-		app:        app,
-		authConfig: authConfig,
+		engine: e,
+		app:    app,
 	}
 	router.SetupRoutes()
 	return router

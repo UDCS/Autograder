@@ -12,7 +12,7 @@ import (
 )
 
 func (router *HttpRouter) CreateClassroom(c echo.Context) error {
-	claims, err := middlewares.IsAuthorized(c, router.authConfig.JWTSecret)
+	tokenString, err := middlewares.ParseCookie(c)
 	if err != nil {
 		log.Fatalf("failed to parse cookie: %v", err)
 		return c.JSON(401, echo.Map{"error": "unauthorized"})
@@ -37,7 +37,7 @@ func (router *HttpRouter) CreateClassroom(c echo.Context) error {
 		UpdatedAt: time.Now().Format(time.RFC3339),
 	}
 
-	createdClassroom, err := router.app.CreateClassroom(claims, newClassroom)
+	createdClassroom, err := router.app.CreateClassroom(tokenString, newClassroom)
 	if err != nil {
 		log.Fatalf("failed to create classroom: %v", err)
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create classroom"})
