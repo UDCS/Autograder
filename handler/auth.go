@@ -56,15 +56,8 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 
 	request := SignUpRequest{}
 
-	parsedEmail, err := mail.ParseAddress(request.Email)
-	if err != nil {
-		log.Fatalf("failed to parse email: %v", err)
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "failed to parse email"})
-	}
-
-	user := &models.User{
+	user := models.User{
 		ID:        uuid.New(),
-		Email:     *parsedEmail,
 		FirstName: request.FirstName,
 		LastName:  request.LastName,
 		CreatedAt: time.Now().Format(time.RFC3339),
@@ -77,7 +70,7 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	}
 
 	UserWithInvitation := models.UserWithInvitation{
-		User:            *user,
+		User:            user,
 		Password:        parsedPassword,
 		InvitationId:    invitationId,
 		InvitationToken: invitationToken,
@@ -175,7 +168,6 @@ type (
 	}
 
 	SignUpRequest struct {
-		Email     string `json:"email"`
 		FirstName string `json:"first_name"`
 		LastName  string `json:"last_name"`
 		Password  string `json:"password"`

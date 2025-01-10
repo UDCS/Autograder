@@ -16,9 +16,4 @@ type (
 		UpdatedAt string       `json:"updated_at"`
 		ExpiresAt string       `json:"expires_at"`
 	}
-
-	InvitationWithToken struct {
-		Invitation Invitation `json:"invitation"`
-		Token      string     `json:"token"`
-	}
 )

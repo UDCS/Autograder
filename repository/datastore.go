@@ -15,7 +15,9 @@ type Datastore interface {
 	CreateClassroom(classroom models.Classroom) (*models.Classroom, error)
 	// Auth
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
+	CreateUser(user models.User) (*models.User, error)
 	GetUserInfo(email mail.Address) (*models.User, error)
+	GetInvitation(invitationId string, tokenHash string) (*models.Invitation, error)
 }
 
 type PostgresStore struct {

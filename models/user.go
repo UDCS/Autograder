@@ -14,7 +14,7 @@ type (
 		LastName     string       `json:"last_name"`
 		Email        mail.Address `json:"email"`
 		PasswordHash string       `json:"password_hash"`
-		Role         UserRole     `json:"role"`
+		Role         UserRole     `json:"user_role"`
 		CreatedAt    string       `json:"created_at"`
 		UpdatedAt    string       `json:"updated_at"`
 	}

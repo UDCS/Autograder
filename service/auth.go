@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
@@ -11,7 +12,7 @@ import (
 	"github.com/UDCS/Autograder/utils/token"
 )
 
-func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invitation) (*models.InvitationWithToken, error) {
+func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invitation) (*models.Invitation, error) {
 	claims, err := jwt_token.ParseTokenString(jwksToken, app.authConfig.JWTSecret)
 	if err != nil {
 		return nil, fmt.Errorf("invalid autorization credentials")
@@ -40,9 +41,14 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7).Format(time.RFC3339)
-	app.store.CreateInvitation(invitation)
+	createdInvitation, err := app.store.CreateInvitation(invitation)
 
-	return nil, nil
+	if err != nil {
+		log.Fatalf("failed to update the database: %v", err)
+		return nil, err
+	}
+
+	return createdInvitation, nil
 }
 
 func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation) (*models.JWTTokenDetails, error) {
@@ -51,12 +57,30 @@ func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation) (*mod
 		return nil, fmt.Errorf("user already exists")
 	}
 
-	// TODO
-	// retrieve invitation by checking if the invitation is valid using the `invitation_id` and `token`
-	// get the role from the invitation
-	// hash the given password
-	// store the user in the database with the role
-	return nil, nil
+	tokenHash := token.HashToken(userWithInvitation.InvitationToken)
+	retrievedInvitation, err := app.store.GetInvitation(userWithInvitation.InvitationId, tokenHash)
+	if err != nil {
+		return nil, fmt.Errorf("invitation not found")
+	}
+
+	hashedPassword, err := password.HashPassword([]byte(userWithInvitation.Password))
+	if err != nil {
+		return nil, fmt.Errorf("could not hash password")
+	}
+
+	newUser := userWithInvitation.User
+	newUser.Email = retrievedInvitation.Email
+	newUser.Role = retrievedInvitation.UserRole
+	newUser.PasswordHash = hashedPassword
+
+	createdUser, err := app.store.CreateUser(newUser)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to update the database: %v", err)
+	}
+	tokenDetails, err := jwt_token.CreateJWTToken(createdUser.Email.Address, createdUser.Role, app.authConfig.JWTSecret)
+
+	return tokenDetails, err
 }
 
 func (app *GraderApp) Login(userWithPassword models.UserWithPassword) (*models.JWTTokenDetails, error) {
