@@ -5,33 +5,46 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/UDCS/Autograder/entities"
+	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/middlewares"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
 func (router *HttpRouter) CreateClassroom(c echo.Context) error {
-	var newClassroom = &entities.Classroom{}
-	err := c.Bind(&newClassroom)
+	tokenString, err := middlewares.ParseCookie(c)
 	if err != nil {
-		log.Fatalf("failed to parse request body to classroom: %v", err)
-		return echo.NewHTTPError(http.StatusUnprocessableEntity, err)
+		log.Fatalf("failed to parse cookie: %v", err)
+		return c.JSON(401, echo.Map{"error": "unauthorized"})
 	}
 
-	if newClassroom.Name == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "cannot create a classroom without a `name`")
+	var request CreateClassroomRequest
+
+	err = c.Bind(&request)
+	if err != nil {
+		log.Fatalf("failed to parse request body: %v", err)
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
-	id := uuid.New()
+	if request.Name == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "cannot create a classroom without a `name`"})
+	}
 
-	newClassroom.ID = id
-	newClassroom.CreatedAt = time.Now().Format(time.RFC3339)
-	newClassroom.UpdatedAt = time.Now().Format(time.RFC3339)
+	newClassroom := models.Classroom{
+		Name:      request.Name,
+		Id:        uuid.New(),
+		CreatedAt: time.Now().Format(time.RFC3339),
+		UpdatedAt: time.Now().Format(time.RFC3339),
+	}
 
-	createdClassroom, err := router.app.CreateClassroom(*newClassroom)
+	createdClassroom, err := router.app.CreateClassroom(tokenString, newClassroom)
 	if err != nil {
 		log.Fatalf("failed to create classroom: %v", err)
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create classroom"})
 	}
 	return c.JSON(http.StatusCreated, createdClassroom)
+}
+
+type CreateClassroomRequest struct {
+	Name string `json:"name"`
 }
