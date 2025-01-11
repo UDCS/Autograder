@@ -37,7 +37,7 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 	}
 
 	// TODO: email the invitation with the link containg both token and invitation I
-	email.Send(token)
+	email.Send("auth/invitations" + invitation.Id.String() + "?token=" + token)
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7).Format(time.RFC3339)
@@ -111,7 +111,7 @@ func (app *GraderApp) PasswordResetRequest(resetRequest models.PasswordResetDeta
 	}
 
 	// TODO: email the link for the change
-	email.Send(token)
+	email.Send("auth/reset_password" + resetRequest.Id.String() + "?token=" + token)
 
 	resetRequest.UserId = retrievedUser.Id.String()
 	resetRequest.TokenHash = tokenHash
