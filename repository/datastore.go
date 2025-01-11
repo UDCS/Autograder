@@ -17,7 +17,11 @@ type Datastore interface {
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
 	CreateUser(user models.User) (*models.User, error)
 	GetUserInfo(email mail.Address) (*models.User, error)
+	UpdateUserPassword(userId string, passwordHash string, updatedAt string) (*models.User, error)
 	GetInvitation(invitationId string, tokenHash string) (*models.Invitation, error)
+	CreatePasswordChangeRequest(resetDetails models.PasswordResetDetails) error
+	GetPasswordChangeRequest(requestId string, tokenHash string) (*models.PasswordResetDetails, error)
+	DeletePasswordChangeRequest(requestId string) error
 }
 
 type PostgresStore struct {

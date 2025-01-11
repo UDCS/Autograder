@@ -8,7 +8,7 @@ import (
 
 type (
 	Invitation struct {
-		ID        uuid.UUID    `json:"id"`
+		Id        uuid.UUID    `json:"id"`
 		Email     mail.Address `json:"email"`
 		UserRole  UserRole     `json:"user_role"`
 		TokenHash string       `json:"token_hash"`

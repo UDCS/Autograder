@@ -10,7 +10,7 @@ func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.
 	createdClassroom := models.Classroom{}
 	err := store.db.QueryRowx(
 		"INSERT INTO classrooms (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING id, name, created_at, updated_at;",
-		classroom.ID, classroom.Name, classroom.CreatedAt, classroom.UpdatedAt,
+		classroom.Id, classroom.Name, classroom.CreatedAt, classroom.UpdatedAt,
 	).StructScan(&createdClassroom)
 
 	if err != nil {

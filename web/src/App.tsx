@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "./App.css"; 
+import "./App.css";
 
 function App() {
   const [data, setData] = useState("");
@@ -14,14 +14,11 @@ function App() {
     fetchData().catch((err) => console.log(err));
   }, []);
 
-
-
   return (
     <div className="App">
       <h1>{data}</h1>
     </div>
   );
-
 }
 
 export default App;

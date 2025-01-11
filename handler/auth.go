@@ -35,7 +35,7 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 	}
 
 	invitation := &models.Invitation{
-		ID:        uuid.New(),
+		Id:        uuid.New(),
 		Email:     *parsedEmail,
 		UserRole:  request.UserRole,
 		CreatedAt: time.Now().Format(time.RFC3339),
@@ -57,7 +57,7 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	request := SignUpRequest{}
 
 	user := models.User{
-		ID:        uuid.New(),
+		Id:        uuid.New(),
 		FirstName: request.FirstName,
 		LastName:  request.LastName,
 		CreatedAt: time.Now().Format(time.RFC3339),
@@ -79,8 +79,8 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	generatedTokenDetails, err := router.app.SignUp(UserWithInvitation)
 
 	if err != nil {
-		log.Fatalf("registration failed: %v", err)
-		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "registration failed"})
+		log.Fatalf("login failed: %v", err)
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "login failed"})
 	}
 
 	cookie := &http.Cookie{
@@ -111,7 +111,7 @@ func (router *HttpRouter) Login(c echo.Context) error {
 	}
 
 	user := &models.User{
-		ID:        uuid.New(),
+		Id:        uuid.New(),
 		Email:     *parsedEmail,
 		CreatedAt: time.Now().Format(time.RFC3339),
 		UpdatedAt: time.Now().Format(time.RFC3339),
@@ -156,9 +156,76 @@ func (router *HttpRouter) Logout(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"message": "logout successful"})
 }
 
+func (router *HttpRouter) PasswordResetRequest(c echo.Context) error {
+	request := PasswordResetRequest{}
+
+	err := c.Bind(&request)
+	if err != nil {
+		log.Fatalf("failed to parse request body: %v", err)
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
+	}
+
+	parsedEmail, err := mail.ParseAddress(request.Email)
+	if err != nil {
+		log.Fatalf("failed to parse email: %v", err)
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "failed to parse email"})
+	}
+
+	resetRequest := models.PasswordResetDetails{
+		Id:        uuid.New(),
+		Email:     *parsedEmail,
+		CreatedAt: time.Now().Format(time.RFC3339),
+	}
+
+	err = router.app.PasswordResetRequest(resetRequest)
+	if err != nil {
+		log.Fatalf("failed to create a password reset request: %v", err)
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create a password reset request"})
+	}
+	return c.JSON(http.StatusAccepted, echo.Map{"message": "password reset request accepted"})
+}
+
 func (router *HttpRouter) PasswordReset(c echo.Context) error {
-	// TODO
-	return nil
+	requestId := c.Param("requestId")
+	token := c.QueryParam("token")
+
+	request := NewPasswordRequest{}
+
+	err := c.Bind(&request)
+	if err != nil {
+		log.Fatalf("failed to parse request body: %v", err)
+		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
+	}
+
+	parsedPassword, err := password.CheckPasswordSecurity(request.NewPassword)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	newPasswordDetails := models.NewPasswordDetails{
+		RequestId:    requestId,
+		RequestToken: token,
+		NewPassword:  parsedPassword,
+	}
+
+	generatedTokenDetails, err := router.app.PasswordReset(newPasswordDetails)
+
+	if err != nil {
+		log.Fatalf("login failed: %v", err)
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "login failed"})
+	}
+
+	cookie := &http.Cookie{
+		Name:     "token",
+		Value:    generatedTokenDetails.TokenString,
+		Path:     "/",
+		Expires:  generatedTokenDetails.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	}
+	c.SetCookie(cookie)
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "password reset successful"})
 }
 
 type (
@@ -176,5 +243,13 @@ type (
 	LoginRequest struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
+	}
+
+	PasswordResetRequest struct {
+		Email string `json:"email"`
+	}
+
+	NewPasswordRequest struct {
+		NewPassword string `json:"password"`
 	}
 )

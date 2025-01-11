@@ -32,7 +32,7 @@ func (router *HttpRouter) CreateClassroom(c echo.Context) error {
 
 	newClassroom := models.Classroom{
 		Name:      request.Name,
-		ID:        uuid.New(),
+		Id:        uuid.New(),
 		CreatedAt: time.Now().Format(time.RFC3339),
 		UpdatedAt: time.Now().Format(time.RFC3339),
 	}

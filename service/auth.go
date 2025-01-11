@@ -36,7 +36,7 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 		return nil, err
 	}
 
-	// TODO: email the invitation with the token
+	// TODO: email the invitation with the link containg both token and invitation I
 	email.Send(token)
 
 	invitation.TokenHash = tokenHash
@@ -97,4 +97,67 @@ func (app *GraderApp) Login(userWithPassword models.UserWithPassword) (*models.J
 	tokenDetails, err := jwt_token.CreateJWTToken(retrievedUser.Email.Address, retrievedUser.Role, app.authConfig.JWTSecret)
 
 	return tokenDetails, err
+}
+
+func (app *GraderApp) PasswordResetRequest(resetRequest models.PasswordResetDetails) error {
+	retrievedUser, err := app.store.GetUserInfo(resetRequest.Email)
+	if err != nil {
+		return fmt.Errorf("user does not exist")
+	}
+
+	token, tokenHash, err := token.GenerateRandomTokenAndHash()
+	if err != nil {
+		return err
+	}
+
+	// TODO: email the link for the change
+	email.Send(token)
+
+	resetRequest.UserId = retrievedUser.Id.String()
+	resetRequest.TokenHash = tokenHash
+	resetRequest.ExpiresAt = time.Now().AddDate(0, 0, 7)
+
+	err = app.store.CreatePasswordChangeRequest(resetRequest)
+
+	if err != nil {
+		log.Fatalf("failed to update the database: %v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (app *GraderApp) PasswordReset(details models.NewPasswordDetails) (*models.JWTTokenDetails, error) {
+	tokenHash := token.HashToken(details.RequestToken)
+	retrievedResetRequest, err := app.store.GetPasswordChangeRequest(details.RequestId, tokenHash)
+	if err != nil {
+		return nil, fmt.Errorf("password change request was not found")
+	}
+
+	if time.Now().After(retrievedResetRequest.ExpiresAt) {
+		return nil, fmt.Errorf("password change request has expired")
+	}
+
+	hashedPassword, err := password.HashPassword([]byte(details.NewPassword))
+	if err != nil {
+		return nil, fmt.Errorf("could not hash password")
+	}
+
+	currentTime := time.Now().Format(time.RFC3339)
+	updatedUser, err := app.store.UpdateUserPassword(retrievedResetRequest.UserId, hashedPassword, currentTime)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update the database: %v", err)
+	}
+
+	err = app.store.DeletePasswordChangeRequest(details.RequestId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update the database: %v", err)
+	}
+
+	tokenDetails, err := jwt_token.CreateJWTToken(updatedUser.Email.Address, updatedUser.Role, app.authConfig.JWTSecret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create JWT token: %v", err)
+	}
+
+	return tokenDetails, nil
 }

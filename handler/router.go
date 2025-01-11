@@ -17,6 +17,7 @@ type Handler interface {
 	Login(c context.Context) error
 	Logout(c context.Context) error
 	PasswordReset(c context.Context) error
+	PasswordResetRequest(c context.Context) error
 	// Classroom
 	CreateClassroom(c context.Context) error
 }
@@ -29,10 +30,10 @@ type HttpRouter struct {
 func New(app service.App) *HttpRouter {
 	e := echo.New()
 	// e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache") // TODO: figure out how to set HTTPS
-	// e.Pre(middleware.HTTPSRedirect()) // TODO: enable this when we have a valid SSL certificate
+	// e.Pre(middleware.HTTPSRedirect()) // TODO: enable this when HTTPS is set up
 
 	e.Use(middleware.Secure())
-	e.Use(middleware.CSRF())           // TODO: add CSRF token to the client
+	e.Use(middleware.CSRF())           // TODO: add CSRF token to the client - https://github.com/labstack/echo/issues/582#issuecomment-310299266
 	e.Use(middleware.BodyLimit("10M")) // limiting request body size to 10MB
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -58,6 +59,8 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.POST("/register/:invitationId", router.SignUp)
 	auth.POST("/login", router.Login)
 	auth.POST("/logout", router.Logout)
+	auth.POST("/password", router.PasswordResetRequest)
+	auth.POST("/reset_password/:resetId", router.PasswordReset)
 }
 
 func (router *HttpRouter) Engage(port string) {
