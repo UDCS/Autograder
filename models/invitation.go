@@ -10,7 +10,7 @@ type (
 	Invitation struct {
 		Id        uuid.UUID    `json:"id"`
 		Email     mail.Address `json:"email"`
-		UserRole  UserRole     `json:"user_role"`
+		UserRole  UserRole     `json:"role"`
 		TokenHash string       `json:"token_hash"`
 		CreatedAt string       `json:"created_at"`
 		UpdatedAt string       `json:"updated_at"`

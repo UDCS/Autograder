@@ -74,3 +74,12 @@ You can now run the using `main.exe`
 The backend for this project makes use of a slightly modified version of the Three-Layered Architecture. The incoming requests are parsed into the correspoding entity (defined inside `models`) by the `handler` layer. A valid request passes from the `handler` into the `service` layer, where all the business logic is performed. The next step after the `service` layer is the `datastore` layer, where the necessary database operation is performed. 
 
 Such an architecture allows one layer to be modified and tested independently of other operations in addition to providing all the benefits of modularity.
+
+## APIs
+
+Sign in
+
+Create Classroom: 
+```
+curl -X POST http://localhost:8080/api/classroom -H 'Content-Type: application/json' -H 'X-CSRF-Token: valid_csrf_token' -d '{"name":"Joe"}'
+```

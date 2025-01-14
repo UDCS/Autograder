@@ -1,28 +1,29 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/UDCS/Autograder/utils/middlewares"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 )
 
 func (router *HttpRouter) CreateClassroom(c echo.Context) error {
 	tokenString, err := middlewares.ParseCookie(c)
 	if err != nil {
-		log.Fatalf("failed to parse cookie: %v", err)
-		return c.JSON(401, echo.Map{"error": "unauthorized"})
+		logger.Error("failed to parse cookie", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
 	}
 
 	var request CreateClassroomRequest
 
 	err = c.Bind(&request)
 	if err != nil {
-		log.Fatalf("failed to parse request body: %v", err)
+		logger.Error("failed to parse request body", zap.Error(err))
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
@@ -39,7 +40,7 @@ func (router *HttpRouter) CreateClassroom(c echo.Context) error {
 
 	createdClassroom, err := router.app.CreateClassroom(tokenString, newClassroom)
 	if err != nil {
-		log.Fatalf("failed to create classroom: %v", err)
+		logger.Error("failed to create classroom", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create classroom"})
 	}
 	return c.JSON(http.StatusCreated, createdClassroom)

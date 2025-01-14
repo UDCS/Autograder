@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"log"
-
 	"github.com/UDCS/Autograder/models"
 )
 
@@ -14,7 +12,6 @@ func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.
 	).StructScan(&createdClassroom)
 
 	if err != nil {
-		log.Fatalf("failed to update the database: %v", err)
 		return nil, err
 	}
 	return &createdClassroom, nil

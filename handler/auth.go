@@ -1,36 +1,37 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"time"
 
 	"net/mail"
 
 	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/UDCS/Autograder/utils/middlewares"
 	"github.com/UDCS/Autograder/utils/password"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 )
 
 func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 	tokenString, err := middlewares.ParseCookie(c)
 	if err != nil {
-		log.Fatalf("failed to parse cookie: %v", err)
-		return c.JSON(401, echo.Map{"error": "unauthorized"})
+		logger.Error("failed to parse cookie", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
 	}
 
 	request := CreateInvitationRequest{}
 	err = c.Bind(&request)
 	if err != nil {
-		log.Fatalf("failed to parse request body: %v", err)
+		logger.Error("failed to parse request body", zap.Error(err))
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
 	parsedEmail, err := mail.ParseAddress(request.Email)
 	if err != nil {
-		log.Fatalf("failed to parse email: %v", err)
+		logger.Error("failed to parse email", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "failed to parse email"})
 	}
 
@@ -44,7 +45,7 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 
 	invitationWithToken, err := router.app.CreateInvitation(tokenString, *invitation)
 	if err != nil {
-		log.Fatalf("failed to create invitation: %v", err)
+		logger.Error("failed to create invitation", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create invitation"})
 	}
 	return c.JSON(http.StatusCreated, invitationWithToken)
@@ -79,7 +80,7 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	generatedTokenDetails, err := router.app.SignUp(UserWithInvitation)
 
 	if err != nil {
-		log.Fatalf("login failed: %v", err)
+		logger.Error("login failed", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "login failed"})
 	}
 
@@ -100,13 +101,13 @@ func (router *HttpRouter) Login(c echo.Context) error {
 	request := LoginRequest{}
 	err := c.Bind(&request)
 	if err != nil {
-		log.Fatalf("failed to parse request body: %v", err)
+		logger.Error("failed to parse request body", zap.Error(err))
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
 	parsedEmail, err := mail.ParseAddress(request.Email)
 	if err != nil {
-		log.Fatalf("failed to parse email: %v", err)
+		logger.Error("failed to parse email", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "failed to parse email"})
 	}
 
@@ -125,7 +126,7 @@ func (router *HttpRouter) Login(c echo.Context) error {
 	generatedTokenDetails, err := router.app.Login(*userWithPassword)
 
 	if err != nil {
-		log.Fatalf("login failed: %v", err)
+		logger.Error("login failed", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "login failed"})
 	}
 
@@ -161,13 +162,13 @@ func (router *HttpRouter) PasswordResetRequest(c echo.Context) error {
 
 	err := c.Bind(&request)
 	if err != nil {
-		log.Fatalf("failed to parse request body: %v", err)
+		logger.Error("failed to parse request body", zap.Error(err))
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
 	parsedEmail, err := mail.ParseAddress(request.Email)
 	if err != nil {
-		log.Fatalf("failed to parse email: %v", err)
+		logger.Error("failed to parse email", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "failed to parse email"})
 	}
 
@@ -179,7 +180,7 @@ func (router *HttpRouter) PasswordResetRequest(c echo.Context) error {
 
 	err = router.app.PasswordResetRequest(resetRequest)
 	if err != nil {
-		log.Fatalf("failed to create a password reset request: %v", err)
+		logger.Error("failed to create a password reset request", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to create a password reset request"})
 	}
 	return c.JSON(http.StatusAccepted, echo.Map{"message": "password reset request accepted"})
@@ -193,7 +194,7 @@ func (router *HttpRouter) PasswordReset(c echo.Context) error {
 
 	err := c.Bind(&request)
 	if err != nil {
-		log.Fatalf("failed to parse request body: %v", err)
+		logger.Error("failed to parse request body", zap.Error(err))
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{"error": "failed to parse request body"})
 	}
 
@@ -211,7 +212,7 @@ func (router *HttpRouter) PasswordReset(c echo.Context) error {
 	generatedTokenDetails, err := router.app.PasswordReset(newPasswordDetails)
 
 	if err != nil {
-		log.Fatalf("login failed: %v", err)
+		logger.Error("login failed", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "login failed"})
 	}
 
@@ -231,7 +232,7 @@ func (router *HttpRouter) PasswordReset(c echo.Context) error {
 type (
 	CreateInvitationRequest struct {
 		Email    string          `json:"email"`
-		UserRole models.UserRole `json:"user_role"`
+		UserRole models.UserRole `json:"role"`
 	}
 
 	SignUpRequest struct {

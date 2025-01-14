@@ -2,14 +2,15 @@ package service
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/email"
 	"github.com/UDCS/Autograder/utils/jwt_token"
+	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/UDCS/Autograder/utils/password"
 	"github.com/UDCS/Autograder/utils/token"
+	"go.uber.org/zap"
 )
 
 func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invitation) (*models.Invitation, error) {
@@ -44,7 +45,7 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 	createdInvitation, err := app.store.CreateInvitation(invitation)
 
 	if err != nil {
-		log.Fatalf("failed to update the database: %v", err)
+		logger.Error("failed to update the database", zap.Error(err))
 		return nil, err
 	}
 
@@ -120,7 +121,7 @@ func (app *GraderApp) PasswordResetRequest(resetRequest models.PasswordResetDeta
 	err = app.store.CreatePasswordChangeRequest(resetRequest)
 
 	if err != nil {
-		log.Fatalf("failed to update the database: %v", err)
+		logger.Error("failed to update the database", zap.Error(err))
 		return err
 	}
 

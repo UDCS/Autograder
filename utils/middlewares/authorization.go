@@ -12,7 +12,6 @@ func ParseCookie(c echo.Context) (tokenString string, err error) {
 
 	if err != nil {
 		return "", fmt.Errorf("could not find `token` cookie: %v", err)
-
 	}
 
 	if cookie.Expires.After(time.Now()) {
