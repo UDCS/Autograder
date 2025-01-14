@@ -2,15 +2,26 @@ package repository
 
 import (
 	"fmt"
+	"net/mail"
 
-	"github.com/UDCS/Autograder/config"
-	"github.com/UDCS/Autograder/entities"
+	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/config"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 type Datastore interface {
-	CreateClassroom(classroom entities.Classroom) (entities.Classroom, error)
+	// Classroom
+	CreateClassroom(classroom models.Classroom) (*models.Classroom, error)
+	// Auth
+	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
+	CreateUser(user models.User) (*models.User, error)
+	GetUserInfo(email mail.Address) (*models.User, error)
+	UpdateUserPassword(userId string, passwordHash string, updatedAt string) (*models.User, error)
+	GetInvitation(invitationId string, tokenHash string) (*models.Invitation, error)
+	CreatePasswordChangeRequest(resetDetails models.PasswordResetDetails) error
+	GetPasswordChangeRequest(requestId string, tokenHash string) (*models.PasswordResetDetails, error)
+	DeletePasswordChangeRequest(requestId string) error
 }
 
 type PostgresStore struct {
