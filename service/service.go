@@ -9,6 +9,7 @@ import (
 type App interface {
 	// Auth
 	CreateInvitation(jwksToken string, invitation models.Invitation) (*models.Invitation, error)
+	InviteAdmin(invitation models.Invitation) (*models.Invitation, error)
 	SignUp(user models.UserWithInvitation) (*models.JWTTokenDetails, error)
 	Login(user models.UserWithPassword) (*models.JWTTokenDetails, error)
 	PasswordResetRequest(resetRequest models.PasswordResetDetails) error

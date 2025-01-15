@@ -52,6 +52,32 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 	return createdInvitation, nil
 }
 
+func (app *GraderApp) InviteAdmin(invitation models.Invitation) (*models.Invitation, error) {
+	retrievedUser, _ := app.store.GetUserInfo(invitation.Email)
+	if retrievedUser != nil {
+		return nil, fmt.Errorf("user already exists")
+	}
+
+	token, tokenHash, err := token.GenerateRandomTokenAndHash()
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: email the invitation with the link containg both token and invitation I
+	email.Send("auth/invitations" + invitation.Id.String() + "?token=" + token)
+
+	invitation.TokenHash = tokenHash
+	invitation.ExpiresAt = time.Now().AddDate(0, 0, 14).Format(time.RFC3339)
+	createdInvitation, err := app.store.CreateInvitation(invitation)
+
+	if err != nil {
+		logger.Error("failed to update the database", zap.Error(err))
+		return nil, err
+	}
+
+	return createdInvitation, nil
+}
+
 func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation) (*models.JWTTokenDetails, error) {
 	retrievedUser, _ := app.store.GetUserInfo(userWithInvitation.User.Email)
 	if retrievedUser != nil {

@@ -29,6 +29,7 @@ type (
 
 	Auth struct {
 		JWTSecret string
+		Admins    []string
 	}
 )
 

@@ -8,6 +8,7 @@ import (
 	"github.com/UDCS/Autograder/service"
 	"github.com/UDCS/Autograder/utils/config"
 	"github.com/UDCS/Autograder/utils/logger"
+	"github.com/UDCS/Autograder/utils/starter"
 )
 
 func main() {
@@ -21,6 +22,11 @@ func main() {
 	graderDatastore := repository.New(config.Db)
 	graderService := service.New(graderDatastore, config.Auth)
 	graderHandler := handler.New(graderService)
+
+	err = starter.Initialize(graderService, config)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	graderHandler.SetupRoutes()
 	graderHandler.Engage(config.Server.Port)

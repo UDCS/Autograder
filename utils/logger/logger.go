@@ -31,6 +31,10 @@ func Error(msg string, fields ...zap.Field) {
 	zapLogger.Error(msg, fields...)
 }
 
+func Fatal(msg string, fields ...zap.Field) {
+	zapLogger.Fatal(msg, fields...)
+}
+
 func Sync() {
 	_ = zapLogger.Sync()
 }
