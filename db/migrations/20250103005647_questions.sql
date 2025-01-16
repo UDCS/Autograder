@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE questions (
     id uuid PRIMARY KEY,
-    assignment_id uuid NOT NULL REFERENCES assignments(id),
+    assignment_id uuid NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
     header VARCHAR(32) NOT NULL,
     body TEXT NOT NULL,
     points INTEGER NOT NULL,

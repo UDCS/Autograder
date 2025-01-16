@@ -8,3 +8,12 @@ db:
   password: postgres
   dbname: autograder
   sslmode: disable
+
+auth:
+  jwt:
+    secret: secret # Change this to a long random string
+    access_token_duration: 15m
+    refresh_token_duration: 48h
+  admins:
+  - acm@udallas.edu
+  - test@udallas.edu

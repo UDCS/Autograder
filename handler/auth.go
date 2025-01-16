@@ -1,0 +1,389 @@
+package handler
+
+import (
+	"net/http"
+	"time"
+
+	"net/mail"
+
+	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/json_response"
+	"github.com/UDCS/Autograder/utils/logger"
+	"github.com/UDCS/Autograder/utils/middlewares"
+	"github.com/UDCS/Autograder/utils/password"
+	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
+)
+
+func (router *HttpRouter) CreateInvitation(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	request := CreateInvitationRequest{}
+	err = c.Bind(&request)
+	if err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
+	}
+
+	parsedEmail, err := mail.ParseAddress(request.Email)
+	if err != nil {
+		logger.Error("failed to parse email", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse email"))
+	}
+
+	invitation := models.Invitation{
+		Id:        uuid.New(),
+		Email:     parsedEmail.Address,
+		UserRole:  request.UserRole,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	invitationWithToken, err := router.app.CreateInvitation(tokenString, invitation)
+	if err != nil {
+		logger.Error("failed to create invitation", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, "failed to create invitation")
+	}
+	return c.JSON(http.StatusCreated, invitationWithToken)
+}
+
+func (router *HttpRouter) SignUp(c echo.Context) error {
+	invitationId := c.Param("invitationId")
+	parsedInvitationId, err := uuid.Parse(invitationId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse invitation id"))
+	}
+
+	invitationToken := c.QueryParam("token")
+
+	request := SignUpRequest{}
+	err = c.Bind(&request)
+	if err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
+	}
+
+	user := models.User{
+		Id:        uuid.New(),
+		FirstName: request.FirstName,
+		LastName:  request.LastName,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	parsedPassword, err := password.CheckPasswordSecurity(request.Password)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	UserWithInvitation := models.UserWithInvitation{
+		User:            user,
+		Password:        parsedPassword,
+		InvitationId:    parsedInvitationId,
+		InvitationToken: invitationToken,
+	}
+
+	session := models.Session{
+		Id:        uuid.New(),
+		UserId:    user.Id,
+		CreatedAt: time.Now(),
+	}
+
+	generatedTokenDetails, err := router.app.SignUp(UserWithInvitation, session)
+
+	if err != nil {
+		logger.Error("sign up failed", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, json_response.NewError("sign up failed"))
+	}
+
+	c.SetCookie(&http.Cookie{
+		Name:     "access_token",
+		Value:    generatedTokenDetails.AccessToken.TokenString,
+		Path:     "/",
+		Expires:  generatedTokenDetails.AccessToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	c.SetCookie(&http.Cookie{
+		Name:     "refresh_token",
+		Value:    generatedTokenDetails.RefreshToken.TokenString,
+		Path:     "/",
+		Expires:  generatedTokenDetails.RefreshToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	c.SetCookie(&http.Cookie{
+		Name:     "session_id",
+		Value:    session.Id.String(),
+		Path:     "/",
+		Expires:  generatedTokenDetails.RefreshToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("registration successful"))
+}
+
+func (router *HttpRouter) Login(c echo.Context) error {
+	request := LoginRequest{}
+	err := c.Bind(&request)
+	if err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
+	}
+
+	parsedEmail, err := mail.ParseAddress(request.Email)
+	if err != nil {
+		logger.Error("failed to parse email", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse email"))
+	}
+
+	user := models.User{
+		Email:     parsedEmail.Address,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	userWithPassword := models.UserWithPassword{
+		User:     user,
+		Password: request.Password,
+	}
+
+	session := models.Session{
+		Id:        uuid.New(),
+		UserEmail: user.Email,
+		UserRole:  user.UserRole,
+		CreatedAt: time.Now(),
+	}
+
+	generatedTokenDetails, err := router.app.Login(userWithPassword, session)
+
+	if err != nil {
+		logger.Error("login failed", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, json_response.NewError("login failed"))
+	}
+
+	c.SetCookie(&http.Cookie{
+		Name:     "access_token",
+		Value:    generatedTokenDetails.AccessToken.TokenString,
+		Path:     "/",
+		Expires:  generatedTokenDetails.AccessToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	c.SetCookie(&http.Cookie{
+		Name:     "refresh_token",
+		Value:    generatedTokenDetails.RefreshToken.TokenString,
+		Path:     "/",
+		Expires:  generatedTokenDetails.RefreshToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	c.SetCookie(&http.Cookie{
+		Name:     "session_id",
+		Value:    session.Id.String(),
+		Path:     "/",
+		Expires:  generatedTokenDetails.RefreshToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("login successful"))
+}
+
+func (router *HttpRouter) Logout(c echo.Context) error {
+	sessionId := c.Param("sessionId")
+	parsedId, err := uuid.Parse(sessionId)
+	if err != nil {
+		logger.Error("failed to parse session id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse session id"))
+	}
+
+	c.SetCookie(&http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		Secure:   true,
+		HttpOnly: true,
+	})
+	c.SetCookie(&http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		Secure:   true,
+		HttpOnly: true,
+	})
+	c.SetCookie(&http.Cookie{
+		Name:     "session_id",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		Secure:   true,
+		HttpOnly: true,
+	})
+
+	err = router.app.Logout(parsedId)
+	if err != nil {
+		logger.Error("failed to logout", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, json_response.NewError("failed to logout"))
+	}
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("logout successful"))
+}
+
+func (router *HttpRouter) PasswordResetRequest(c echo.Context) error {
+	request := PasswordResetRequest{}
+
+	err := c.Bind(&request)
+	if err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
+	}
+
+	parsedEmail, err := mail.ParseAddress(request.Email)
+	if err != nil {
+		logger.Error("failed to parse email", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse email"))
+	}
+
+	resetRequest := models.PasswordResetDetails{
+		Id:        uuid.New(),
+		Email:     parsedEmail.Address,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	err = router.app.PasswordResetRequest(resetRequest)
+	if err != nil {
+		logger.Error("failed to create a password reset request", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, json_response.NewError("failed to create a password reset request"))
+	}
+	return c.JSON(http.StatusAccepted, json_response.NewMessage("password reset request accepted"))
+}
+
+func (router *HttpRouter) PasswordReset(c echo.Context) error {
+	requestId := c.Param("requestId")
+	token := c.QueryParam("token")
+
+	request := NewPasswordRequest{}
+
+	err := c.Bind(&request)
+	if err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
+	}
+
+	parsedPassword, err := password.CheckPasswordSecurity(request.NewPassword)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	parsedId, err := uuid.Parse(requestId)
+	if err != nil {
+		logger.Error("failed to parse request id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse request id"))
+	}
+
+	newPasswordDetails := models.NewPasswordDetails{
+		RequestId:    parsedId,
+		RequestToken: token,
+		NewPassword:  parsedPassword,
+	}
+
+	session := models.Session{
+		Id:        uuid.New(),
+		CreatedAt: time.Now(),
+	}
+
+	generatedTokenDetails, err := router.app.PasswordReset(newPasswordDetails, session)
+
+	if err != nil {
+		logger.Error("login failed", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, json_response.NewError("login failed"))
+	}
+
+	c.SetCookie(&http.Cookie{
+		Name:     "access_token",
+		Value:    generatedTokenDetails.AccessToken.TokenString,
+		Path:     "/",
+		Expires:  generatedTokenDetails.AccessToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	c.SetCookie(&http.Cookie{
+		Name:     "refresh_token",
+		Value:    generatedTokenDetails.RefreshToken.TokenString,
+		Path:     "/",
+		Expires:  generatedTokenDetails.RefreshToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	c.SetCookie(&http.Cookie{
+		Name:     "session_id",
+		Value:    session.Id.String(),
+		Path:     "/",
+		Expires:  generatedTokenDetails.RefreshToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+
+	return c.JSON(http.StatusOK, echo.Map{"message": "password reset successful"})
+}
+
+func (router *HttpRouter) RefreshToken(c echo.Context) error {
+	refreshTokenString, err := middlewares.GetRefreshToken(c)
+	if err != nil {
+		logger.Error("failed to parse cookie for `refresh_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	accessTokenDetails, err := router.app.RefreshToken(refreshTokenString)
+	if err != nil {
+		logger.Error("failed to refresh the access token", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, "failed to refresh the access token")
+	}
+
+	c.SetCookie(&http.Cookie{
+		Name:     "access_token",
+		Value:    accessTokenDetails.TokenString,
+		Path:     "/",
+		Expires:  accessTokenDetails.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("token refreshed"))
+}
+
+type (
+	CreateInvitationRequest struct {
+		Email    string          `json:"email"`
+		UserRole models.UserRole `json:"user_role"`
+	}
+
+	SignUpRequest struct {
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Password  string `json:"password"`
+	}
+
+	LoginRequest struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	PasswordResetRequest struct {
+		Email string `json:"email"`
+	}
+
+	NewPasswordRequest struct {
+		NewPassword string `json:"password"`
+	}
+)

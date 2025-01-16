@@ -2,15 +2,36 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/UDCS/Autograder/config"
-	"github.com/UDCS/Autograder/entities"
+	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/config"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 type Datastore interface {
-	CreateClassroom(classroom entities.Classroom) (entities.Classroom, error)
+	// Classroom
+	CreateClassroom(classroom models.Classroom) (*models.Classroom, error)
+
+	// Auth
+	// Invitation
+	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
+	CompleteInvitation(invitationId uuid.UUID, completed bool, updatedAt time.Time) error
+	GetInvitation(invitationId uuid.UUID, tokenHash string) (*models.Invitation, error)
+	// User
+	CreateUser(user models.User) (*models.User, error)
+	GetUserInfo(email string) (*models.User, error)
+	// Password
+	UpdateUserPassword(userId uuid.UUID, passwordHash string, updatedAt time.Time) (*models.User, error)
+	CreatePasswordChangeRequest(resetDetails models.PasswordResetDetails) error
+	GetPasswordChangeRequest(requestId uuid.UUID, tokenHash string) (*models.PasswordResetDetails, error)
+	CompletePasswordChangeRequest(requestId uuid.UUID, completed bool, updatedAt time.Time) error
+	// Session
+	CreateSession(session models.Session) (*models.Session, error)
+	DeleteSession(sessionId uuid.UUID) error
+	GetSession(userEmail string, refreshTokenString string) (*models.Session, error)
 }
 
 type PostgresStore struct {

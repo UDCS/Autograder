@@ -3,6 +3,7 @@ package config
 import (
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -11,6 +12,7 @@ type (
 	Config struct {
 		Server *Server
 		Db     *Db
+		Auth   *Auth
 	}
 
 	Server struct {
@@ -24,6 +26,17 @@ type (
 		Password string
 		DBName   string
 		SslMode  string
+	}
+
+	Auth struct {
+		JWT    JWTDetails
+		Admins []string
+	}
+
+	JWTDetails struct {
+		Secret               string
+		AccessTokenDuration  time.Duration `mapstructure:"access_token_duration"`
+		RefreshTokenDuration time.Duration `mapstructure:"refresh_token_duration"`
 	}
 )
 

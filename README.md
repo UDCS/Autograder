@@ -53,6 +53,11 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 
 ## How to build the binary
 
+**Note:** Before building the binary for deployment, please do the following:
+1. Set up a Postgres database. Update the credentials in `config.yaml` with the database's credentials. 
+2. Chanage the default JWT Secret in `config.yaml` to be a long and secure sequence of charaters. 
+3. TODO (Setting up Email stuff)
+
 ### For Linux / Mac
 Run `go build main.go` on the terminal. This will create a new binary file. 
 
@@ -66,6 +71,66 @@ If the above doesn't generate a binary or generates a binary that doesn't run on
 You can now run the using `main.exe`
 
 ## The Three-Layered Architecture
-The backend for this project makes use of a slightly modified version of the Three-Layered Architecture. The incoming requests are parsed into the correspoding entity (defined inside `entities`) by the `handler` layer. A valid request passes from the `handler` into the `service` layer, where all the business logic is performed. The next step after the `service` layer is the `datastore` layer, where the necessary database operation is performed. 
+The backend for this project makes use of a slightly modified version of the Three-Layered Architecture. The incoming requests are parsed into the correspoding entity (defined inside `models`) by the `handler` layer. A valid request passes from the `handler` into the `service` layer, where all the business logic is performed. The next step after the `service` layer is the `datastore` layer, where the necessary database operation is performed. 
 
 Such an architecture allows one layer to be modified and tested independently of other operations in addition to providing all the benefits of modularity.
+
+## APIs
+
+You can use Postman to test the APIs.
+
+Register:
+```
+POST 
+URL: 'http://localhost:8080/api/auth/register/<id>?token=<token>'
+Raw JSON: {"first_name": "New", "last_name": "User", "password": "Hello123$%"}
+```
+
+From the returned Set-Cookie value, take the token's value and set it as the Bearer Token value inside Authorization. 
+
+Create Invite (need token):
+```
+POST
+URL: 'http://localhost:8080/api/auth/invite'
+Raw JSON: {"email": "testing@gmail.com", "user_role": "student"}
+```
+
+Create Classroom (need token):
+```
+POST 
+URL: 'http://localhost:8080/api/classroom'
+Raw JSON: {"name":"Joe"}
+```
+
+Login:
+```
+POST 
+URL: 'http://localhost:8080/api/login'
+Raw JSON: {"email":"test@udallas.edu", "password":"Hello123$%"}
+```
+
+Logout:
+```
+POST
+URL: 'http://localhost:8080/api/auth/logout/<sessionId>'
+```
+
+Password Reset Request:
+```
+POST
+URL: 'http://localhost:8080/api/auth/password'
+Raw JSON: {"email":"test@udallas.edu"}
+```
+
+Password Reset:
+```
+POST
+URL: 'http://localhost:8080/api/auth/reset_password/<requestId>?token=<token>'
+Raw JSON: {"password":"TryingThis123!"}
+```
+
+Refresh Access Token:
+```
+POST
+URL: 'http://localhost:8080/api/auth/refresh'
+```
