@@ -8,7 +8,7 @@ import (
 )
 
 func (app *GraderApp) CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error) {
-	claims, err := jwt_token.ParseTokenString(jwksToken, app.authConfig.JWTSecret)
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
 		return nil, fmt.Errorf("invalid autorization credentials")
 	}

@@ -7,11 +7,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func ParseCookie(c echo.Context) (tokenString string, err error) {
-	cookie, err := c.Cookie("token")
+func ParseCookieForToken(c echo.Context, tokenName string) (tokenString string, err error) {
+	cookie, err := c.Cookie(tokenName)
 
 	if err != nil {
-		return "", fmt.Errorf("could not find `token` cookie: %v", err)
+		return "", fmt.Errorf("could not find `%s` cookie: %v", tokenName, err)
 	}
 
 	if cookie.Expires.After(time.Now()) {
@@ -19,4 +19,12 @@ func ParseCookie(c echo.Context) (tokenString string, err error) {
 	}
 
 	return cookie.Value, nil
+}
+
+func GetAccessToken(c echo.Context) (string, error) {
+	return ParseCookieForToken(c, "access_token")
+}
+
+func GetRefreshToken(c echo.Context) (string, error) {
+	return ParseCookieForToken(c, "refresh_token")
 }

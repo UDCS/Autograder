@@ -28,10 +28,10 @@ func InviteAdmins(app service.App, adminEmails []string) ([]models.Invitation, e
 
 		invite := models.Invitation{
 			Id:        uuid.New(),
-			Email:     *parsedEmail,
+			Email:     parsedEmail.Address,
 			UserRole:  models.Admin,
-			CreatedAt: time.Now().Format(time.RFC3339),
-			UpdatedAt: time.Now().Format(time.RFC3339),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
 		}
 		newInvitation, err := app.InviteAdmin(invite)
 		if err != nil {

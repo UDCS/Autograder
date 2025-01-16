@@ -18,6 +18,7 @@ type Handler interface {
 	Logout(c context.Context) error
 	PasswordReset(c context.Context) error
 	PasswordResetRequest(c context.Context) error
+	RefreshToken(c context.Context) error
 	// Classroom
 	CreateClassroom(c context.Context) error
 }
@@ -36,7 +37,7 @@ func New(app service.App) *HttpRouter {
 	// e.Use(middleware.CSRFWithConfig(middleware.CSRFConfig{
 	// 	TokenLookup: "header:X-CSRF-Token",
 	// 	CookieName:  "csrf",
-	// }))// TODO: add CSRF token to the client - https://github.com/labstack/echo/issues/582#issuecomment-310299266
+	// )))// TODO: add CSRF token to the client - https://github.com/labstack/echo/issues/582#issuecomment-310299266
 	e.Use(middleware.BodyLimit("10M")) // limiting request body size to 10MB
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -62,9 +63,10 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.POST("/invite", router.CreateInvitation)
 	auth.POST("/register/:invitationId", router.SignUp)
 	auth.POST("/login", router.Login)
-	auth.POST("/logout", router.Logout)
+	auth.POST("/logout/:sessionId", router.Logout)
 	auth.POST("/password", router.PasswordResetRequest)
-	auth.POST("/reset_password/:resetId", router.PasswordReset)
+	auth.POST("/reset_password/:requestId", router.PasswordReset)
+	auth.POST("/refresh", router.RefreshToken)
 
 	classroom := api.Group("/classroom")
 	classroom.POST("", router.CreateClassroom)

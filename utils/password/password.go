@@ -1,7 +1,7 @@
 package password
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"regexp"
 
@@ -27,7 +27,7 @@ func ComparePasswords(hashedPassword string, plainPassword string) bool {
 
 func CheckPasswordSecurity(password string) (string, error) {
 	if len(password) < 8 || len(password) > 64 {
-		return "", errors.New("password must be at 8-64 characters long")
+		return "", fmt.Errorf("password must be atleast 8-64 characters long")
 	}
 
 	var (
@@ -38,7 +38,7 @@ func CheckPasswordSecurity(password string) (string, error) {
 	)
 
 	if !hasUpper || !hasLower || !hasNumber || !hasSpecial {
-		return "", errors.New("password must include at least one uppercase letter, one lowercase letter, one number, and one special character")
+		return "", fmt.Errorf("password must include at least one uppercase letter, one lowercase letter, one number, and one special character")
 	}
 
 	return password, nil

@@ -3,6 +3,7 @@ package config
 import (
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -28,8 +29,14 @@ type (
 	}
 
 	Auth struct {
-		JWTSecret string
-		Admins    []string
+		JWT    JWTDetails
+		Admins []string
+	}
+
+	JWTDetails struct {
+		Secret               string
+		AccessTokenDuration  time.Duration `mapstructure:"access_token_duration"`
+		RefreshTokenDuration time.Duration `mapstructure:"refresh_token_duration"`
 	}
 )
 

@@ -77,9 +77,60 @@ Such an architecture allows one layer to be modified and tested independently of
 
 ## APIs
 
-Sign in
+You can use Postman to test the APIs.
 
-Create Classroom: 
+Register:
 ```
-curl -X POST http://localhost:8080/api/classroom -H 'Content-Type: application/json' -H 'X-CSRF-Token: valid_csrf_token' -d '{"name":"Joe"}'
+POST 
+URL: 'http://localhost:8080/api/auth/register/<id>?token=<token>'
+Raw JSON: {"first_name": "New", "last_name": "User", "password": "Hello123$%"}
+```
+
+From the returned Set-Cookie value, take the token's value and set it as the Bearer Token value inside Authorization. 
+
+Create Invite (need token):
+```
+POST
+URL: 'http://localhost:8080/api/auth/invite'
+Raw JSON: {"email": "testing@gmail.com", "user_role": "student"}
+```
+
+Create Classroom (need token):
+```
+POST 
+URL: 'http://localhost:8080/api/classroom'
+Raw JSON: {"name":"Joe"}
+```
+
+Login:
+```
+POST 
+URL: 'http://localhost:8080/api/login'
+Raw JSON: {"email":"test@udallas.edu", "password":"Hello123$%"}
+```
+
+Logout:
+```
+POST
+URL: 'http://localhost:8080/api/auth/logout/<sessionId>'
+```
+
+Password Reset Request:
+```
+POST
+URL: 'http://localhost:8080/api/auth/password'
+Raw JSON: {"email":"test@udallas.edu"}
+```
+
+Password Reset:
+```
+POST
+URL: 'http://localhost:8080/api/auth/reset_password/<requestId>?token=<token>'
+Raw JSON: {"password":"TryingThis123!"}
+```
+
+Refresh Access Token:
+```
+POST
+URL: 'http://localhost:8080/api/auth/refresh'
 ```

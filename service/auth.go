@@ -10,11 +10,12 @@ import (
 	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/UDCS/Autograder/utils/password"
 	"github.com/UDCS/Autograder/utils/token"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invitation) (*models.Invitation, error) {
-	claims, err := jwt_token.ParseTokenString(jwksToken, app.authConfig.JWTSecret)
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
 		return nil, fmt.Errorf("invalid autorization credentials")
 	}
@@ -27,8 +28,8 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 		return nil, fmt.Errorf("unauthorized: only an admin can grant `admin` role")
 	}
 
-	retrievedUser, _ := app.store.GetUserInfo(invitation.Email)
-	if retrievedUser != nil {
+	_, err = app.store.GetUserInfo(invitation.Email)
+	if err == nil {
 		return nil, fmt.Errorf("user already exists")
 	}
 
@@ -38,10 +39,10 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 	}
 
 	// TODO: email the invitation with the link containg both token and invitation I
-	email.Send("auth/invitations" + invitation.Id.String() + "?token=" + token)
+	email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
 
 	invitation.TokenHash = tokenHash
-	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7).Format(time.RFC3339)
+	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7)
 	createdInvitation, err := app.store.CreateInvitation(invitation)
 
 	if err != nil {
@@ -53,8 +54,8 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 }
 
 func (app *GraderApp) InviteAdmin(invitation models.Invitation) (*models.Invitation, error) {
-	retrievedUser, _ := app.store.GetUserInfo(invitation.Email)
-	if retrievedUser != nil {
+	_, err := app.store.GetUserInfo(invitation.Email)
+	if err == nil {
 		return nil, fmt.Errorf("user already exists")
 	}
 
@@ -64,10 +65,10 @@ func (app *GraderApp) InviteAdmin(invitation models.Invitation) (*models.Invitat
 	}
 
 	// TODO: email the invitation with the link containg both token and invitation I
-	email.Send("auth/invitations" + invitation.Id.String() + "?token=" + token)
+	email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
 
 	invitation.TokenHash = tokenHash
-	invitation.ExpiresAt = time.Now().AddDate(0, 0, 14).Format(time.RFC3339)
+	invitation.ExpiresAt = time.Now().AddDate(0, 0, 14)
 	createdInvitation, err := app.store.CreateInvitation(invitation)
 
 	if err != nil {
@@ -78,16 +79,24 @@ func (app *GraderApp) InviteAdmin(invitation models.Invitation) (*models.Invitat
 	return createdInvitation, nil
 }
 
-func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation) (*models.JWTTokenDetails, error) {
-	retrievedUser, _ := app.store.GetUserInfo(userWithInvitation.User.Email)
-	if retrievedUser != nil {
-		return nil, fmt.Errorf("user already exists")
-	}
-
+func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation, session models.Session) (*models.JWTTokens, error) {
 	tokenHash := token.HashToken(userWithInvitation.InvitationToken)
 	retrievedInvitation, err := app.store.GetInvitation(userWithInvitation.InvitationId, tokenHash)
 	if err != nil {
 		return nil, fmt.Errorf("invitation not found")
+	}
+
+	_, err = app.store.GetUserInfo(retrievedInvitation.Email)
+	if err == nil {
+		return nil, fmt.Errorf("user already exists")
+	}
+
+	if time.Now().After(retrievedInvitation.ExpiresAt) {
+		return nil, fmt.Errorf("invitation has expired")
+	}
+
+	if retrievedInvitation.Completed {
+		return nil, fmt.Errorf("invitation has already been accepted")
 	}
 
 	hashedPassword, err := password.HashPassword([]byte(userWithInvitation.Password))
@@ -97,20 +106,38 @@ func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation) (*mod
 
 	newUser := userWithInvitation.User
 	newUser.Email = retrievedInvitation.Email
-	newUser.Role = retrievedInvitation.UserRole
+	newUser.UserRole = retrievedInvitation.UserRole
 	newUser.PasswordHash = hashedPassword
 
 	createdUser, err := app.store.CreateUser(newUser)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to update the database: %v", err)
 	}
-	tokenDetails, err := jwt_token.CreateJWTToken(createdUser.Email.Address, createdUser.Role, app.authConfig.JWTSecret)
 
-	return tokenDetails, err
+	err = app.store.CompleteInvitation(retrievedInvitation.Id, true, time.Now())
+	if err != nil {
+		return nil, fmt.Errorf("failed to update the database: %v", err)
+	}
+
+	tokenDetails, err := jwt_token.CreateJWTTokens(createdUser.Email, createdUser.UserRole, app.authConfig.JWT)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create JWT tokens: %v", err)
+	}
+
+	session.UserEmail = createdUser.Email
+	session.UserRole = createdUser.UserRole
+	session.TokenHash = token.HashToken(tokenDetails.RefreshToken.TokenString)
+	session.ExpiresAt = tokenDetails.RefreshToken.ExpiresAt
+
+	_, err = app.store.CreateSession(session)
+	if err != nil {
+		logger.Error("failed to set up a session", zap.Error(err))
+	}
+
+	return tokenDetails, nil
 }
 
-func (app *GraderApp) Login(userWithPassword models.UserWithPassword) (*models.JWTTokenDetails, error) {
+func (app *GraderApp) Login(userWithPassword models.UserWithPassword, session models.Session) (*models.JWTTokens, error) {
 	retrievedUser, err := app.store.GetUserInfo(userWithPassword.User.Email)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving user's info: %v", err)
@@ -121,9 +148,25 @@ func (app *GraderApp) Login(userWithPassword models.UserWithPassword) (*models.J
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
-	tokenDetails, err := jwt_token.CreateJWTToken(retrievedUser.Email.Address, retrievedUser.Role, app.authConfig.JWTSecret)
+	tokenDetails, err := jwt_token.CreateJWTTokens(retrievedUser.Email, retrievedUser.UserRole, app.authConfig.JWT)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create JWT tokens: %v", err)
+	}
 
-	return tokenDetails, err
+	session.UserId = retrievedUser.Id
+	session.UserRole = retrievedUser.UserRole
+	session.TokenHash = token.HashToken(tokenDetails.RefreshToken.TokenString)
+	session.ExpiresAt = tokenDetails.RefreshToken.ExpiresAt
+	_, err = app.store.CreateSession(session)
+	if err != nil {
+		logger.Error("failed to set up a session", zap.Error(err))
+	}
+
+	return tokenDetails, nil
+}
+
+func (app *GraderApp) Logout(sessionId uuid.UUID) error {
+	return app.store.DeleteSession(sessionId)
 }
 
 func (app *GraderApp) PasswordResetRequest(resetRequest models.PasswordResetDetails) error {
@@ -138,9 +181,9 @@ func (app *GraderApp) PasswordResetRequest(resetRequest models.PasswordResetDeta
 	}
 
 	// TODO: email the link for the change
-	email.Send("auth/reset_password" + resetRequest.Id.String() + "?token=" + token)
+	email.Send("auth/reset_password/" + resetRequest.Id.String() + "?token=" + token)
 
-	resetRequest.UserId = retrievedUser.Id.String()
+	resetRequest.UserId = retrievedUser.Id
 	resetRequest.TokenHash = tokenHash
 	resetRequest.ExpiresAt = time.Now().AddDate(0, 0, 7)
 
@@ -154,7 +197,7 @@ func (app *GraderApp) PasswordResetRequest(resetRequest models.PasswordResetDeta
 	return nil
 }
 
-func (app *GraderApp) PasswordReset(details models.NewPasswordDetails) (*models.JWTTokenDetails, error) {
+func (app *GraderApp) PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error) {
 	tokenHash := token.HashToken(details.RequestToken)
 	retrievedResetRequest, err := app.store.GetPasswordChangeRequest(details.RequestId, tokenHash)
 	if err != nil {
@@ -165,26 +208,70 @@ func (app *GraderApp) PasswordReset(details models.NewPasswordDetails) (*models.
 		return nil, fmt.Errorf("password change request has expired")
 	}
 
+	if retrievedResetRequest.Completed {
+		return nil, fmt.Errorf("password change request has already been used")
+	}
+
 	hashedPassword, err := password.HashPassword([]byte(details.NewPassword))
 	if err != nil {
 		return nil, fmt.Errorf("could not hash password")
 	}
 
-	currentTime := time.Now().Format(time.RFC3339)
-	updatedUser, err := app.store.UpdateUserPassword(retrievedResetRequest.UserId, hashedPassword, currentTime)
+	updateTime := time.Now()
+	updatedUser, err := app.store.UpdateUserPassword(retrievedResetRequest.UserId, hashedPassword, updateTime)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update the database: %v", err)
 	}
 
-	err = app.store.DeletePasswordChangeRequest(details.RequestId)
+	err = app.store.CompletePasswordChangeRequest(details.RequestId, true, updateTime)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update the database: %v", err)
 	}
 
-	tokenDetails, err := jwt_token.CreateJWTToken(updatedUser.Email.Address, updatedUser.Role, app.authConfig.JWTSecret)
+	tokenDetails, err := jwt_token.CreateJWTTokens(updatedUser.Email, updatedUser.UserRole, app.authConfig.JWT)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create JWT token: %v", err)
 	}
 
+	session.UserId = updatedUser.Id
+	session.UserEmail = updatedUser.Email
+	session.UserRole = updatedUser.UserRole
+	session.TokenHash = token.HashToken(tokenDetails.RefreshToken.TokenString)
+	session.ExpiresAt = tokenDetails.RefreshToken.ExpiresAt
+
+	_, err = app.store.CreateSession(session)
+	if err != nil {
+		logger.Error("failed to set up a session", zap.Error(err))
+	}
+
 	return tokenDetails, nil
+}
+
+func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.AccessToken, error) {
+	refreshTokenClaims, err := jwt_token.ParseRefreshTokenString(refreshTokenString, app.authConfig.JWT.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("invalid autorization credentials")
+	}
+
+	hashedString := token.HashToken(refreshTokenString)
+	session, err := app.store.GetSession(refreshTokenClaims.Subject, hashedString)
+	if err != nil {
+		return nil, fmt.Errorf("session not found")
+	}
+
+	if time.Now().After(session.ExpiresAt) {
+		return nil, fmt.Errorf("invalid refresh token")
+	}
+
+	accessTokenString, accessTokenExpiration, err := jwt_token.CreateAccessTokenString(session.UserEmail, session.UserRole, app.authConfig.JWT.AccessTokenDuration, app.authConfig.JWT.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create access token: %v", err)
+	}
+
+	accessToken := &models.AccessToken{
+		TokenString: accessTokenString,
+		ExpiresAt:   accessTokenExpiration,
+	}
+
+	return accessToken, nil
 }

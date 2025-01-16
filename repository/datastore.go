@@ -2,10 +2,11 @@ package repository
 
 import (
 	"fmt"
-	"net/mail"
+	"time"
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/config"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -13,15 +14,24 @@ import (
 type Datastore interface {
 	// Classroom
 	CreateClassroom(classroom models.Classroom) (*models.Classroom, error)
+
 	// Auth
+	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
+	CompleteInvitation(invitationId uuid.UUID, completed bool, updatedAt time.Time) error
+	GetInvitation(invitationId uuid.UUID, tokenHash string) (*models.Invitation, error)
+	// User
 	CreateUser(user models.User) (*models.User, error)
-	GetUserInfo(email mail.Address) (*models.User, error)
-	UpdateUserPassword(userId string, passwordHash string, updatedAt string) (*models.User, error)
-	GetInvitation(invitationId string, tokenHash string) (*models.Invitation, error)
+	GetUserInfo(email string) (*models.User, error)
+	// Password
+	UpdateUserPassword(userId uuid.UUID, passwordHash string, updatedAt time.Time) (*models.User, error)
 	CreatePasswordChangeRequest(resetDetails models.PasswordResetDetails) error
-	GetPasswordChangeRequest(requestId string, tokenHash string) (*models.PasswordResetDetails, error)
-	DeletePasswordChangeRequest(requestId string) error
+	GetPasswordChangeRequest(requestId uuid.UUID, tokenHash string) (*models.PasswordResetDetails, error)
+	CompletePasswordChangeRequest(requestId uuid.UUID, completed bool, updatedAt time.Time) error
+	// Session
+	CreateSession(session models.Session) (*models.Session, error)
+	DeleteSession(sessionId uuid.UUID) error
+	GetSession(userEmail string, refreshTokenString string) (*models.Session, error)
 }
 
 type PostgresStore struct {

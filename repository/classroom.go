@@ -5,7 +5,7 @@ import (
 )
 
 func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.Classroom, error) {
-	createdClassroom := models.Classroom{}
+	var createdClassroom models.Classroom
 	err := store.db.QueryRowx(
 		"INSERT INTO classrooms (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING id, name, created_at, updated_at;",
 		classroom.Id, classroom.Name, classroom.CreatedAt, classroom.UpdatedAt,

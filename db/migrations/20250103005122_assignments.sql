@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 CREATE TABLE assignments (
     id uuid PRIMARY KEY,
-    classroom_id uuid NOT NULL REFERENCES classrooms(id),
+    classroom_id uuid NOT NULL REFERENCES classrooms(id) ON DELETE CASCADE,
     name VARCHAR(64) NOT NULL,
     description TEXT NOT NULL,
     assignment_mode MODE NOT NULL,

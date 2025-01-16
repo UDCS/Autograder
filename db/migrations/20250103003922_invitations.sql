@@ -7,7 +7,8 @@ CREATE TABLE invitations (
   token_hash VARCHAR(64) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  expires_at TIMESTAMP NOT NULL
+  expires_at TIMESTAMP NOT NULL,
+  completed BOOLEAN NOT NULL DEFAULT FALSE
 );
 -- +goose StatementEnd
 
