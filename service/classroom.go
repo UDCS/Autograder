@@ -19,3 +19,18 @@ func (app *GraderApp) CreateClassroom(jwksToken string, classroom models.Classro
 
 	return app.store.CreateClassroom(classroom)
 }
+
+func (app *GraderApp) MatchUsersToClassroom(userEmails []string, classroomId string) error {
+	for _, userEmail := range userEmails {
+		_, err := app.store.GetUserInfo(userEmail)
+		if err == nil {
+			err = app.store.MatchUserToClassroom(userEmail, classroomId)
+			if err != nil {
+				return err
+			}
+		} else {
+			// send invitation to user
+		}
+	}
+	return nil
+}

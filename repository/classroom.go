@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/UDCS/Autograder/models"
 )
 
@@ -15,4 +17,28 @@ func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.
 		return nil, err
 	}
 	return &createdClassroom, nil
+}
+
+func (store PostgresStore) MatchUserToClassroom(email string, classroomId string) error {
+	userInfo, err := store.GetUserInfo(email)
+	if err != nil {
+		return err
+	}
+	res, err := store.db.Exec("INSERT INTO user_classroom_matching (user_id, classroom_id) VALUES ($1, $2)", userInfo.Id, classroomId)
+	rowsAffected, _ := res.RowsAffected()
+	fmt.Println("Rows affected:", rowsAffected)
+	if err != nil {
+		return err
+	}
+	// fmt.Println("From repository:")
+	// fmt.Println(userInfo.Id, " ", classroomId)
+	// var user_classroom_matching struct {
+	// 	User_id      string `json:"user_id" db:"user_id"`
+	// 	Classroom_id string `json:"classroom_id" db:"classroom_id"`
+	// }
+
+	// err = store.db.QueryRowx("INSERT INTO user_classroom_matching (user_id, classroom_id) VALUES ($1, $2) RETURNING user_id, classroom_id;",
+	// 	userInfo.Id, classroomId).StructScan(&user_classroom_matching)
+	// fmt.Println(user_classroom_matching)
+	return nil
 }

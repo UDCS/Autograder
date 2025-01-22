@@ -129,6 +129,21 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	return c.JSON(http.StatusOK, json_response.NewMessage("registration successful"))
 }
 
+func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
+	classroomId := c.Param("roomId")
+	var roomUsers struct {
+		UserEmails []string `json:"userEmails"`
+	}
+	if err := c.Bind(&roomUsers); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+	if err := router.app.MatchUsersToClassroom(roomUsers.UserEmails, classroomId); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("users successfully added to classroom"))
+}
+
 func (router *HttpRouter) Login(c echo.Context) error {
 	request := LoginRequest{}
 	err := c.Bind(&request)
