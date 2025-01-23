@@ -19,7 +19,7 @@ type App interface {
 	RefreshToken(tokenString string) (*models.AccessToken, error)
 	// Classroom
 	CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error)
-	MatchUsersToClassroom(userIds []string, classromId string) error
+	MatchUserToClassroom(userId string, classroomId string) error
 }
 
 type GraderApp struct {
