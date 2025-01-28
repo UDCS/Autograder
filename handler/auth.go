@@ -51,7 +51,6 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 	}
 	return c.JSON(http.StatusCreated, invitationWithToken)
 }
-
 func (router *HttpRouter) SignUp(c echo.Context) error {
 	invitationId := c.Param("invitationId")
 	parsedInvitationId, err := uuid.Parse(invitationId)
@@ -127,6 +126,61 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	})
 
 	return c.JSON(http.StatusOK, json_response.NewMessage("registration successful"))
+}
+
+func (router *HttpRouter) CreateInvitationFromRequest(c echo.Context, request CreateInvitationRequest) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	parsedEmail, err := mail.ParseAddress(request.Email)
+	if err != nil {
+		logger.Error("failed to parse email", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse email"))
+	}
+
+	invitation := models.Invitation{
+		Id:        uuid.New(),
+		Email:     parsedEmail.Address,
+		UserRole:  request.UserRole,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	invitationWithToken, err := router.app.CreateInvitation(tokenString, invitation)
+	if err != nil {
+		logger.Error("failed to create invitation", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, "failed to create invitation")
+	}
+	return c.JSON(http.StatusCreated, invitationWithToken)
+}
+
+func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
+	classroomId := c.Param("roomId")
+	var roomUsers struct {
+		UserEmails []string `json:"userEmails"`
+	}
+	if err := c.Bind(&roomUsers); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+	for _, userEmail := range roomUsers.UserEmails {
+		err := router.app.MatchUserToClassroom(userEmail, classroomId)
+		if err != nil {
+			if err.Error() == "user does not exist" {
+				invitationRequest := CreateInvitationRequest{
+					Email:    userEmail,
+					UserRole: "student",
+				}
+				router.CreateInvitationFromRequest(c, invitationRequest)
+			} else {
+				return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+			}
+		}
+	}
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("users successfully added to classroom"))
 }
 
 func (router *HttpRouter) Login(c echo.Context) error {

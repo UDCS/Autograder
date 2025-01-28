@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/UDCS/Autograder/models"
@@ -18,4 +19,19 @@ func (app *GraderApp) CreateClassroom(jwksToken string, classroom models.Classro
 	}
 
 	return app.store.CreateClassroom(classroom)
+}
+
+func (app *GraderApp) MatchUserToClassroom(userEmail string, classroomId string) error {
+
+	_, err := app.store.GetUserInfo(userEmail)
+	if err == nil {
+		err = app.store.MatchUserToClassroom(userEmail, classroomId)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("user does not exist")
+	}
+
+	return nil
 }
