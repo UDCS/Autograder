@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -17,6 +16,41 @@ import (
 	"go.uber.org/zap"
 )
 
+func (router *HttpRouter) CreateInvitation(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	request := CreateInvitationRequest{}
+	err = c.Bind(&request)
+	if err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
+	}
+
+	parsedEmail, err := mail.ParseAddress(request.Email)
+	if err != nil {
+		logger.Error("failed to parse email", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse email"))
+	}
+
+	invitation := models.Invitation{
+		Id:        uuid.New(),
+		Email:     parsedEmail.Address,
+		UserRole:  request.UserRole,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	invitationWithToken, err := router.app.CreateInvitation(tokenString, invitation)
+	if err != nil {
+		logger.Error("failed to create invitation", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, "failed to create invitation")
+	}
+	return c.JSON(http.StatusCreated, invitationWithToken)
+}
 func (router *HttpRouter) SignUp(c echo.Context) error {
 	invitationId := c.Param("invitationId")
 	parsedInvitationId, err := uuid.Parse(invitationId)
@@ -25,10 +59,6 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	}
 
 	invitationToken := c.QueryParam("token")
-	classroomId := c.QueryParam("classroomId")
-	fmt.Println(classroomId)
-
-	fmt.Println("invitationToken: ", invitationToken)
 
 	request := SignUpRequest{}
 	err = c.Bind(&request)
@@ -96,42 +126,6 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	})
 
 	return c.JSON(http.StatusOK, json_response.NewMessage("registration successful"))
-}
-
-func (router *HttpRouter) CreateInvitation(c echo.Context) error {
-	tokenString, err := middlewares.GetAccessToken(c)
-	if err != nil {
-		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
-		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
-	}
-
-	request := CreateInvitationRequest{}
-	err = c.Bind(&request)
-	if err != nil {
-		logger.Error("failed to parse request body", zap.Error(err))
-		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
-	}
-
-	parsedEmail, err := mail.ParseAddress(request.Email)
-	if err != nil {
-		logger.Error("failed to parse email", zap.Error(err))
-		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse email"))
-	}
-
-	invitation := models.Invitation{
-		Id:        uuid.New(),
-		Email:     parsedEmail.Address,
-		UserRole:  request.UserRole,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	invitationWithToken, err := router.app.CreateInvitation(tokenString, invitation)
-	if err != nil {
-		logger.Error("failed to create invitation", zap.Error(err))
-		return c.JSON(http.StatusInternalServerError, "failed to create invitation")
-	}
-	return c.JSON(http.StatusCreated, invitationWithToken)
 }
 
 func (router *HttpRouter) CreateInvitationFromRequest(c echo.Context, request CreateInvitationRequest) error {
