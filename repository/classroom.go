@@ -19,16 +19,13 @@ func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.
 	return &createdClassroom, nil
 }
 
-func (store PostgresStore) MatchUserToClassroom(email string, classroomId string) error {
+func (store PostgresStore) MatchUserToClassroom(email string, role string, classroomId string) error {
 	userInfo, err := store.GetUserInfo(email)
 	if err != nil {
 		return err
 	}
 
-	var classroomPair struct {
-		User_id      string `db:"user_id" json:"user_id"`
-		Classroom_id string `db:"classroom_id" json:"classroom_id"`
-	}
+	var classroomPair models.UserInClassroom
 	err = store.db.Get(&classroomPair,
 		"SELECT user_id, classroom_id FROM user_classroom_matching WHERE user_id=$1;",
 		userInfo.Id,
@@ -36,7 +33,7 @@ func (store PostgresStore) MatchUserToClassroom(email string, classroomId string
 	if err == nil {
 		return nil
 	}
-	res, err := store.db.Exec("INSERT INTO user_classroom_matching (user_id, classroom_id) VALUES ($1, $2)", userInfo.Id, classroomId)
+	res, err := store.db.Exec("INSERT INTO user_classroom_matching (user_id, user_role, classroom_id) VALUES ($1, $2, $3)", userInfo.Id, role, classroomId)
 	rowsAffected, _ := res.RowsAffected()
 	fmt.Println("Rows affected:", rowsAffected)
 	if err != nil {

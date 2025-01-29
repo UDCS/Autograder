@@ -158,20 +158,30 @@ func (router *HttpRouter) CreateInvitationFromRequest(c echo.Context, request Cr
 }
 
 func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
-	classroomId := c.Param("roomId")
-	var roomUsers struct {
-		UserEmails []string `json:"userEmails"`
+
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
 	}
-	if err := c.Bind(&roomUsers); err != nil {
+
+	classroomId := c.Param("roomId")
+	var users struct {
+		RoomUsers []models.AddToClassRequest `json:"users"`
+	}
+	if err := c.Bind(&users); err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
 	}
-	for _, userEmail := range roomUsers.UserEmails {
-		err := router.app.MatchUserToClassroom(userEmail, classroomId)
+	for _, user := range users.RoomUsers {
+		userEmail := user.User_email
+		userRole := user.User_role
+		err := router.app.MatchUserToClassroom(tokenString, userEmail, userRole, classroomId)
 		if err != nil {
 			if err.Error() == "user does not exist" {
 				invitationRequest := CreateInvitationRequest{
 					Email:    userEmail,
-					UserRole: "student",
+					UserRole: models.UserRole(userRole),
 				}
 				router.CreateInvitationFromRequest(c, invitationRequest)
 			} else {

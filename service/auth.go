@@ -27,7 +27,6 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 	if claims.Role != models.Admin && invitation.UserRole == models.Admin {
 		return nil, fmt.Errorf("unauthorized: only an admin can grant `admin` role")
 	}
-
 	_, err = app.store.GetUserInfo(invitation.Email)
 	if err == nil {
 		return nil, fmt.Errorf("user already exists")
