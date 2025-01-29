@@ -31,6 +31,15 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 		userInfo.Id,
 	)
 	if err == nil {
+		if classroomPair.User_role != models.UserRole(role) {
+			_, err = store.db.Exec(
+				"UPDATE user_classroom_matching SET user_role = $3 WHERE user_id = $1 AND classroom_id = $2;",
+				classroomPair.User_id, classroomPair.Classroom_id, role,
+			)
+			if err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 	res, err := store.db.Exec("INSERT INTO user_classroom_matching (user_id, user_role, classroom_id) VALUES ($1, $2, $3)", userInfo.Id, role, classroomId)
