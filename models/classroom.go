@@ -13,6 +13,12 @@ type Classroom struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
+type UserInClassroom struct {
+	User_id      uuid.UUID `json:"user_id" db:"user_id"`
+	User_role    uuid.UUID `json:"user_role" db:"user_role"`
+	Classroom_id uuid.UUID `json:"classroom_id" db:"classroom_id"`
+}
+
 type AddToClassRequest struct {
 	User_email string `json:"email" db:"user_email"`
 	User_role  string `json:"role" db:"user_role"`
