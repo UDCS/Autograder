@@ -1,0 +1,20 @@
+#root {
+    text-align: center;
+}
+
+#sendButton {
+    margin-top: 10rem;
+}
+
+.addStudentFields {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+}
+
+.addStudentFields * {
+    margin-left: 1vh;
+    margin-right: 1vh;
+}
