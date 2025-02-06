@@ -23,3 +23,8 @@ type AddToClassRequest struct {
 	User_email string `json:"email" db:"user_email"`
 	User_role  string `json:"role" db:"user_role"`
 }
+
+type EditClassroomRequest struct {
+	Name   string `json:"name"`
+	RoomId string `json:"roomId"`
+}

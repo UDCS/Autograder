@@ -45,3 +45,31 @@ func (app *GraderApp) MatchUserToClassroom(jwksToken string, userEmail string, u
 
 	return nil
 }
+func (app *GraderApp) EditClassroom(jwksToken string, request models.EditClassroomRequest) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	if claims.Role != models.Admin && claims.Role != models.Instructor {
+		return fmt.Errorf("unauthorized: only an admin or an instructor can edit a classroom")
+	}
+
+	user, err := app.store.GetUserClassroomInfo(claims.Id, request.RoomId)
+
+	if err != nil && claims.Role != models.Admin {
+		return fmt.Errorf("invalid change request")
+	}
+
+	if user.User_role != models.Instructor && claims.Role != models.Admin {
+		return fmt.Errorf("unauthorized: only an admin or an instructor can edit a classroom")
+	}
+
+	err = app.store.EditClassroom(request)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

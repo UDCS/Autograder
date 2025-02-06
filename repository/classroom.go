@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/UDCS/Autograder/models"
 )
@@ -45,6 +46,32 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 	res, err := store.db.Exec("INSERT INTO user_classroom_matching (user_id, user_role, classroom_id) VALUES ($1, $2, $3)", userInfo.Id, role, classroomId)
 	rowsAffected, _ := res.RowsAffected()
 	fmt.Println("Rows affected:", rowsAffected)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId string) (models.UserInClassroom, error) {
+
+	var user models.UserInClassroom
+
+	err := store.db.QueryRowx(
+		"SELECT FROM user_classroom_matching WHERE user_id=$1 AND classroom_id=$1",
+		userId, classroomId,
+	).StructScan(&user)
+
+	if err != nil {
+		return models.UserInClassroom{}, err
+	}
+
+	return user, nil
+
+}
+
+func (store PostgresStore) EditClassroom(request models.EditClassroomRequest) error {
+	_, err := store.db.Exec("UPDATE classrooms SET name = $1, updated_at = $2 WHERE id = $3", request.Name, time.Now(), request.RoomId)
+
 	if err != nil {
 		return err
 	}

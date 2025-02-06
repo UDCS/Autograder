@@ -15,7 +15,8 @@ type Datastore interface {
 	// Classroom
 	CreateClassroom(classroom models.Classroom) (*models.Classroom, error)
 	MatchUserToClassroom(email string, role string, classroomId string) error
-
+	GetUserClassroomInfo(userId string, classroomId string) (models.UserInClassroom, error)
+	EditClassroom(request models.EditClassroomRequest) error
 	// Auth
 	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)

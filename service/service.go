@@ -20,6 +20,7 @@ type App interface {
 	// Classroom
 	CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error)
 	MatchUserToClassroom(jwksToken string, userId string, role string, classroomId string) error
+	EditClassroom(jwksToken string, request models.EditClassroomRequest) error
 }
 
 type GraderApp struct {
