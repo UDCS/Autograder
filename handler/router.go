@@ -22,6 +22,7 @@ type Handler interface {
 	// Classroom
 	CreateClassroom(c context.Context) error
 	EditClassroom(c context.Context) error
+	DeleteClassroom(c context.Context) error
 }
 
 type HttpRouter struct {
@@ -73,6 +74,7 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom := api.Group("/classroom")
 	classroom.POST("", router.CreateClassroom)
 	classroom.PATCH("/edit/:roomId", router.EditClassroom)
+	classroom.DELETE("/delete/:roomId", router.DeleteClassroom)
 }
 
 func (router *HttpRouter) Engage(port string) {

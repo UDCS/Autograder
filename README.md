@@ -102,6 +102,29 @@ URL: 'http://localhost:8080/api/classroom'
 Raw JSON: {"name":"Joe"}
 ```
 
+Add user to classroom / alter the roles of existing users in classroom:
+```
+PUT
+URL: http://localhost:8080/api/auth/<classroomId>/user
+Raw JSON: 
+{
+    "users": [{"email": "test@udallas.edu", "role": "student"}]
+}
+```
+
+Change the name of a classroom:
+```
+PATCH
+URL: http://localhost:8080/api/classroom/edit/<classroomId>
+Raw JSON: {"name": "New Name"}
+```
+
+Delete a classroom:
+```
+DELETE
+URL: http://localhost:8080/api/classroom/delete/<classroomId>
+```
+
 Login:
 ```
 POST 

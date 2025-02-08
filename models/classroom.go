@@ -28,3 +28,7 @@ type EditClassroomRequest struct {
 	Name   string `json:"name"`
 	RoomId string `json:"roomId"`
 }
+
+type DeleteClassroomRequest struct {
+	RoomId string `json:"classroom_id"`
+}

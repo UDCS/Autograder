@@ -27,10 +27,7 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 	}
 
 	var classroomPair models.UserInClassroom
-	err = store.db.Get(&classroomPair,
-		"SELECT user_id, classroom_id FROM user_classroom_matching WHERE user_id=$1;",
-		userInfo.Id,
-	)
+	classroomPair, err = store.GetUserClassroomInfo(userInfo.Id.String(), classroomId)
 	if err == nil {
 		if classroomPair.User_role != models.UserRole(role) {
 			_, err = store.db.Exec(
@@ -57,7 +54,7 @@ func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId strin
 	var user models.UserInClassroom
 
 	err := store.db.QueryRowx(
-		"SELECT FROM user_classroom_matching WHERE user_id=$1 AND classroom_id=$1",
+		"SELECT user_id, classroom_id, user_role FROM user_classroom_matching WHERE user_id=$1 AND classroom_id=$2",
 		userId, classroomId,
 	).StructScan(&user)
 
@@ -72,6 +69,20 @@ func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId strin
 func (store PostgresStore) EditClassroom(request models.EditClassroomRequest) error {
 	_, err := store.db.Exec("UPDATE classrooms SET name = $1, updated_at = $2 WHERE id = $3", request.Name, time.Now(), request.RoomId)
 
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (store PostgresStore) DeleteClassroom(request models.DeleteClassroomRequest) error {
+	_, err := store.db.Exec("DELETE FROM classrooms WHERE id = $1", request.RoomId)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = store.db.Exec("DELETE FROM user_classroom_matching WHERE classroom_id = $1", request.RoomId)
 	if err != nil {
 		return err
 	}
