@@ -10,9 +10,9 @@ import (
 func (store PostgresStore) CreateInvitation(invitation models.Invitation) (*models.Invitation, error) {
 	var createdInvitation models.Invitation
 	err := store.db.QueryRowx(
-		`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7) 
-		RETURNING id, email, user_role, created_at, updated_at, expires_at;`,
-		invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt,
+		`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at, classroom_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+		RETURNING id, email, user_role, created_at, updated_at, expires_at, classroom_id;`,
+		invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt, invitation.ClassroomId,
 	).StructScan(&createdInvitation)
 	return &createdInvitation, err
 }
@@ -52,7 +52,7 @@ func (store PostgresStore) GetInvitation(invitationId uuid.UUID, tokenHash strin
 	var invitation models.Invitation
 	err := store.db.Get(
 		&invitation,
-		"SELECT id, email, user_role, token_hash, completed, created_at, updated_at, expires_at FROM invitations WHERE id = $1 AND token_hash = $2;",
+		"SELECT id, email, user_role, token_hash, completed, created_at, updated_at, expires_at, classroom_id FROM invitations WHERE id = $1 AND token_hash = $2;",
 		invitationId, tokenHash,
 	)
 

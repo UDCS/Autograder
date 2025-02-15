@@ -18,6 +18,7 @@ type Datastore interface {
 	GetUserClassroomInfo(userId string, classroomId string) (models.UserInClassroom, error)
 	EditClassroom(request models.EditClassroomRequest) error
 	DeleteClassroom(request models.DeleteClassroomRequest) error
+	GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error)
 	// Auth
 	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)

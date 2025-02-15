@@ -133,6 +133,14 @@ func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation, sessi
 		logger.Error("failed to set up a session", zap.Error(err))
 	}
 
+	classroomInfo, err := app.store.GetClassroomInfo(retrievedInvitation.ClassroomId)
+	if err == nil {
+		err = app.store.MatchUserToClassroom(createdUser.Email, string(createdUser.UserRole), classroomInfo.Id.String())
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return tokenDetails, nil
 }
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -37,11 +38,12 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 	}
 
 	invitation := models.Invitation{
-		Id:        uuid.New(),
-		Email:     parsedEmail.Address,
-		UserRole:  request.UserRole,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Id:          uuid.New(),
+		Email:       parsedEmail.Address,
+		UserRole:    request.UserRole,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		ClassroomId: request.ClassroomId,
 	}
 
 	invitationWithToken, err := router.app.CreateInvitation(tokenString, invitation)
@@ -142,11 +144,12 @@ func (router *HttpRouter) CreateInvitationFromRequest(c echo.Context, request Cr
 	}
 
 	invitation := models.Invitation{
-		Id:        uuid.New(),
-		Email:     parsedEmail.Address,
-		UserRole:  request.UserRole,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Id:          uuid.New(),
+		Email:       parsedEmail.Address,
+		UserRole:    request.UserRole,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		ClassroomId: request.ClassroomId,
 	}
 
 	invitationWithToken, err := router.app.CreateInvitation(tokenString, invitation)
@@ -167,6 +170,11 @@ func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
 	}
 
 	classroomId := c.Param("roomId")
+	classroomUuid, err := uuid.Parse(classroomId)
+	fmt.Println(classroomId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("Invalid UUID"))
+	}
 	var users struct {
 		RoomUsers []models.AddToClassRequest `json:"users"`
 	}
@@ -180,8 +188,9 @@ func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
 		if err != nil {
 			if err.Error() == "user does not exist" {
 				invitationRequest := CreateInvitationRequest{
-					Email:    userEmail,
-					UserRole: models.UserRole(userRole),
+					Email:       userEmail,
+					UserRole:    models.UserRole(userRole),
+					ClassroomId: classroomUuid,
 				}
 				router.CreateInvitationFromRequest(c, invitationRequest)
 			} else {
@@ -428,8 +437,9 @@ func (router *HttpRouter) RefreshToken(c echo.Context) error {
 
 type (
 	CreateInvitationRequest struct {
-		Email    string          `json:"email"`
-		UserRole models.UserRole `json:"user_role"`
+		Email       string          `json:"email"`
+		UserRole    models.UserRole `json:"user_role"`
+		ClassroomId uuid.UUID       `json:"classroom_id"`
 	}
 
 	SignUpRequest struct {
