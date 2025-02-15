@@ -426,6 +426,24 @@ func (router *HttpRouter) RefreshToken(c echo.Context) error {
 	return c.JSON(http.StatusOK, json_response.NewMessage("token refreshed"))
 }
 
+func (router *HttpRouter) GetClassroomsOfUser(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	classrooms, err := router.app.GetClassroomsOfUser(tokenString)
+
+	if err != nil {
+		logger.Error("could not find user", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"classrooms" : classrooms})
+}
+
 type (
 	CreateInvitationRequest struct {
 		Email    string          `json:"email"`
