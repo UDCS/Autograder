@@ -70,6 +70,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.POST("/reset_password/:requestId", router.PasswordReset)
 	auth.POST("/refresh", router.RefreshToken)
 	auth.PUT("/:roomId/user", router.MatchUsersToClassroom)
+	auth.GET("/get_classrooms", router.GetClassroomsOfUser)
 
 	classroom := api.Group("/classroom")
 	classroom.POST("", router.CreateClassroom)

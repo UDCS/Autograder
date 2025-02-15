@@ -121,3 +121,37 @@ func (store PostgresStore) DeleteSession(sessionId uuid.UUID) error {
 	)
 	return err
 }
+
+func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Classroom, error) {
+	user_info, err := store.GetUserInfo(userEmail)
+	if err != nil {
+		return []models.Classroom {}, err
+	}
+
+
+	var userInClassrooms []models.UserInClassroom
+	err = store.db.Select(
+		&userInClassrooms,
+		"SELECT user_id, user_role, classroom_id FROM user_classroom_matching WHERE user_id = $1",
+		user_info.Id,
+	)
+	if err != nil {
+		return []models.Classroom {}, err
+	}
+
+	var classrooms []models.Classroom
+	for _, element := range userInClassrooms {
+		var room models.Classroom
+		err = store.db.Get(
+			&room,
+			"SELECT id, name, created_at, updated_at FROM classrooms WHERE id = $1",
+			element.Classroom_id,
+		)
+		classrooms = append(classrooms, room)
+	}
+	if err != nil {
+		return []models.Classroom {}, err
+	}
+
+	return classrooms, err
+}

@@ -282,3 +282,17 @@ func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.AccessTok
 
 	return accessToken, nil
 }
+
+func (app *GraderApp) GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("invalid autorization credentials")
+	}
+
+	classrooms, err := app.store.GetClassroomsOfUser(claims.Subject)
+	if err != nil {
+		return nil, err
+	}
+
+	return classrooms, nil
+}
