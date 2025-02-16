@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
@@ -154,4 +155,21 @@ func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Class
 	}
 
 	return classrooms, err
+}
+
+func (store PostgresStore) ChangeUserData(request models.ChangeUserDataRequest) error {
+    var userExists bool
+    err := store.db.Get(&userExists, "SELECT EXISTS (SELECT 1 FROM users WHERE email = $1)", request.CurrentEmail)
+    if !userExists {
+        return fmt.Errorf("no user with email '%s'", request.CurrentEmail)
+    }
+    if err != nil {
+        return err
+    }
+
+    _, err = store.db.Exec(
+        "UPDATE users SET first_name = $1, last_name = $2, email = $3, updated_at = $4 WHERE email = $5",
+        request.FirstName, request.LastName, request.NewEmail, time.Now(), request.CurrentEmail,
+    )
+    return err
 }

@@ -37,6 +37,7 @@ type Datastore interface {
 	DeleteSession(sessionId uuid.UUID) error
 	GetSession(userEmail string, refreshTokenString string) (*models.Session, error)
 	GetClassroomsOfUser(userEmail string) ([]models.Classroom, error)
+    ChangeUserData(request models.ChangeUserDataRequest) error
 }
 
 type PostgresStore struct {

@@ -30,6 +30,13 @@ type (
 		Password string `json:"password" db:"password"`
 	}
 
+    ChangeUserDataRequest struct {
+        CurrentEmail    string  `json:"current_email"`
+        NewEmail        string  `json:"new_email"`
+        FirstName       string  `json:"first_name"`
+        LastName        string  `json:"last_name"`
+    }
+
 	UserRole string
 )
 

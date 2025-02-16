@@ -23,6 +23,7 @@ type Handler interface {
 	CreateClassroom(c context.Context) error
 	EditClassroom(c context.Context) error
 	DeleteClassroom(c context.Context) error
+    ChangeUserData(c context.Context) error
 }
 
 type HttpRouter struct {
@@ -71,6 +72,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.POST("/refresh", router.RefreshToken)
 	auth.PUT("/:roomId/user", router.MatchUsersToClassroom)
 	auth.GET("/get_classrooms", router.GetClassroomsOfUser)
+    auth.POST("/change_user_data",router.ChangeUserData)
 
 	classroom := api.Group("/classroom")
 	classroom.POST("", router.CreateClassroom)
