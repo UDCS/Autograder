@@ -1,0 +1,27 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-left {
+
+}
+
+.nav-right {
+
+    
+}
+
+#nav-item {
+    text-transform: uppercase;
+    padding-right: 4vw;
+}
+
+#logo {
+    font-family: 'Monomaniac One';
+    text-transform: uppercase;
+	background: linear-gradient(to right, #30CFD0 0%, #330867 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
