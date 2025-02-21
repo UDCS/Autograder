@@ -33,6 +33,18 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 3. If yarn cannot run because of security restrictions, run the command `Set-ExecutionPolicy -ExecutionPolicy Unrestricted` in PowerShell as an admin. (read [this](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies?view=powershell-7.4) for more info)
 4. With the terminal opened from the project, run `cd web` `yarn` then `yarn run dev`. It will show in the terminal "built in <x>ms" after it is finished, during which point you can Ctrl+C to exit out of the command.
 5. With the terminal opened from the main project folder, run `go install github.com/air-verse/air@latest` to install air
+6. Install [goose](https://pressly.github.io/goose/installation/#linux) with `go install github.com/pressly/goose/v3/cmd/goose@latest` and [this](https://github.com/pressly/goose/releases) installer
+7. [Install postgres](#how-to-install-postgres), make sure the password for the postgres user is 'postgres', and create a database named `autograder`. Make sure you postgres is up and running. You can download [Beekeeper Studio](https://www.beekeeperstudio.io/get-community) as a database explorer if you don't already have one.
+8. Make sure you have [git](https://git-scm.com/downloads) installed because you need to use Git Bash to run the project
+9. Open the project in VS code and set the default terminal by entering Ctrl+Shift+p, typing in `Terminal: Set Default Profile`, clicking on that, then selecting "Git Bash"
+10. [Install direnv](https://direnv.net/docs/installation.html) in git bash with the command `winget install direnv`
+11. Hook direnv to git bash by editing the .bashrc file with the command `code ~/.bashrc` and paste in `eval "$(direnv hook bash)"
+`
+12. From a git bash terminal in VS code, run `direnv allow` to set the environment variables
+13. Run `goose up` in Git Bash to migrate the database
+14. Install [Postman](https://www.postman.com/downloads/) so you can test the APIs
+15. In the file `air.toml`, change `cmd = "go build -o ./tmp/main ."` to `cmd = "go build -o ./tmp/main.exe`
+16. Run the command `./dev.sh` to run the project
 
 ## How to install postgres
 
@@ -105,7 +117,7 @@ Raw JSON: {"name":"Joe"}
 Login:
 ```
 POST 
-URL: 'http://localhost:8080/api/login'
+URL: 'http://localhost:8080/api/auth/login'
 Raw JSON: {"email":"test@udallas.edu", "password":"Hello123$%"}
 ```
 
