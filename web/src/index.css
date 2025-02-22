@@ -1,3 +1,36 @@
+@import url(/reset.css);
+
+* {
+    overscroll-behavior: none;
+}
+
 body {
     font-family: "Azeret Mono";
+    margin: 0;
+    overflow: hidden;
+}
+
+#welcome-text {
+    font-family: "Monomaniac One";
+    font-size: 48px;
+    text-transform: uppercase;
+}
+
+/* #logo-main {
+    display: grid;
+    place-content: center;
+    background: linear-gradient(to right, var(--color-raisin-black) 0%, var(--color-process-cyan) 100%);
+    background-clip: text;
+} */
+
+.bottom-page {
+    width: 100vw;
+    height: 94vh;
+    /* display: grid;
+    place-items: center; */
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
 }
