@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
@@ -10,9 +11,9 @@ import (
 func (store PostgresStore) CreateInvitation(invitation models.Invitation) (*models.Invitation, error) {
 	var createdInvitation models.Invitation
 	err := store.db.QueryRowx(
-		`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7) 
-		RETURNING id, email, user_role, created_at, updated_at, expires_at;`,
-		invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt,
+		`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at, classroom_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+		RETURNING id, email, user_role, created_at, updated_at, expires_at, classroom_id;`,
+		invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt, invitation.ClassroomId,
 	).StructScan(&createdInvitation)
 	return &createdInvitation, err
 }
@@ -52,7 +53,7 @@ func (store PostgresStore) GetInvitation(invitationId uuid.UUID, tokenHash strin
 	var invitation models.Invitation
 	err := store.db.Get(
 		&invitation,
-		"SELECT id, email, user_role, token_hash, completed, created_at, updated_at, expires_at FROM invitations WHERE id = $1 AND token_hash = $2;",
+		"SELECT id, email, user_role, token_hash, completed, created_at, updated_at, expires_at, classroom_id FROM invitations WHERE id = $1 AND token_hash = $2;",
 		invitationId, tokenHash,
 	)
 
@@ -118,6 +119,56 @@ func (store PostgresStore) DeleteSession(sessionId uuid.UUID) error {
 	_, err := store.db.Exec(
 		"DELETE FROM sessions WHERE id = $1;",
 		sessionId,
+	)
+	return err
+}
+
+func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Classroom, error) {
+	user_info, err := store.GetUserInfo(userEmail)
+	if err != nil {
+		return []models.Classroom{}, err
+	}
+
+	var userInClassrooms []models.UserInClassroom
+	err = store.db.Select(
+		&userInClassrooms,
+		"SELECT user_id, user_role, classroom_id FROM user_classroom_matching WHERE user_id = $1",
+		user_info.Id,
+	)
+	if err != nil {
+		return []models.Classroom{}, err
+	}
+
+	var classrooms []models.Classroom
+	for _, element := range userInClassrooms {
+		var room models.Classroom
+		err = store.db.Get(
+			&room,
+			"SELECT id, name, created_at, updated_at FROM classrooms WHERE id = $1",
+			element.Classroom_id,
+		)
+		classrooms = append(classrooms, room)
+	}
+	if err != nil {
+		return []models.Classroom{}, err
+	}
+
+	return classrooms, err
+}
+
+func (store PostgresStore) ChangeUserData(request models.ChangeUserDataRequest) error {
+	var userExists bool
+	err := store.db.Get(&userExists, "SELECT EXISTS (SELECT 1 FROM users WHERE email = $1)", request.CurrentEmail)
+	if !userExists {
+		return fmt.Errorf("no user with email '%s'", request.CurrentEmail)
+	}
+	if err != nil {
+		return err
+	}
+
+	_, err = store.db.Exec(
+		"UPDATE users SET first_name = $1, last_name = $2, email = $3, updated_at = $4 WHERE email = $5",
+		request.FirstName, request.LastName, request.NewEmail, time.Now(), request.CurrentEmail,
 	)
 	return err
 }
