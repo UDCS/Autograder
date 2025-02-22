@@ -169,3 +169,16 @@ Refresh Access Token:
 POST
 URL: 'http://localhost:8080/api/auth/refresh'
 ```
+
+Change User Data:
+```
+POST
+URL: 'http://localhost:8080/api/auth/change_user_data
+Raw JSON:
+{
+    "current_email":"current_email@udallas.edu",
+    "new_email":"new_email@udallas.edu",
+    "first_name":"First",
+    "last_name":"Last"
+}
+```

@@ -133,6 +133,14 @@ func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation, sessi
 		logger.Error("failed to set up a session", zap.Error(err))
 	}
 
+	classroomInfo, err := app.store.GetClassroomInfo(retrievedInvitation.ClassroomId)
+	if err == nil {
+		err = app.store.MatchUserToClassroom(createdUser.Email, string(createdUser.UserRole), classroomInfo.Id.String())
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return tokenDetails, nil
 }
 
@@ -273,4 +281,31 @@ func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.AccessTok
 	}
 
 	return accessToken, nil
+}
+
+func (app *GraderApp) GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("invalid autorization credentials")
+	}
+
+	classrooms, err := app.store.GetClassroomsOfUser(claims.Subject)
+	if err != nil {
+		return nil, err
+	}
+
+	return classrooms, nil
+}
+
+func (app *GraderApp) ChangeUserData(jwksToken string, request models.ChangeUserDataRequest) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorizaiton credentials")
+	}
+
+	if claims.Role != models.Admin && claims.Subject != request.CurrentEmail {
+		return fmt.Errorf("unauthorized: only an admin can change another user's data")
+	}
+
+	return app.store.ChangeUserData(request)
 }

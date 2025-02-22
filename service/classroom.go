@@ -6,6 +6,7 @@ import (
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/jwt_token"
+	"github.com/google/uuid"
 )
 
 func (app *GraderApp) CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error) {
@@ -44,6 +45,14 @@ func (app *GraderApp) MatchUserToClassroom(jwksToken string, userEmail string, u
 
 	_, err = app.store.GetUserInfo(userEmail)
 	if err == nil {
+		classUuid, err := uuid.Parse(classroomId)
+		if err != nil {
+			return err
+		}
+		_, err = app.store.GetClassroomInfo(classUuid)
+		if err != nil {
+			return err
+		}
 		err = app.store.MatchUserToClassroom(userEmail, userRole, classroomId)
 		if err != nil {
 			return err

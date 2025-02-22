@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/UDCS/Autograder/models"
+	"github.com/google/uuid"
 )
 
 func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.Classroom, error) {
@@ -18,6 +19,17 @@ func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.
 		return nil, err
 	}
 	return &createdClassroom, nil
+}
+
+func (store PostgresStore) GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error) {
+	var classroom models.Classroom
+	err := store.db.QueryRowx(
+		"SELECT id, name, created_at, updated_at FROM classrooms WHERE id=$1", classroomId,
+	).StructScan(&classroom)
+	if err != nil {
+		return models.Classroom{}, fmt.Errorf("classroom not found")
+	}
+	return classroom, nil
 }
 
 func (store PostgresStore) MatchUserToClassroom(email string, role string, classroomId string) error {
