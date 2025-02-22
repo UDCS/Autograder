@@ -16,18 +16,9 @@ body {
     text-transform: uppercase;
 }
 
-/* #logo-main {
-    display: grid;
-    place-content: center;
-    background: linear-gradient(to right, var(--color-raisin-black) 0%, var(--color-process-cyan) 100%);
-    background-clip: text;
-} */
-
 .bottom-page {
     width: 100vw;
     height: 94vh;
-    /* display: grid;
-    place-items: center; */
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;

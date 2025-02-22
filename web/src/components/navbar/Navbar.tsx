@@ -1,42 +1,46 @@
 import './Navbar.css'
 import '/global.css'
 
-//When you hover over the logo it animates out
-//VERY BORK
 function animateLogo() {
-    var chars = ["U", "T", "O", "R", "A", "D", "E", "R"] //AUTOGRADER
+    var chars = ["U", "T", "O", "R", "A", "D", "E", "R"]
     let logo = document.getElementById("logo")!;
-    for (var i = 0; i < 7; i++) {
-        //Create a closure to protect the value of i
+    for (var i = 0; i < 8; i++) {
         if(i <= 2){
             (function(i){
                 window.setTimeout(function(){
-                    logo.innerHTML = logo.innerHTML.substring(0, logo.innerHTML.length - 2) + chars[i] + logo.innerHTML.substring(logo.innerHTML.length);
-                }, 200 - i*35);
+                    logo.innerHTML = logo.innerHTML.substring(0, logo.innerHTML.length - 1) + chars[i] + logo.innerHTML.substring(logo.innerHTML.length - 1);
+                }, 200 + i*35);
             
             }(i));
         } else if(i > 2){
             (function(i){
                 window.setTimeout(function(){
-                    logo.innerHTML = logo.innerHTML.substring(0, logo.innerHTML.length - 2) + chars[i] + logo.innerHTML.substring(logo.innerHTML.length);
-                }, 200 - i*35);
+                    logo.innerHTML = logo.innerHTML + chars[i];
+                }, 200 + i*35);
             
               }(i));
         }
     }
 }
 
-//Undoes the animation when the user stops hovering over the logo
 function removeLogoAnimation() {
     let logo = document.getElementById("logo")!;
-    for (var i = 0; i < 5; i++) {
-    //Create a closure to protect the value of i
-        (function(i){
-            window.setTimeout(function(){
-                logo.innerHTML = logo.innerHTML.substring(0, logo.innerHTML.length - 1);
-                console.log(logo.innerHTML);
-            }, 200 - i*35);
-        }(i));
+    for (var i = 0; i < 8; i++) {
+        if(i < 6){
+            (function(i){
+                window.setTimeout(function(){
+                    logo.innerHTML = logo.innerHTML.substring(0, logo.innerHTML.length - 1);
+                }, 200 + i*35);
+            
+            }(i));
+        } else if(i >= 6){
+            (function(i){
+                window.setTimeout(function(){
+                    logo.innerHTML = logo.innerHTML.substring(0, logo.innerHTML.length - 2) + "G";
+                }, 200 + i*35);
+            
+              }(i));
+        }
     }
 }
 
@@ -44,7 +48,7 @@ function Navbar(){
 return (
     <nav className="navbar drop-shadow">
         <div className="nav-left">
-           <a id="logo" /*onMouseOver={() => animateLogo()} onMouseOut={() => removeLogoAnimation()}*/ href="/">AG</a>
+           <a id="logo" onMouseOver={() => animateLogo()} onMouseOut={() => removeLogoAnimation()} href="/">AG</a>
         </div>
         <div className= "nav-right">
             <a id="nav-item" href="/about">About Us</a>
