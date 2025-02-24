@@ -1,7 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from 'react-dom/client'
-import styled from "styled-components";
+import styled from "styled-components"
 import Select from 'react-select'
+import Navbar from "../components/navbar/Navbar"
 import './test.css'
 
 const Button = styled.button`
@@ -28,6 +29,7 @@ const roleOptions = [
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
+      <Navbar />
         <div className="addStudentFields">
             <input placeholder="Enter an email"/>
             <Select options={roleOptions} placeholder="Select a role" id="dropdown"/>

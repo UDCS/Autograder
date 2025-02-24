@@ -5,7 +5,7 @@
 }
 
 
-
+/* For dynamically drop-shadowed navbar */
 @keyframes fadeInDown {
     0% {
       opacity: 0;

@@ -1,4 +1,4 @@
-@import url(/colors.css);
+@import url(../../colors.css);
 
 .navbar {
     display: flex;
@@ -17,6 +17,7 @@
 }
 
 #nav-item {
+    font-family: 'Azeret Mono';
     text-transform: uppercase;
     text-decoration: none;
     color: var(--color-NCS-blue);
