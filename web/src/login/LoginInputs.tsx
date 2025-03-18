@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Field } from "./Field.tsx"
 
 function LoginInputs() {
     const [username, setUsername] = useState("");
@@ -27,10 +28,8 @@ function LoginInputs() {
     }
     return (
         <div className="w-[250px] h-[250px]  border border-black break-all">
-            <input type="email" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setUsername(e.target.value)}} placeholder="Email"></input>
-            <br />
-            <input type="password" placeholder="Password" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPassword(e.target.value)}}></input>
-            <br />
+            <Field type="email" placeholder="Username or email" update={setUser}></Field>
+            {Field("password", "Password", setPassword)}
             <button onClick={login} className="bg-green-500 text-stone-50">Submit</button>
             <br />
             {result == "Login Success" ? 
