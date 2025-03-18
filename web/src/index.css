@@ -35,6 +35,7 @@ h1 {
   line-height: 1.1;
 }
 
+<<<<<<< Updated upstream
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -66,3 +67,18 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+=======
+#logo-main {
+    width: 100vw;
+}
+
+.bottom-page {
+    width: 100vw;
+    height: 94vh;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+>>>>>>> Stashed changes

@@ -1,0 +1,80 @@
+.textfield-container {
+  display: flex;
+  flex-direction: column;
+  margin: 1rem 0;
+  width: 100%;
+  max-width: 300px;
+}
+
+.textfield-label {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.textfield-input {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.textfield-input:focus {
+  border-color: #007bff;
+}
+
+.textfield-input.error {
+  border-color: #dc3545;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* All of the code below is for the old textfield styling */
+
+/* .input-wrapper {
+  margin-top: 20px;
+}
+  
+  
+label {
+  font-weight: 600;
+  font-size: 18px;
+  color: #344054;
+  display: block;
+  margin-bottom: 8px;
+}
+
+input {
+  font-size: 16px;
+  font-weight: 400;
+  width: 250px;
+  color: #344054;
+  background: #ffffff;
+  border: 1px solid #d0d5dd;
+  box-shadow: 0px 1px 2px rgba(16, 24, 40, 0.05);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+input::placeholder {
+  font-size: 16px;
+  font-weight: 400;
+  color: #667085;
+}
+
+input:focus {
+}
+
+.error {
+  color: #db4437;
+  font-size: 14px;
+  font-weight: 400;
+  margin-left: 12px;
+  margin-top: 4px;
+} */

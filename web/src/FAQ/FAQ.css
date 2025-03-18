@@ -1,0 +1,27 @@
+@import url(..//reset.css);
+
+* {
+    overscroll-behavior: none;
+}
+
+body {
+    font-family: "Azeret Mono";
+    margin: 0;
+    overflow: hidden;
+}
+
+#notication-text {
+    font-family: "Monomaniac One";
+    font-size: 96px;
+    text-transform: uppercase;
+}
+
+.bottom-page {
+    width: 100vw;
+    height: 94vh;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
