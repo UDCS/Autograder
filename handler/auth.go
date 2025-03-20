@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -171,7 +170,6 @@ func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
 
 	classroomId := c.Param("roomId")
 	classroomUuid, err := uuid.Parse(classroomId)
-	fmt.Println(classroomId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError("Invalid UUID"))
 	}
