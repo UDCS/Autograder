@@ -37,11 +37,12 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 	}
 
 	invitation := models.Invitation{
-		Id:        uuid.New(),
-		Email:     parsedEmail.Address,
-		UserRole:  request.UserRole,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Id:          uuid.New(),
+		Email:       parsedEmail.Address,
+		UserRole:    request.UserRole,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		ClassroomId: request.ClassroomId,
 	}
 
 	invitationWithToken, err := router.app.CreateInvitation(tokenString, invitation)
@@ -51,7 +52,6 @@ func (router *HttpRouter) CreateInvitation(c echo.Context) error {
 	}
 	return c.JSON(http.StatusCreated, invitationWithToken)
 }
-
 func (router *HttpRouter) SignUp(c echo.Context) error {
 	invitationId := c.Param("invitationId")
 	parsedInvitationId, err := uuid.Parse(invitationId)
@@ -127,6 +127,77 @@ func (router *HttpRouter) SignUp(c echo.Context) error {
 	})
 
 	return c.JSON(http.StatusOK, json_response.NewMessage("registration successful"))
+}
+
+func (router *HttpRouter) CreateInvitationFromRequest(c echo.Context, request CreateInvitationRequest) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	parsedEmail, err := mail.ParseAddress(request.Email)
+	if err != nil {
+		logger.Error("failed to parse email", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse email"))
+	}
+
+	invitation := models.Invitation{
+		Id:          uuid.New(),
+		Email:       parsedEmail.Address,
+		UserRole:    request.UserRole,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		ClassroomId: request.ClassroomId,
+	}
+
+	invitationWithToken, err := router.app.CreateInvitation(tokenString, invitation)
+	if err != nil {
+		logger.Error("failed to create invitation", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, "failed to create invitation")
+	}
+	return c.JSON(http.StatusCreated, invitationWithToken)
+}
+
+func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
+
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	classroomId := c.Param("roomId")
+	classroomUuid, err := uuid.Parse(classroomId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("Invalid UUID"))
+	}
+	var users struct {
+		RoomUsers []models.AddToClassRequest `json:"users"`
+	}
+	if err := c.Bind(&users); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+	for _, user := range users.RoomUsers {
+		userEmail := user.User_email
+		userRole := user.User_role
+		err := router.app.MatchUserToClassroom(tokenString, userEmail, userRole, classroomId)
+		if err != nil {
+			if err.Error() == "user does not exist" {
+				invitationRequest := CreateInvitationRequest{
+					Email:       userEmail,
+					UserRole:    models.UserRole(userRole),
+					ClassroomId: classroomUuid,
+				}
+				router.CreateInvitationFromRequest(c, invitationRequest)
+			} else {
+				return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+			}
+		}
+	}
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("users successfully added to classroom"))
 }
 
 func (router *HttpRouter) Login(c echo.Context) error {
@@ -362,10 +433,60 @@ func (router *HttpRouter) RefreshToken(c echo.Context) error {
 	return c.JSON(http.StatusOK, json_response.NewMessage("token refreshed"))
 }
 
+func (router *HttpRouter) GetClassroomsOfUser(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	classrooms, err := router.app.GetClassroomsOfUser(tokenString)
+
+	if err != nil {
+		logger.Error("could not find user", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"classrooms": classrooms})
+}
+
+func (router *HttpRouter) ChangeUserData(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	var request models.ChangeUserDataRequest
+
+	err = c.Bind(&request)
+
+	if err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
+	}
+
+	_, err = mail.ParseAddress(request.NewEmail)
+
+	if err != nil {
+		logger.Error("failed to parse email", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("new_email is invalid"))
+	}
+
+	err = router.app.ChangeUserData(tokenString, request)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+	return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully changed user data"))
+}
+
 type (
 	CreateInvitationRequest struct {
-		Email    string          `json:"email"`
-		UserRole models.UserRole `json:"user_role"`
+		Email       string          `json:"email"`
+		UserRole    models.UserRole `json:"user_role"`
+		ClassroomId uuid.UUID       `json:"classroom_id"`
 	}
 
 	SignUpRequest struct {

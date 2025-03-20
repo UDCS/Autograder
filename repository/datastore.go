@@ -14,7 +14,11 @@ import (
 type Datastore interface {
 	// Classroom
 	CreateClassroom(classroom models.Classroom) (*models.Classroom, error)
-
+	MatchUserToClassroom(email string, role string, classroomId string) error
+	GetUserClassroomInfo(userId string, classroomId string) (models.UserInClassroom, error)
+	EditClassroom(request models.EditClassroomRequest) error
+	DeleteClassroom(request models.DeleteClassroomRequest) error
+	GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error)
 	// Auth
 	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
@@ -32,6 +36,8 @@ type Datastore interface {
 	CreateSession(session models.Session) (*models.Session, error)
 	DeleteSession(sessionId uuid.UUID) error
 	GetSession(userEmail string, refreshTokenString string) (*models.Session, error)
+	GetClassroomsOfUser(userEmail string) ([]models.Classroom, error)
+	ChangeUserData(request models.ChangeUserDataRequest) error
 }
 
 type PostgresStore struct {
