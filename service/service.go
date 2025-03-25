@@ -17,14 +17,13 @@ type App interface {
 	PasswordResetRequest(resetRequest models.PasswordResetDetails) error
 	PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error)
 	RefreshToken(tokenString string) (*models.AccessToken, error)
-    ChangeUserData(jwksToken string, request models.ChangeUserDataRequest) error
-    JwtTokenIsValid(jwksToken string) bool
 	// Classroom
 	CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error)
 	MatchUserToClassroom(jwksToken string, userId string, role string, classroomId string) error
 	EditClassroom(jwksToken string, request models.EditClassroomRequest) error
 	DeleteClassroom(jwksToken string, request models.DeleteClassroomRequest) error
 	GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error)
+    ChangeUserData(jwksToken string, request models.ChangeUserDataRequest) error
 }
 
 type GraderApp struct {

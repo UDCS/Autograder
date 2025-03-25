@@ -484,17 +484,6 @@ func (router *HttpRouter) ChangeUserData(c echo.Context) error {
     return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully changed user data"))
 }
 
-func (router *HttpRouter) JwtTokenIsValid(c echo.Context) error {
-    tokenString, err := middlewares.GetAccessToken(c)
-    if err != nil {
-        return c.JSON(http.StatusOK, json_response.NewMessage("false"))
-    }
-    if router.app.JwtTokenIsValid(tokenString) {
-        return c.JSON(http.StatusOK, json_response.NewMessage("true"))
-    }
-    return c.JSON(http.StatusOK, json_response.NewMessage("false"))
-}
-
 type (
 	CreateInvitationRequest struct {
 		Email       string          `json:"email"`

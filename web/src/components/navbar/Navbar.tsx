@@ -44,6 +44,7 @@ function removeLogoAnimation() {
     }
 }
 
+// The text within the navbar is somehow not centered. This is a problem to fix later
 function Navbar(){
 return (
     <nav className="navbar drop-shadow">

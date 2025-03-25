@@ -17,7 +17,9 @@ export default defineConfig({
       input: {
         main: resolve(root, 'index.html'),
         test: resolve(root, 'test', 'test.html'),
-        login: resolve(root, 'login', 'login.html')
+        login: resolve(root, 'login', 'login.html'),
+        about: resolve(root, 'about', 'about.html'),
+        FAQ: resolve(root, 'FAQ', 'FAQ.html')
       }
     }
   }
