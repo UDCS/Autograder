@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import './Navbar.css'
 import '/global.css'
 
@@ -46,17 +47,39 @@ function removeLogoAnimation() {
 
 // The text within the navbar is somehow not centered. This is a problem to fix later
 function Navbar(){
-return (
-    <nav className="navbar drop-shadow">
-        <div className="nav-left">
-           <a id="logo" onMouseOver={() => animateLogo()} onMouseOut={() => removeLogoAnimation()} href="/">AG</a>
-        </div>
-        <div className= "nav-right">
-            <a id="nav-item" href="/about">About Us</a>
-            <a id= "nav-item" href="/faq">Help/FAQ</a>
-            <a id= "nav-item" href="/login">Login</a>
-        </div>
-    </nav>
+
+    const [isLoggedIn, setLoggedIn] = useState(false);
+
+    useEffect(() => {
+        const getIsLoggedIn = async () => {
+            try {
+                var response = await fetch('/api/auth/jwt_token_is_valid');
+                if (response.ok) {
+                    var json = await response.json();
+                    setLoggedIn(json['message'] == 'true');
+                }
+            } catch (err){
+                console.error("Fetch error: ", err);
+            }
+        };
+        getIsLoggedIn();
+    });
+
+    return (
+        <nav className="navbar drop-shadow">
+            <div className="nav-left">
+            <a id="logo" onMouseOver={() => animateLogo()} onMouseOut={() => removeLogoAnimation()} href="/">AG</a>
+            </div>
+            <div className= "nav-right">
+                <a id="nav-item" href="/about">About Us</a>
+                <a id= "nav-item" href="/faq">Help/FAQ</a>
+                {!isLoggedIn ? 
+                    <a id= "nav-item" href="/login">Login</a>
+                    : 
+                    <a id= "nav-item" href="/account">Account</a>
+                }
+            </div>
+        </nav>
     );
 }
 
