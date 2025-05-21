@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import Navbar from "../components/navbar/Navbar"
 import TextField from "../components/textfield/Textfield";
-import LoginInputs from "./LoginInputs";
 import './login.css';
 
 interface FormData {
