@@ -270,7 +270,12 @@ func (router *HttpRouter) Login(c echo.Context) error {
 }
 
 func (router *HttpRouter) Logout(c echo.Context) error {
-	sessionId := c.Param("sessionId")
+	sessionIdCookie, err := c.Cookie("session_id")
+	if err != nil {
+		logger.Error("failed to parse session Id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse session id"))
+	}
+	sessionId := sessionIdCookie.Value
 	parsedId, err := uuid.Parse(sessionId)
 	if err != nil {
 		logger.Error("failed to parse session id", zap.Error(err))

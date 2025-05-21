@@ -67,7 +67,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.POST("/invite", router.CreateInvitation)
 	auth.POST("/register/:invitationId", router.SignUp)
 	auth.POST("/login", router.Login)
-	auth.POST("/logout/:sessionId", router.Logout)
+	auth.POST("/logout", router.Logout)
 	auth.POST("/password", router.PasswordResetRequest)
 	auth.POST("/reset_password/:requestId", router.PasswordReset)
 	auth.POST("/refresh", router.RefreshToken)
