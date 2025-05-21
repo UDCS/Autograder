@@ -20,22 +20,23 @@ const handleTextChange = (data: FormData) => {
 createRoot(document.getElementById("root")!).render(
 <StrictMode>
     <Navbar />
-    <div className = "signin-page">
-        <div className = "signin-card">
-            <h1 className = "signin-title">Sign In</h1>
-            <div className = "input-container">
+    <div className="signin-page">
+        <div className="signin-card">
+            <h1 className="signin-title">Sign In</h1>
+            <div className="input-container">
                 <TextField
                     initialValue=""
                     label=""
-                    checkEmail={true}
+                    email
                     onChange={handleTextChange}/>
                 <TextField 
                     initialValue=""
                     label=""
-                    checkEmail={false}
+                    password
                     onChange={handleTextChange}/>
-            </div>        
+            </div>       
+            <a href="/reset-password" className="forgot-pw">Forgot Password?</a>
+            <button className="submit-button">Sign In</button>
         </div>
     </div>
-    {/* <LoginInputs /> */}
 </StrictMode>)

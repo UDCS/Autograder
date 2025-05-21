@@ -27,6 +27,7 @@ function LoginInputs() {
     }
     return (
         <div className="w-[250px] h-[250px]  border border-black break-all">
+        {/*  <div> */}
             <input type="email" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setUsername(e.target.value)}} placeholder="Email"></input>
             <br />
             <input type="password" placeholder="Password" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPassword(e.target.value)}}></input>

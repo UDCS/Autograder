@@ -6,9 +6,8 @@
     overflow: hidden;
 }
 
-
-
 .signin-page {
+    font-family: 'Azeret Mono', monospace;
     width: 100vw;
     height: 94.5vh;
     background: linear-gradient(90deg, #0CAADC -20%, #ffffff 120%);
@@ -20,8 +19,8 @@
 }
 
 .signin-card {
-    width: 40%;
-    height: 60%;
+    width: max(40%, 300px);
+    height: 55%;
     background: white;
     box-shadow: 33px 35px 13.9px -6px rgba(0, 0, 0, 0.25);
     border-radius: 25px;
@@ -29,23 +28,58 @@
     border: 4px solid #1E212B;
 }
 
+.signin-card > * {
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
 .signin-title {
-    width: 30%;
     height: 12.5%;
     position: relative;
-    left: 5%;
-    top: 7.5%;
+    margin-top: 5%;
     color: black;
-    font-size: 36px;
-    font-family: 'Azeret Mono', monospace;
+    font-size: 42px;
     font-weight: 700;
     word-wrap: break-word;
 }
 
-.input-container {
-    margin-left: 5%;
-    margin-right: 5%;
+.input-container > :first-child{
+    margin-top: 2.5%;
+}
+
+.input-container input{
+    font-size: 24px;
+    border-color: #000000;
+    border-width: 1.5px;
+    margin-top: 5%;
+}
+
+.forgot-pw {
+    color: #1481BA;
+    font-size: 18px;
+}
+
+.submit-button {
+    width: 90%;
+    margin-top: 7.5%;
     position: relative;
-    border-radius: 15px;
-    overflow: hidden;
+    justify-content: flex-end;
+    border-radius: 20px;
+    font-size: 36px;
+    color: #ffffff;
+    background-color: #0CAADC;
+    padding-top: 12.5px;
+    padding-bottom: 12.5px;
+}
+
+.submit-button:hover {
+    background-color: #1481BA;
+}
+
+.submit-button:active {
+    background-color: #1E212B;
+}
+
+.submit-button:focus {
+    background-color: #1E212B;
 }

@@ -5,7 +5,8 @@ import './TextField.css';
 interface TextFieldProps {
   initialValue?: string;
   label?: string;
-  checkEmail?: boolean;
+  email?: boolean;
+  password?: boolean;
   onChange?: (data: {
     value: string;
     isValid: boolean;
@@ -16,8 +17,9 @@ interface TextFieldProps {
 const TextField: React.FC<TextFieldProps> = ({
   initialValue = '',
   label = 'Input',
-  checkEmail = false,
+  email = false,
   onChange,
+  password
 }) => {
   const [value, setValue] = useState<string>(initialValue);
   const [error, setError] = useState<string>('');
@@ -26,7 +28,7 @@ const TextField: React.FC<TextFieldProps> = ({
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const validateInput = (newValue: string): string => {
-    if (checkEmail) {
+    if (email) {
       if (!newValue) {
         return 'Email is required';
       }
@@ -60,11 +62,11 @@ const TextField: React.FC<TextFieldProps> = ({
     <div className="textfield-container">
       {label && <label className="textfield-label">{label}</label>}
       <input
-        type={checkEmail ? "email" : "text"}
+        type={email ? "email" : password ? "password" : "text"}
         value={value}
         onChange={handleChange}
         className={`textfield-input ${error ? 'error' : ''}`}
-        placeholder={checkEmail ? "Email" : "Text"}
+        placeholder={email ? "Email" : password ? "Password" : "Text"}
       />
       {error && <span className="error-message">{error}</span>}
     </div>
@@ -92,13 +94,13 @@ function App() {
       <TextField 
         initialValue="john@example.com"
         label="Email"
-        checkEmail={true}
+        email
         onChange={handleTextChange}
       />
       <TextField 
         initialValue="Regular text"
         label="Name"
-        checkEmail={false}
+        password
         onChange={handleTextChange}
       />
     </div>
