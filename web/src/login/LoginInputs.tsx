@@ -1,47 +1,69 @@
 import { useState } from "react";
+import TextField from "../components/textfield/Textfield";
+
+interface FormData {
+    value: string;
+    isValid: boolean;
+    error: string;
+  }
+
+const handleTextChange = (data: FormData) => {
+    console.log('Value:', data.value);
+    console.log('Is Valid:', data.isValid);
+    console.log('Error:', data.error);
+  }
 
 function LoginInputs() {
+    
+    // const [loginSuccess, setLoginSuccess] = useState(false);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [result, setResult] = useState("")
     const login = async () => {
 
         try {
-            const response = await fetch("http://localhost:8080/api/auth/login", {
+            const response = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({"email": username, "password": password})
             })
-            if (!response.ok) setResult("Login Failed")
+            if (!response.ok) {
+                // setLoginSuccess(false);
+                alert("Invalid Username or Password")
+            }
             else {
-                const data = response.json()
-                console.log("success: ", data)
-                setResult("Login Success")
+                window.location.href="/dashboard"
+                // setLoginSuccess(true)
             }
         } catch (error) {
             console.error("Error: ", error)
         }
 
     }
-    return (
-        <div className="w-[250px] h-[250px]  border border-black break-all">
-        {/*  <div> */}
-            <input type="email" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setUsername(e.target.value)}} placeholder="Email"></input>
-            <br />
-            <input type="password" placeholder="Password" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setPassword(e.target.value)}}></input>
-            <br />
-            <button onClick={login} className="bg-green-500 text-stone-50">Submit</button>
-            <br />
-            {result == "Login Success" ? 
-                <p className="text-green-500">Login Success</p>
-            : result == "Login Failed" ? 
-                <p className="text-red-500">Login Failed</p>
-            : <></>
-            }
+    return <div className="signin-page">
+        <div className="signin-card">
+            <h1 className="signin-title">Sign In</h1>
+            <div className="input-container">
+                <TextField
+                    initialValue=""
+                    label=""
+                    email
+                    onChange={(data: FormData) => {
+                        setUsername(data.value)
+                    }}/>
+                <TextField 
+                    initialValue=""
+                    label=""
+                    password
+                    onChange={(data: FormData) => {
+                        setPassword(data.value)
+                    }}/>
+            </div>       
+            <a href="/reset-password" className="forgot-pw">Forgot Password?</a>
+            <button className="submit-button" onClick={login}>Sign In</button>
         </div>
-    )
+    </div>
 }
 
 export default LoginInputs;
