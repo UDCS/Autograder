@@ -20,7 +20,8 @@ export default defineConfig({
         login: resolve(root, 'login', 'login.html'),
         about: resolve(root, 'about', 'about.html'),
         FAQ: resolve(root, 'FAQ', 'FAQ.html'),
-        resetPW: resolve(root, 'reset-password', 'reset-password.html')
+        resetPW: resolve(root, 'reset-password', 'reset-password.html'),
+        signup: resolve(root, 'signup', 'signup.html')
       }
     }
   }

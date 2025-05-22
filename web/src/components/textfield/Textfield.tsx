@@ -21,7 +21,7 @@ const TextField: React.FC<TextFieldProps> = ({
   onChange,
   password
 }) => {
-  const [value, setValue] = useState<string>(initialValue);
+  const [value, setValue] = useState<string>('');
   const [error, setError] = useState<string>('');
 
   // Email validation regex
@@ -66,7 +66,7 @@ const TextField: React.FC<TextFieldProps> = ({
         value={value}
         onChange={handleChange}
         className={`textfield-input ${error ? 'error' : ''}`}
-        placeholder={email ? "Email" : password ? "Password" : "Text"}
+        placeholder={initialValue ? initialValue : email ? "Email" : password ? "Password" : "Enter Text Here"}
       />
       {error && <span className="error-message">{error}</span>}
     </div>
