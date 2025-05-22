@@ -52,9 +52,7 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 		}
 		return nil
 	}
-	res, err := store.db.Exec("INSERT INTO user_classroom_matching (user_id, user_role, classroom_id) VALUES ($1, $2, $3)", userInfo.Id, role, classroomId)
-	rowsAffected, _ := res.RowsAffected()
-	fmt.Println("Rows affected:", rowsAffected)
+	_, err = store.db.Exec("INSERT INTO user_classroom_matching (user_id, user_role, classroom_id) VALUES ($1, $2, $3)", userInfo.Id, role, classroomId)
 	if err != nil {
 		return err
 	}

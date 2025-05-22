@@ -128,8 +128,7 @@ func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Class
 	if err != nil {
 		return []models.Classroom {}, err
 	}
-
-
+  
 	var userInClassrooms []models.UserInClassroom
 	err = store.db.Select(
 		&userInClassrooms,

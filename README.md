@@ -181,9 +181,7 @@ Raw JSON:
     "first_name":"First",
     "last_name":"Last"
 }
-```
+
 Is Login Valid:
-```
 GET
 URL: 'http://localhost:8080/api/auth/is_valid_login
-```
