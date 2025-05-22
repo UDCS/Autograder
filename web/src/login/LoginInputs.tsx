@@ -7,11 +7,11 @@ interface FormData {
     error: string;
   }
 
-const handleTextChange = (data: FormData) => {
-    console.log('Value:', data.value);
-    console.log('Is Valid:', data.isValid);
-    console.log('Error:', data.error);
-  }
+// const handleTextChange = (data: FormData) => {
+//     console.log('Value:', data.value);
+//     console.log('Is Valid:', data.isValid);
+//     console.log('Error:', data.error);
+//   }
 
 function LoginInputs() {
     
