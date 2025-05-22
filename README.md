@@ -182,8 +182,8 @@ Raw JSON:
     "last_name":"Last"
 }
 ```
-Jwt Token Is Valid:
+Is Login Valid:
 ```
 GET
-URL: 'http://localhost:8080/api/auth/jwt_token_is_valid
+URL: 'http://localhost:8080/api/auth/is_valid_login
 ```

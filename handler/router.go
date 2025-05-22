@@ -19,7 +19,7 @@ type Handler interface {
 	PasswordReset(c context.Context) error
 	PasswordResetRequest(c context.Context) error
 	RefreshToken(c context.Context) error
-	JwtTokenIsValid(c context.Context) error
+	IsValidLogin(c context.Context) error
 	// Classroom
 	CreateClassroom(c context.Context) error
 	EditClassroom(c context.Context) error
@@ -74,7 +74,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.PUT("/:roomId/user", router.MatchUsersToClassroom)
 	auth.GET("/get_classrooms", router.GetClassroomsOfUser)
 	auth.POST("/change_user_data", router.ChangeUserData)
-	auth.GET("/jwt_token_is_valid", router.JwtTokenIsValid)
+	auth.GET("/is_valid_login", router.IsValidLogin)
 
 	classroom := api.Group("/classroom")
 	classroom.POST("", router.CreateClassroom)

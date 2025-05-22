@@ -17,7 +17,7 @@ type App interface {
 	PasswordResetRequest(resetRequest models.PasswordResetDetails) error
 	PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error)
 	RefreshToken(tokenString string) (*models.AccessToken, error)
-	JwtTokenIsValid(jwksToken string) bool
+	IsValidLogin(jwksToken string) bool
 	// Classroom
 	CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error)
 	MatchUserToClassroom(jwksToken string, userId string, role string, classroomId string) error

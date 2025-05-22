@@ -489,12 +489,13 @@ func (router *HttpRouter) ChangeUserData(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully changed user data"))
 }
 
-func (router *HttpRouter) JwtTokenIsValid(c echo.Context) error {
+func (router *HttpRouter) IsValidLogin(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
+	fmt.Println("token string: " + tokenString)
 	if err != nil {
 		return c.JSON(http.StatusOK, json_response.NewMessage("false"))
 	}
-	if router.app.JwtTokenIsValid(tokenString) {
+	if router.app.IsValidLogin(tokenString) {
 		return c.JSON(http.StatusOK, json_response.NewMessage("true"))
 	}
 	return c.JSON(http.StatusOK, json_response.NewMessage("false"))

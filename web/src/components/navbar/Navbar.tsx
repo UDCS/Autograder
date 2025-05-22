@@ -53,7 +53,7 @@ function Navbar(){
     useEffect(() => {
         const getIsLoggedIn = async () => {
             try {
-                var response = await fetch('/api/auth/jwt_token_is_valid');
+                var response = await fetch('/api/auth/is_valid_login');
                 if (response.ok) {
                     var json = await response.json();
                     setLoggedIn(json['message'] == 'true');

@@ -27,6 +27,19 @@ const roleOptions = [
     {value: "instructor", label: "Instructor"},
 ];
 
+const logout = async () => {
+  try {
+    const res = await fetch("/api/auth/logout", {method:"post"});
+    if (!res.ok) {
+      console.log("Logout not successful")
+    } else {
+      console.log("logout successful")
+    }
+  } catch (e) {
+    console.log("Bruh");
+  }
+};
+
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <Navbar />
@@ -35,5 +48,6 @@ createRoot(document.getElementById('root')!).render(
             <Select options={roleOptions} placeholder="Select a role" id="dropdown"/>
         </div>
         <Button id="sendButton">Send Email</Button>
+        <Button onClick={logout}>Log out</Button>
     </StrictMode>
   )
