@@ -24,6 +24,7 @@ func (app *GraderApp) CreateClassroom(jwksToken string, classroom models.Classro
 	if claims.Role != models.Admin && claims.Role != models.Instructor {
 		return nil, fmt.Errorf("unauthorized: only an admin or an instructor can create a classroom")
 	}
+	fmt.Println("Creating classroom from service")
 	createdClassroom, err := app.store.CreateClassroom(classroom)
 	e := app.store.MatchUserToClassroom(userInfo.Email, string(userInfo.UserRole), createdClassroom.Id.String())
 	if e != nil {

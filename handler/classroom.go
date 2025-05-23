@@ -33,10 +33,15 @@ func (router *HttpRouter) CreateClassroom(c echo.Context) error {
 	}
 
 	newClassroom := models.Classroom{
-		Name:      request.Name,
-		Id:        uuid.New(),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Name:              request.Name,
+		Id:                uuid.New(),
+		CreatedAt:         time.Now(),
+		UpdatedAt:         time.Now(),
+		StartDate:         request.StartDate,
+		EndDate:           request.EndDate,
+		CourseCode:        request.CourseCode,
+		CourseDescription: request.CourseDescription,
+		BannerImageIndex:  request.BannerImageIndex,
 	}
 
 	createdClassroom, err := router.app.CreateClassroom(tokenString, newClassroom)
@@ -103,5 +108,10 @@ func (router *HttpRouter) DeleteClassroom(c echo.Context) error {
 }
 
 type CreateClassroomRequest struct {
-	Name string `json:"name"`
+	Name              string          `json:"name"`
+	StartDate         models.DateOnly `json:"start_date"`
+	EndDate           models.DateOnly `json:"end_date"`
+	CourseCode        string          `json:"course_code"`
+	CourseDescription string          `json:"course_description"`
+	BannerImageIndex  uint16          `json:"banner_image_index"`
 }

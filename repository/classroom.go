@@ -9,13 +9,18 @@ import (
 )
 
 func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.Classroom, error) {
+	fmt.Println("Creating classroom from repo")
+	fmt.Println(classroom)
 	var createdClassroom models.Classroom
 	err := store.db.QueryRowx(
-		"INSERT INTO classrooms (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4) RETURNING id, name, created_at, updated_at;",
-		classroom.Id, classroom.Name, classroom.CreatedAt, classroom.UpdatedAt,
+		"INSERT INTO classrooms (id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index;",
+		classroom.Id, classroom.Name, classroom.CreatedAt, classroom.UpdatedAt, classroom.StartDate.String(), classroom.EndDate.String(), classroom.CourseCode, classroom.CourseDescription, classroom.BannerImageIndex,
 	).StructScan(&createdClassroom)
 
+	fmt.Println(createdClassroom)
+
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	return &createdClassroom, nil
