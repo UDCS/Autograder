@@ -309,3 +309,8 @@ func (app *GraderApp) ChangeUserData(jwksToken string, request models.ChangeUser
 
 	return app.store.ChangeUserData(request)
 }
+
+func (app *GraderApp) IsValidLogin(jwksToken string) bool {
+	_, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	return err == nil
+}

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -170,6 +171,9 @@ func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
 
 	classroomId := c.Param("roomId")
 	classroomUuid, err := uuid.Parse(classroomId)
+
+	fmt.Println(classroomId)
+
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError("Invalid UUID"))
 	}
@@ -268,7 +272,12 @@ func (router *HttpRouter) Login(c echo.Context) error {
 }
 
 func (router *HttpRouter) Logout(c echo.Context) error {
-	sessionId := c.Param("sessionId")
+	sessionIdCookie, err := c.Cookie("session_id")
+	if err != nil {
+		logger.Error("failed to parse session Id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse session id"))
+	}
+	sessionId := sessionIdCookie.Value
 	parsedId, err := uuid.Parse(sessionId)
 	if err != nil {
 		logger.Error("failed to parse session id", zap.Error(err))
@@ -480,6 +489,18 @@ func (router *HttpRouter) ChangeUserData(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
 	}
 	return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully changed user data"))
+}
+
+func (router *HttpRouter) IsValidLogin(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	fmt.Println("token string: " + tokenString)
+	if err != nil {
+		return c.JSON(http.StatusOK, json_response.NewMessage("false"))
+	}
+	if router.app.IsValidLogin(tokenString) {
+		return c.JSON(http.StatusOK, json_response.NewMessage("true"))
+	}
+	return c.JSON(http.StatusOK, json_response.NewMessage("false"))
 }
 
 type (

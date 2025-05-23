@@ -1,0 +1,36 @@
+@import url(../../colors.css);
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1vh;
+    padding-bottom: 1vh;
+}
+
+.nav-left {
+    margin-left: 1vw;
+}
+
+.nav-right {
+    padding-right: 1vw;
+}
+
+#nav-item {
+    font-family: 'Azeret Mono';
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--color-NCS-blue);
+    padding-right: 3vw;
+}
+
+#logo {
+    font-family: 'Monomaniac One';
+    font-size: 2em;
+    text-transform: uppercase;
+	background: linear-gradient(to right, var(--color-raisin-black) 0%, var(--color-process-cyan) 100%);
+	text-decoration: none;
+    background-clip: text;
+    -webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}

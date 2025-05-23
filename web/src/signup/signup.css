@@ -1,0 +1,86 @@
+@import url(../reset.css);
+@import "tailwindcss";
+
+* {
+    overscroll-behavior: none;
+    overflow: hidden;
+}
+
+.signup-page {
+    font-family: 'Azeret Mono', monospace;
+    width: 100vw;
+    height: 94.5vh;
+    background: linear-gradient(90deg, #0CAADC -20%, #ffffff 120%);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+}
+
+.signup-card {
+    width: max(40%, 300px);
+    height: 85%;
+    background: white;
+    box-shadow: 33px 35px 13.9px -6px rgba(0, 0, 0, 0.25);
+    border-radius: 25px;
+    overflow: hidden;
+    border: 4px solid #1E212B;
+}
+
+.signup-card > * {
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+.signup-title {
+    height: 10%;
+    position: relative;
+    margin-top: 5%;
+    color: black;
+    font-size: 42px;
+    font-weight: 700;
+    word-wrap: break-word;
+}
+
+.input-container > :first-child{
+    margin-top: 2.5%;
+}
+
+.input-container input{
+    font-size: 24px;
+    border-color: #000000;
+    border-width: 1.5px;
+    margin-top: 5%;
+}
+
+.why-am-i-here {
+    color: #1481BA;
+    font-size: 18px;
+}
+
+.submit-button {
+    width: 90%;
+    margin-top: 6.5%;
+    position: relative;
+    justify-content: flex-end;
+    border-radius: 20px;
+    font-size: 36px;
+    color: #ffffff;
+    background-color: #0CAADC;
+    padding-top: 12.5px;
+    padding-bottom: 12.5px;
+    transition: background-color 0.2s;
+}
+
+.submit-button:hover {
+    background-color: #1481BA;
+}
+
+.submit-button:active {
+    background-color: #1E212B;
+}
+
+.submit-button:focus {
+    background-color: #1E212B;
+}

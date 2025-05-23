@@ -1,0 +1,35 @@
+.textfield-container {
+    display: flex;
+    flex-direction: column;
+    margin: 1.5rem 0 0.5rem 0;
+    width: 100%;
+}
+
+.textfield-label {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.textfield-input {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.textfield-input:focus {
+    border-color: #0CAADC;
+}
+
+.textfield-input.error {
+    border-color: #dc3545;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}

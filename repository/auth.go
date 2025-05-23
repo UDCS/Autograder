@@ -126,9 +126,9 @@ func (store PostgresStore) DeleteSession(sessionId uuid.UUID) error {
 func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Classroom, error) {
 	user_info, err := store.GetUserInfo(userEmail)
 	if err != nil {
-		return []models.Classroom{}, err
+		return []models.Classroom {}, err
 	}
-
+  
 	var userInClassrooms []models.UserInClassroom
 	err = store.db.Select(
 		&userInClassrooms,
@@ -136,7 +136,7 @@ func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Class
 		user_info.Id,
 	)
 	if err != nil {
-		return []models.Classroom{}, err
+		return []models.Classroom {}, err
 	}
 
 	var classrooms []models.Classroom
@@ -150,25 +150,25 @@ func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Class
 		classrooms = append(classrooms, room)
 	}
 	if err != nil {
-		return []models.Classroom{}, err
+		return []models.Classroom {}, err
 	}
 
 	return classrooms, err
 }
 
 func (store PostgresStore) ChangeUserData(request models.ChangeUserDataRequest) error {
-	var userExists bool
-	err := store.db.Get(&userExists, "SELECT EXISTS (SELECT 1 FROM users WHERE email = $1)", request.CurrentEmail)
-	if !userExists {
-		return fmt.Errorf("no user with email '%s'", request.CurrentEmail)
-	}
-	if err != nil {
-		return err
-	}
+    var userExists bool
+    err := store.db.Get(&userExists, "SELECT EXISTS (SELECT 1 FROM users WHERE email = $1)", request.CurrentEmail)
+    if !userExists {
+        return fmt.Errorf("no user with email '%s'", request.CurrentEmail)
+    }
+    if err != nil {
+        return err
+    }
 
-	_, err = store.db.Exec(
-		"UPDATE users SET first_name = $1, last_name = $2, email = $3, updated_at = $4 WHERE email = $5",
-		request.FirstName, request.LastName, request.NewEmail, time.Now(), request.CurrentEmail,
-	)
-	return err
+    _, err = store.db.Exec(
+        "UPDATE users SET first_name = $1, last_name = $2, email = $3, updated_at = $4 WHERE email = $5",
+        request.FirstName, request.LastName, request.NewEmail, time.Now(), request.CurrentEmail,
+    )
+    return err
 }
