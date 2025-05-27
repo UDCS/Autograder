@@ -1,28 +1,15 @@
 @import url(..//reset.css);
 @import "tailwindcss";
 
-* {
-    overscroll-behavior: none;
-}
-
 body {
     font-family: "Azeret Mono";
     margin: 0;
     overflow: hidden;
 }
 
-#notication-text {
-    font-family: "Monomaniac One";
-    font-size: 96px;
-    text-transform: uppercase;
-}
+.classes {
+    position: absolute;
+    top: 10%;
+    left: 10%;
 
-.bottom-page {
-    width: 100vw;
-    height: 94vh;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
 }

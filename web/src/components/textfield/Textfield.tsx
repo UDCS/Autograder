@@ -74,8 +74,8 @@ const TextField: React.FC<TextFieldProps> = ({
 };
 
 /*
+Example usage with TypeScript:
 
-// Example usage with TypeScript:
 interface FormData {
   value: string;
   isValid: boolean;
