@@ -78,8 +78,8 @@ func (router *HttpRouter) SetupRoutes() {
 
 	classroom := api.Group("/classroom")
 	classroom.POST("", router.CreateClassroom)
-	classroom.PATCH("/edit/:roomId", router.EditClassroom)
-	classroom.DELETE("/delete/:roomId", router.DeleteClassroom)
+	classroom.PATCH("/edit/:room_id", router.EditClassroom)
+	classroom.DELETE("/delete/:room_id", router.DeleteClassroom)
 }
 
 func (router *HttpRouter) Engage(port string) {

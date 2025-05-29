@@ -135,7 +135,7 @@ func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation, sessi
 
 	classroomInfo, err := app.store.GetClassroomInfo(retrievedInvitation.ClassroomId)
 	if err == nil {
-		err = app.store.MatchUserToClassroom(createdUser.Email, string(createdUser.UserRole), classroomInfo.Id.String())
+		err = app.store.MatchUserToClassroom(createdUser.Email, string(createdUser.UserRole), classroomInfo.Id)
 		if err != nil {
 			return nil, err
 		}
