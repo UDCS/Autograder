@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -169,10 +168,8 @@ func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
 	}
 
-	classroomId := c.Param("roomId")
+	classroomId := c.Param("room_id")
 	classroomUuid, err := uuid.Parse(classroomId)
-
-	fmt.Println(classroomId)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError("Invalid UUID"))
@@ -186,7 +183,7 @@ func (router *HttpRouter) MatchUsersToClassroom(c echo.Context) error {
 	for _, user := range users.RoomUsers {
 		userEmail := user.User_email
 		userRole := user.User_role
-		err := router.app.MatchUserToClassroom(tokenString, userEmail, userRole, classroomId)
+		err := router.app.MatchUserToClassroom(tokenString, userEmail, userRole, classroomUuid)
 		if err != nil {
 			if err.Error() == "user does not exist" {
 				invitationRequest := CreateInvitationRequest{
@@ -493,7 +490,6 @@ func (router *HttpRouter) ChangeUserData(c echo.Context) error {
 
 func (router *HttpRouter) IsValidLogin(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
-	fmt.Println("token string: " + tokenString)
 	if err != nil {
 		return c.JSON(http.StatusOK, json_response.NewMessage("false"))
 	}

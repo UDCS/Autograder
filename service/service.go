@@ -20,7 +20,7 @@ type App interface {
 	IsValidLogin(jwksToken string) bool
 	// Classroom
 	CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error)
-	MatchUserToClassroom(jwksToken string, userId string, role string, classroomId string) error
+	MatchUserToClassroom(jwksToken string, userId string, role string, classroomId uuid.UUID) error
 	EditClassroom(jwksToken string, request models.EditClassroomRequest) error
 	DeleteClassroom(jwksToken string, request models.DeleteClassroomRequest) error
 	GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error)

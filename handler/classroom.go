@@ -65,10 +65,15 @@ func (router *HttpRouter) EditClassroom(c echo.Context) error {
 
 	err = c.Bind(&request)
 
-	request.RoomId = c.Param("roomId")
-
 	if err != nil {
 		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("failed to parse request body"))
+	}
+
+	request.RoomId, err = uuid.Parse(c.Param("room_id"))
+
+	if err != nil {
+		logger.Error("failed to parse room id", zap.Error(err))
 		return c.JSON(http.StatusUnauthorized, json_response.NewError("failed to parse request body"))
 	}
 
@@ -93,7 +98,7 @@ func (router *HttpRouter) DeleteClassroom(c echo.Context) error {
 
 	var request models.DeleteClassroomRequest
 
-	request.RoomId = c.Param("roomId")
+	request.RoomId, err = uuid.Parse(c.Param("room_id"))
 
 	if err != nil {
 		logger.Error("failed to parse request body", zap.Error(err))

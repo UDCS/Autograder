@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"strings"
 	"time"
@@ -10,6 +11,13 @@ import (
 
 type DateOnly struct {
 	time.Time
+}
+
+func (d DateOnly) Value() (driver.Value, error) {
+	if d.IsZero() {
+		return nil, nil
+	}
+	return d.Time.Format("2006-01-02"), nil // returns a string like "2024-05-23"
 }
 
 func (d *DateOnly) UnmarshalJSON(b []byte) error {
@@ -42,7 +50,6 @@ func (d *DateOnly) Scan(value interface{}) error {
 	case []byte:
 		t, err := time.Parse("2006-01-02", string(v))
 		if err != nil {
-			fmt.Println("Something wrong with parsing!")
 			return err
 		}
 		d.Time = t
@@ -50,13 +57,11 @@ func (d *DateOnly) Scan(value interface{}) error {
 	case string:
 		t, err := time.Parse("2006-01-02", v)
 		if err != nil {
-			fmt.Println("Something wrong with parsing!")
 			return err
 		}
 		d.Time = t
 		return nil
 	default:
-		fmt.Println("Something wrong with parsing!")
 		return fmt.Errorf("cannot scan type %T into DateOnly", value)
 	}
 }
@@ -94,10 +99,15 @@ type AddToClassRequest struct {
 }
 
 type EditClassroomRequest struct {
-	Name   string `json:"name"`
-	RoomId string `json:"roomId"`
+	Name              string    `json:"name"`
+	RoomId            uuid.UUID `json:"room_id"`
+	StartDate         DateOnly  `json:"start_date" db:"start_date"`
+	EndDate           DateOnly  `json:"end_date" db:"end_date"`
+	CourseCode        string    `json:"course_code" db:"course_code"`
+	CourseDescription string    `json:"course_description" db:"course_description"`
+	BannerImageIndex  uint16    `json:"banner_image_index" db:"banner_image_index"`
 }
 
 type DeleteClassroomRequest struct {
-	RoomId string `json:"classroom_id"`
+	RoomId uuid.UUID `json:"classroom_id"`
 }

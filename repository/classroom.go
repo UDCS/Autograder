@@ -9,18 +9,13 @@ import (
 )
 
 func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.Classroom, error) {
-	fmt.Println("Creating classroom from repo")
-	fmt.Println(classroom)
 	var createdClassroom models.Classroom
 	err := store.db.QueryRowx(
 		"INSERT INTO classrooms (id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index;",
-		classroom.Id, classroom.Name, classroom.CreatedAt, classroom.UpdatedAt, classroom.StartDate.String(), classroom.EndDate.String(), classroom.CourseCode, classroom.CourseDescription, classroom.BannerImageIndex,
+		classroom.Id, classroom.Name, classroom.CreatedAt, classroom.UpdatedAt, classroom.StartDate, classroom.EndDate, classroom.CourseCode, classroom.CourseDescription, classroom.BannerImageIndex,
 	).StructScan(&createdClassroom)
 
-	fmt.Println(createdClassroom)
-
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	return &createdClassroom, nil
@@ -29,7 +24,7 @@ func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.
 func (store PostgresStore) GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error) {
 	var classroom models.Classroom
 	err := store.db.QueryRowx(
-		"SELECT id, name, created_at, updated_at FROM classrooms WHERE id=$1", classroomId,
+		"SELECT id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index FROM classrooms WHERE id=$1", classroomId,
 	).StructScan(&classroom)
 	if err != nil {
 		return models.Classroom{}, fmt.Errorf("classroom not found")
@@ -37,7 +32,7 @@ func (store PostgresStore) GetClassroomInfo(classroomId uuid.UUID) (models.Class
 	return classroom, nil
 }
 
-func (store PostgresStore) MatchUserToClassroom(email string, role string, classroomId string) error {
+func (store PostgresStore) MatchUserToClassroom(email string, role string, classroomId uuid.UUID) error {
 	userInfo, err := store.GetUserInfo(email)
 	if err != nil {
 		return err
@@ -64,7 +59,7 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 	return nil
 }
 
-func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId string) (models.UserInClassroom, error) {
+func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId uuid.UUID) (models.UserInClassroom, error) {
 
 	var user models.UserInClassroom
 
@@ -82,7 +77,12 @@ func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId strin
 }
 
 func (store PostgresStore) EditClassroom(request models.EditClassroomRequest) error {
-	_, err := store.db.Exec("UPDATE classrooms SET name = $1, updated_at = $2 WHERE id = $3", request.Name, time.Now(), request.RoomId)
+
+	var classroom models.Classroom
+
+	err := store.db.QueryRowx("UPDATE classrooms SET name = $1, start_date = $2, end_date = $3, course_code = $4, course_description =$5, banner_image_index = $6, updated_at = $7 WHERE id = $8 RETURNING id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index;",
+		request.Name, request.StartDate, request.EndDate, request.CourseCode, request.CourseDescription, request.BannerImageIndex, time.Now(), request.RoomId,
+	).StructScan(&classroom)
 
 	if err != nil {
 		return err

@@ -24,16 +24,15 @@ func (app *GraderApp) CreateClassroom(jwksToken string, classroom models.Classro
 	if claims.Role != models.Admin && claims.Role != models.Instructor {
 		return nil, fmt.Errorf("unauthorized: only an admin or an instructor can create a classroom")
 	}
-	fmt.Println("Creating classroom from service")
 	createdClassroom, err := app.store.CreateClassroom(classroom)
-	e := app.store.MatchUserToClassroom(userInfo.Email, string(userInfo.UserRole), createdClassroom.Id.String())
+	e := app.store.MatchUserToClassroom(userInfo.Email, string(userInfo.UserRole), createdClassroom.Id)
 	if e != nil {
 		return createdClassroom, e
 	}
 	return createdClassroom, err
 }
 
-func (app *GraderApp) MatchUserToClassroom(jwksToken string, userEmail string, userRole string, classroomId string) error {
+func (app *GraderApp) MatchUserToClassroom(jwksToken string, userEmail string, userRole string, classroomId uuid.UUID) error {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 
 	if err != nil {
@@ -46,11 +45,7 @@ func (app *GraderApp) MatchUserToClassroom(jwksToken string, userEmail string, u
 
 	_, err = app.store.GetUserInfo(userEmail)
 	if err == nil {
-		classUuid, err := uuid.Parse(classroomId)
-		if err != nil {
-			return err
-		}
-		_, err = app.store.GetClassroomInfo(classUuid)
+		_, err = app.store.GetClassroomInfo(classroomId)
 		if err != nil {
 			return err
 		}
