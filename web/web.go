@@ -24,6 +24,9 @@ var (
 	//go:embed dist/signup/signup.html
 	signupHTML embed.FS
 
+	//go:embed dist/account/account.html
+	accountHTML embed.FS
+
 	distDirFS       = echo.MustSubFS(dist, "dist")
 	distIndexHTML   = echo.MustSubFS(indexHTML, "dist")
 	distTestHTML    = echo.MustSubFS(testHTML, "dist/test")
@@ -32,6 +35,7 @@ var (
 	distFAQHTML     = echo.MustSubFS(FAQHTML, "dist/FAQ")
 	distResetPWHTML = echo.MustSubFS(resetPWHTML, "dist/reset-password")
 	distSignupHTML  = echo.MustSubFS(signupHTML, "dist/signup")
+	distAccountHTML = echo.MustSubFS(accountHTML, "dist/account")
 )
 
 // RegisterHandlers registers the web handlers to serve the frontend
@@ -43,5 +47,6 @@ func RegisterHandlers(e *echo.Echo) {
 	e.FileFS("/faq", "FAQ.html", distFAQHTML)
 	e.FileFS("/reset-password", "reset-password.html", distResetPWHTML)
 	e.FileFS("/signup", "signup.html", distSignupHTML)
+	e.FileFS("/account", "account.html", distAccountHTML)
 	e.StaticFS("/", distDirFS)
 }
