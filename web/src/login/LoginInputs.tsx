@@ -5,7 +5,7 @@ interface FormData {
     value: string;
     isValid: boolean;
     error: string;
-  }
+}
 
 function LoginInputs() {
     
@@ -43,7 +43,7 @@ function LoginInputs() {
                     initialValue=""
                     label=""
                     email
-                    onChange={(data: FormData) => {
+                    onChange={(data: FormData): void => {
                         setUsername(data.value)
                     }}/>
                 <TextField 

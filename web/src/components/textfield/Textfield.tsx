@@ -1,8 +1,8 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, InputHTMLAttributes} from 'react';
 import './Textfield.css';
 
 // Define props interface
-interface TextFieldProps {
+type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & {
   initialValue?: string;
   label?: string;
   email?: boolean;
@@ -19,7 +19,8 @@ const TextField: React.FC<TextFieldProps> = ({
   label = 'Input',
   email = false,
   onChange,
-  password
+  password,
+  ...props
 }) => {
   const [value, setValue] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -59,13 +60,13 @@ const TextField: React.FC<TextFieldProps> = ({
   };
 
   return (
-    <div className="textfield-container">
+    <div className={`textfield-container ${props.className}`} {...props}>
       {label && <label className="textfield-label">{label}</label>}
       <input
         type={email ? "email" : password ? "password" : "text"}
         value={value}
         onChange={handleChange}
-        className={`textfield-input ${error ? 'error' : ''}`}
+        className={`textfield-input ${error ? 'error' : ''} ${props.className}`}
         placeholder={initialValue ? initialValue : email ? "Email" : password ? "Password" : "Enter Text Here"}
       />
       {error && <span className="error-message">{error}</span>}

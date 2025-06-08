@@ -1,0 +1,17 @@
+.blueButton {
+    font-family: 'Azeret Mono';
+    color: white;
+    border-radius: 20px;
+    background-color: var(--color-process-cyan);
+    padding: 2%;
+    font-size: 150%;
+    border: none;
+}
+
+.blueButton:hover {
+    background-color: var(--color-aero-blue);
+}
+
+.blueButton:active {
+    background-color: var(--color-NCS-blue);
+}
