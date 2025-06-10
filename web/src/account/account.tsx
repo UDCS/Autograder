@@ -45,6 +45,11 @@ createRoot(document.getElementById('root')!).render(<div>
                         <div className="label" style={{marginLeft: "1%"}}>Dark Mode</div>
                     </div>
                 </td>
+                <td id='linkSentParent'>
+                    <div id="linkSent">
+                        Reset Password Link Sent!
+                    </div>
+                </td>
             </tr>
         </table>
         <BlueButton id='submit'>

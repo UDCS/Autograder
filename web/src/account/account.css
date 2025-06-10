@@ -84,3 +84,25 @@ tr {
     padding: 1%;
     align-self: flex-end;
 }
+
+#resetParent {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#linkSentParent {
+    vertical-align: top;
+    position: relative;
+    padding: 0;
+    padding-top: 1%;
+}
+
+#linkSent {
+    font-family: 'Azeret Mono';
+    font-size: 90%;
+    width: 100%;
+    color: red;
+    text-align: center;
+}
