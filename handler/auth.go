@@ -9,7 +9,6 @@ import (
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/json_response"
 
-	// "github.com/UDCS/Autograder/utils/jwt_token"
 	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/UDCS/Autograder/utils/middlewares"
 	"github.com/UDCS/Autograder/utils/password"
@@ -443,6 +442,16 @@ func (router *HttpRouter) GetClassroomsOfUser(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"classrooms": classrooms})
+}
+
+func (router *HttpRouter) GetUserName(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+	userName, err := router.app.GetUserName(tokenString)
+	return c.JSON(http.StatusOK, echo.Map{"FirstName": userName.FirstName, "LastName": userName.LastName})
 }
 
 func (router *HttpRouter) ChangeUserData(c echo.Context) error {

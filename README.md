@@ -182,6 +182,14 @@ Raw JSON:
     "last_name":"Last"
 }
 
+```
 Is Login Valid:
+```
 GET
-URL: 'http://localhost:8080/api/auth/is_valid_login
+URL: 'http://localhost:8080/api/auth/valid_login
+```
+Get user's first and last name:
+```
+GET
+URL: 'http://localhost:8080/api/auth/user_name'
+```

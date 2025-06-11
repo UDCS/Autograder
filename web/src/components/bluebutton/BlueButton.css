@@ -15,3 +15,7 @@
 .blueButton:active {
     background-color: var(--color-NCS-blue);
 }
+
+.blueButton:disabled {
+    background-color: grey;
+}

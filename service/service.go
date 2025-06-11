@@ -14,11 +14,11 @@ type App interface {
 	SignUp(user models.UserWithInvitation, session models.Session) (*models.JWTTokens, error)
 	Login(user models.UserWithPassword, session models.Session) (*models.JWTTokens, error)
 	Logout(sessionId uuid.UUID) error
-	// PasswordResetRequest(resetRequest models.PasswordResetDetails) error
 	PasswordResetRequest(jwksToken string) error
 	PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error)
 	RefreshToken(tokenString string) (*models.AccessToken, error)
 	IsValidLogin(jwksToken string) bool
+	GetUserName(jwksToken string) (*models.UserName, error)
 	// Classroom
 	CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error)
 	MatchUserToClassroom(jwksToken string, userId string, role string, classroomId uuid.UUID) error

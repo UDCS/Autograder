@@ -315,6 +315,18 @@ func (app *GraderApp) GetClassroomsOfUser(jwksToken string) ([]models.Classroom,
 	return classrooms, nil
 }
 
+func (app *GraderApp) GetUserName(jwksToken string) (*models.UserName, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse access token")
+	}
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve user info")
+	}
+	return &models.UserName{FirstName: userInfo.FirstName, LastName: userInfo.LastName}, nil
+}
+
 func (app *GraderApp) ChangeUserData(jwksToken string, request models.ChangeUserDataRequest) error {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
