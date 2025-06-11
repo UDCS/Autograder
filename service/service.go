@@ -14,7 +14,8 @@ type App interface {
 	SignUp(user models.UserWithInvitation, session models.Session) (*models.JWTTokens, error)
 	Login(user models.UserWithPassword, session models.Session) (*models.JWTTokens, error)
 	Logout(sessionId uuid.UUID) error
-	PasswordResetRequest(resetRequest models.PasswordResetDetails) error
+	// PasswordResetRequest(resetRequest models.PasswordResetDetails) error
+	PasswordResetRequest(jwksToken string) error
 	PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error)
 	RefreshToken(tokenString string) (*models.AccessToken, error)
 	IsValidLogin(jwksToken string) bool

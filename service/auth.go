@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"net/mail"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
@@ -176,7 +177,24 @@ func (app *GraderApp) Logout(sessionId uuid.UUID) error {
 	return app.store.DeleteSession(sessionId)
 }
 
-func (app *GraderApp) PasswordResetRequest(resetRequest models.PasswordResetDetails) error {
+func (app *GraderApp) PasswordResetRequest(jwksToken string) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("failed to parse access token")
+	}
+	parsedEmail, err := mail.ParseAddress(claims.Subject)
+	if err != nil {
+		logger.Error("failed to parse email", zap.Error(err))
+		return fmt.Errorf("failed to parse email")
+	}
+
+	resetRequest := models.PasswordResetDetails{
+		Id:        uuid.New(),
+		Email:     parsedEmail.Address,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
 	retrievedUser, err := app.store.GetUserInfo(resetRequest.Email)
 	if err != nil {
 		return fmt.Errorf("user does not exist")
@@ -286,7 +304,7 @@ func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.AccessTok
 func (app *GraderApp) GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error) {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
-		return nil, fmt.Errorf("invalid autorization credentials")
+		return nil, fmt.Errorf("invalid authorization credentials")
 	}
 
 	classrooms, err := app.store.GetClassroomsOfUser(claims.Subject)
