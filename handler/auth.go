@@ -451,6 +451,9 @@ func (router *HttpRouter) GetUserName(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
 	}
 	userName, err := router.app.GetUserName(tokenString)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
 	return c.JSON(http.StatusOK, echo.Map{"FirstName": userName.FirstName, "LastName": userName.LastName})
 }
 
