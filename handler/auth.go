@@ -8,6 +8,7 @@ import (
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/json_response"
+
 	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/UDCS/Autograder/utils/middlewares"
 	"github.com/UDCS/Autograder/utils/password"
@@ -316,28 +317,14 @@ func (router *HttpRouter) Logout(c echo.Context) error {
 }
 
 func (router *HttpRouter) PasswordResetRequest(c echo.Context) error {
-	request := PasswordResetRequest{}
 
-	err := c.Bind(&request)
+	tokenString, err := middlewares.GetAccessToken(c)
 	if err != nil {
-		logger.Error("failed to parse request body", zap.Error(err))
+		logger.Error("failed to parse access token", zap.Error(err))
 		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
 	}
 
-	parsedEmail, err := mail.ParseAddress(request.Email)
-	if err != nil {
-		logger.Error("failed to parse email", zap.Error(err))
-		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse email"))
-	}
-
-	resetRequest := models.PasswordResetDetails{
-		Id:        uuid.New(),
-		Email:     parsedEmail.Address,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	err = router.app.PasswordResetRequest(resetRequest)
+	err = router.app.PasswordResetRequest(tokenString)
 	if err != nil {
 		logger.Error("failed to create a password reset request", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, json_response.NewError("failed to create a password reset request"))
@@ -457,7 +444,20 @@ func (router *HttpRouter) GetClassroomsOfUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"classrooms": classrooms})
 }
 
-func (router *HttpRouter) ChangeUserData(c echo.Context) error {
+func (router *HttpRouter) GetUserName(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+	userName, err := router.app.GetUserName(tokenString)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+	return c.JSON(http.StatusOK, echo.Map{"FirstName": userName.FirstName, "LastName": userName.LastName})
+}
+
+func (router *HttpRouter) ChangeUserInfo(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 
 	if err != nil {
@@ -465,7 +465,7 @@ func (router *HttpRouter) ChangeUserData(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
 	}
 
-	var request models.ChangeUserDataRequest
+	var request models.ChangeUserInfoRequest
 
 	err = c.Bind(&request)
 
@@ -474,18 +474,11 @@ func (router *HttpRouter) ChangeUserData(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
 	}
 
-	_, err = mail.ParseAddress(request.NewEmail)
-
-	if err != nil {
-		logger.Error("failed to parse email", zap.Error(err))
-		return c.JSON(http.StatusBadRequest, json_response.NewError("new_email is invalid"))
-	}
-
-	err = router.app.ChangeUserData(tokenString, request)
+	err = router.app.ChangeUserInfo(tokenString, request)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
 	}
-	return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully changed user data"))
+	return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully changed user info"))
 }
 
 func (router *HttpRouter) IsValidLogin(c echo.Context) error {

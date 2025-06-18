@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TextField from "../components/textfield/Textfield";
 
 interface FormData {
     value: string;
     isValid: boolean;
     error: string;
-  }
+}
 
 function LoginInputs() {
-    
-    // const [loginSuccess, setLoginSuccess] = useState(false);
+    useEffect(() => {
+        console.log("Hello, world!");
+    });    
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const login = async () => {
@@ -23,12 +24,10 @@ function LoginInputs() {
                 body: JSON.stringify({"email": username, "password": password})
             })
             if (!response.ok) {
-                // setLoginSuccess(false);
                 alert("Invalid Username or Password")
             }
             else {
                 window.location.href="/dashboard"
-                // setLoginSuccess(true)
             }
         } catch (error) {
             console.error("Error: ", error)
@@ -43,7 +42,7 @@ function LoginInputs() {
                     initialValue=""
                     label=""
                     email
-                    onChange={(data: FormData) => {
+                    onChange={(data: FormData): void => {
                         setUsername(data.value)
                     }}/>
                 <TextField 

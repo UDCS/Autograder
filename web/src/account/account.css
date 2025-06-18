@@ -1,0 +1,108 @@
+body {
+    background: linear-gradient(90deg, #0CAADC -20%, #ffffff 120%);
+}
+
+.header {
+    font-family: 'Monomaniac One';
+    font-size: 4em;
+    text-transform: uppercase;
+	background: linear-gradient(to right, var(--color-raisin-black) 0%, var(--color-process-cyan) 50%);
+	text-decoration: none;
+    background-clip: text;
+    -webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+#accountRoot {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 50%;
+    margin-right: 5%;
+    margin-bottom: 1%;
+    margin-top: 3%;
+    margin-left: 5%;
+    border: 4px solid black;
+    border-radius: 25px;
+    padding-top: 4%;
+    padding-left: 4%;
+    padding-right: 4%;
+    padding-bottom: 2%;
+    background: #fff;
+    box-shadow: 33px 35px 13.9px -6px rgba(0, 0, 0, 0.25);
+}
+
+.blueButton {
+    width: 100%;
+}
+
+td {
+    padding-top: 4%;
+    vertical-align: middle;
+}
+
+#fieldsTable {
+    width: 100%;
+    margin-top: 1%;
+    table-layout: auto;
+}
+
+tr {
+    padding-top: 5%;
+}
+
+.input {
+    font-family: 'Azeret Mono';
+    font-size: 125%;
+    width: 95%;
+}
+
+.label {
+    font-family: 'Azeret Mono';
+    font-size: 150%;
+}
+
+.lastUpdated {
+    font-family: 'Azeret Mono';
+    font-weight: lighter;
+    font-size: 150%;
+}
+
+.labelTd {
+    padding-right: 1%;
+}
+
+.colorTheme {
+    display: flex;
+}
+.colorTheme * {
+    margin-right: 1%;
+}
+
+#submit {
+    margin-top: 5%;
+    padding: 1%;
+    align-self: flex-end;
+}
+
+#resetParent {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#linkSentParent {
+    vertical-align: top;
+    position: relative;
+    padding: 0;
+    padding-top: 1%;
+}
+
+#linkSent {
+    font-family: 'Azeret Mono';
+    font-size: 90%;
+    width: 100%;
+    color: red;
+    text-align: center;
+}
