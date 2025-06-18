@@ -25,7 +25,7 @@ type Handler interface {
 	CreateClassroom(c context.Context) error
 	EditClassroom(c context.Context) error
 	DeleteClassroom(c context.Context) error
-	ChangeUserData(c context.Context) error
+	ChangeUserInfo(c context.Context) error
 }
 
 type HttpRouter struct {
@@ -50,7 +50,7 @@ func New(app service.App) *HttpRouter {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 	}))
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(10))))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
 	e.Use(middleware.Gzip())
 
 	router := &HttpRouter{
@@ -74,7 +74,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.POST("/refresh", router.RefreshToken)
 	auth.PUT("/:roomId/user", router.MatchUsersToClassroom)
 	auth.GET("/get_classrooms", router.GetClassroomsOfUser)
-	auth.POST("/change_user_data", router.ChangeUserData)
+	auth.PUT("/user_info", router.ChangeUserInfo)
 	auth.GET("/valid_login", router.IsValidLogin)
 	auth.GET("/user_name", router.GetUserName)
 

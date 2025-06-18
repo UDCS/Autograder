@@ -170,10 +170,10 @@ POST
 URL: 'http://localhost:8080/api/auth/refresh'
 ```
 
-Change User Data:
+Change User Info:
 ```
-POST
-URL: 'http://localhost:8080/api/auth/change_user_data
+PUT
+URL: 'http://localhost:8080/api/auth/user_info
 Raw JSON:
 {
     "current_email":"current_email@udallas.edu",

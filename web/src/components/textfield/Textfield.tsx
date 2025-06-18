@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, InputHTMLAttributes} from 'react';
+import React, { useState, ChangeEvent, InputHTMLAttributes, useEffect} from 'react';
 import './Textfield.css';
 
 // Define props interface
@@ -22,8 +22,10 @@ const TextField: React.FC<TextFieldProps> = ({
   password,
   ...props
 }) => {
-  const [value, setValue] = useState<string>('');
+  const [value, setValue] = useState<string>("");
   const [error, setError] = useState<string>('');
+
+  const [startedChange, setStartedChange] = useState(false);
 
   // Email validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -47,6 +49,10 @@ const TextField: React.FC<TextFieldProps> = ({
     // Validate input if email checking is enabled
     const validationError = validateInput(newValue);
     setError(validationError);
+
+    if (!startedChange) {
+      setStartedChange(true);
+    }
     
     // Only call onChange if it exists
     if (onChange) {
@@ -58,6 +64,12 @@ const TextField: React.FC<TextFieldProps> = ({
     }
     //Add a check to see if a possword if being entered, and thus make the characters dots instead of the entered characters
   };
+
+  useEffect(() => {
+    if (!startedChange) {
+      setValue(props.value && value == '' ? props.value.toString() : value);
+    }
+  })
 
   return (
     <div className={`textfield-container ${props.className}`} {...props}>

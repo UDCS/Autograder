@@ -25,7 +25,7 @@ type App interface {
 	EditClassroom(jwksToken string, request models.EditClassroomRequest) error
 	DeleteClassroom(jwksToken string, request models.DeleteClassroomRequest) error
 	GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error)
-	ChangeUserData(jwksToken string, request models.ChangeUserDataRequest) error
+	ChangeUserInfo(jwksToken string, request models.ChangeUserInfoRequest) error
 }
 
 type GraderApp struct {

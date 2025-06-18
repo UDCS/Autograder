@@ -327,17 +327,21 @@ func (app *GraderApp) GetUserName(jwksToken string) (*models.UserName, error) {
 	return &models.UserName{FirstName: userInfo.FirstName, LastName: userInfo.LastName}, nil
 }
 
-func (app *GraderApp) ChangeUserData(jwksToken string, request models.ChangeUserDataRequest) error {
+func (app *GraderApp) ChangeUserInfo(jwksToken string, request models.ChangeUserInfoRequest) error {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
 		return fmt.Errorf("invalid authorizaiton credentials")
 	}
 
-	if claims.Role != models.Admin && claims.Subject != request.CurrentEmail {
-		return fmt.Errorf("unauthorized: only an admin can change another user's data")
+	if request.Email == "" {
+		request.Email = claims.Subject
 	}
 
-	return app.store.ChangeUserData(request)
+	if claims.Role != models.Admin && request.Email != claims.Subject {
+		return fmt.Errorf("unauthorized: only an admin can change another user's info")
+	}
+
+	return app.store.ChangeUserInfo(request)
 }
 
 func (app *GraderApp) IsValidLogin(jwksToken string) bool {

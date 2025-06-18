@@ -457,7 +457,7 @@ func (router *HttpRouter) GetUserName(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"FirstName": userName.FirstName, "LastName": userName.LastName})
 }
 
-func (router *HttpRouter) ChangeUserData(c echo.Context) error {
+func (router *HttpRouter) ChangeUserInfo(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 
 	if err != nil {
@@ -465,7 +465,7 @@ func (router *HttpRouter) ChangeUserData(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
 	}
 
-	var request models.ChangeUserDataRequest
+	var request models.ChangeUserInfoRequest
 
 	err = c.Bind(&request)
 
@@ -474,18 +474,11 @@ func (router *HttpRouter) ChangeUserData(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
 	}
 
-	_, err = mail.ParseAddress(request.NewEmail)
-
-	if err != nil {
-		logger.Error("failed to parse email", zap.Error(err))
-		return c.JSON(http.StatusBadRequest, json_response.NewError("new_email is invalid"))
-	}
-
-	err = router.app.ChangeUserData(tokenString, request)
+	err = router.app.ChangeUserInfo(tokenString, request)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
 	}
-	return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully changed user data"))
+	return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully changed user info"))
 }
 
 func (router *HttpRouter) IsValidLogin(c echo.Context) error {

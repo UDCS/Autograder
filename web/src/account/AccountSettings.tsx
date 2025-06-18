@@ -3,15 +3,19 @@ import BlueButton from "../components/bluebutton/BlueButton";
 import TextField from "../components/textfield/Textfield";
 import ToggleSwitch from "../components/toggleswitch/ToggleSwitch";
 
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 function AccountSettings() {
-    const [loading, setLoading] = useState(true);
+    enum ButtonState {
+        Idle,
+        Error,
+        Success,
+        Waiting
+    }
     const [isLoggedIn, setIsLoggedIn] = useState(true);
     const [passwordMessage, setPasswordMessage] = useState("");
     const [passwordButtonDisabled, setPasswordButtonDisabled] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+    const [submitState, setSubmitState] = useState(ButtonState.Idle);
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -23,43 +27,48 @@ function AccountSettings() {
             }, 3000);
         }
         const getIsLoggedIn = async () => {
-            try {
-                await delay(100);
-                var response = await fetch('/api/auth/valid_login');
-                if (response.ok) {
-                    var json = await response.json();
-                    var loggedIn = json['message'] == 'true';
-                    if (!loggedIn) {
-                        setIsLoggedIn(false);
-                        redirectToLogin();
+            if(!loaded) {
+                try {
+                    var response = await fetch('/api/auth/valid_login');
+                    if (response.ok) {
+                        var json = await response.json();
+                        var loggedIn = json['message'] == 'true';
+                        if (!loggedIn) {
+                            setIsLoggedIn(false);
+                            redirectToLogin();
+                        }
                     }
+                } catch (err){
+                    setIsLoggedIn(false);
+                    redirectToLogin();
                 }
-            } catch (err){
-                setIsLoggedIn(false);
-                redirectToLogin();
             }
         };
-        getIsLoggedIn().then(async () => {
-            try {
-                await delay(100);
-                var response = await fetch('/api/auth/user_name');
-                if (response.ok) {
-                    var json = await response.json();
-                    var firstName = json['FirstName'];
-                    var lastName = json['LastName'];
-                    setFirstName(firstName);
-                    setLastName(lastName);
-                } else {
-                    console.log(response);
+        const getUserName =async () => {
+            if (!loaded) {
+                try {
+                    var response = await fetch('/api/auth/user_name');
+                    if (response.ok) {
+                        var json = await response.json();
+                        var firstName = json['FirstName'];
+                        var lastName = json['LastName'];
+                        setFirstName(firstName);
+                        setLastName(lastName);
+                    } else {
+                        console.log(response);
+                    }
+                } catch (err){
+                    console.log(err);
                 }
-            } catch (err){
-                console.log(err);
             }
-            setLoading(false);
+        };
+        getIsLoggedIn().then(getUserName).then(() => {
+            setLoaded(true);
         });
     });
 
     const onResetButtonPressed = async () => {
+        setSubmitState(ButtonState.Waiting);
         try {
             var response = await fetch('/api/auth/password', {method: "POST"});
             if (response.ok) {
@@ -74,8 +83,32 @@ function AccountSettings() {
         }
     }
 
+    const ChangeUserInfo = async () => {
+        if (firstName == '' || lastName == '') {
+            setSubmitState(ButtonState.Error);
+        } else {
+            try {
+                var response = await fetch('/api/auth/user_info', {
+                    method:"PUT",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "first_name": firstName,
+                        "last_name": lastName
+                    })
+                });
+                if (response.ok) {
+                    setSubmitState(ButtonState.Success);
+                }
+            } catch (err) {
+                setSubmitState(ButtonState.Error);
+            }
+        }
+    }
+
     return <> 
-    {loading ? <></> : 
+
         <div id="accountRoot">
         {isLoggedIn ? 
             <>
@@ -86,13 +119,20 @@ function AccountSettings() {
                             <div className="label">First Name:</div>
                         </td>
                         <td>
-                            <TextField className="nameField input" id="firstName" label="" value={firstName} />
+
+                            <TextField onChange={(data: {value: string, isValid: boolean, error: string}) => {
+                                setFirstName(data.value);
+                                setSubmitState(ButtonState.Idle);
+                            }} className="nameField input" id="firstName" label="" value={firstName} />
                         </td>
                         <td align="right" className="labelTd">
                             <div className="label">Last Name:</div>
                         </td>
                         <td>
-                            <TextField className="nameField input" id="lastName" label="" value={lastName} />
+                            <TextField onChange={(data: {value: string, isValid: boolean, error: string}) => {
+                                setLastName(data.value);
+                                setSubmitState(ButtonState.Idle);
+                            }} className="nameField input" id="lastName" label="" value={lastName} />
                         </td>
                     </tr>
                     <tr>
@@ -123,8 +163,10 @@ function AccountSettings() {
                         </td>
                     </tr>
                 </table>
-                <BlueButton id='submit'>
-                    Submit Changes
+                <BlueButton id='submit' style={(submitState == ButtonState.Error) ? {color: 'red'} : {}} onClick={ChangeUserInfo}>
+                    {submitState == ButtonState.Error 
+                        ? ((firstName == '' || lastName == '') ? "Name Cannot be Blank" : "An Error Occurred")
+                    : submitState == ButtonState.Success ? "Profile Successfully Updated" : "Submit Changes"}
                 </BlueButton>
             </>
         : 
@@ -133,7 +175,7 @@ function AccountSettings() {
             <div className="label">Redirecting to login...</div>
         </>}
     </div>
-    }
+    
     </>
     
 }
