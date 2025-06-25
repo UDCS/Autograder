@@ -112,6 +112,30 @@ func (router *HttpRouter) DeleteClassroom(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully deleted classroom"))
 }
 
+func (router *HttpRouter) GetViewAssignments(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	var classroomId uuid.UUID
+	classroomId, err = uuid.Parse(c.Param("classroom_id"))
+	if err != nil {
+		logger.Error("could not parse classroom id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	assignments, err := router.app.GetViewAssignments(tokenString, classroomId)
+	if err != nil {
+		logger.Error("could not get all assignments", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"assignments": assignments})
+}
+
 type CreateClassroomRequest struct {
 	Name              string          `json:"name"`
 	StartDate         models.DateOnly `json:"start_date"`

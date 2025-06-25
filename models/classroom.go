@@ -111,3 +111,22 @@ type EditClassroomRequest struct {
 type DeleteClassroomRequest struct {
 	RoomId uuid.UUID `json:"classroom_id"`
 }
+
+type AssignmentMode string
+
+const (
+	Draft AssignmentMode = "draft"
+	Edit  AssignmentMode = "edit"
+	View  AssignmentMode = "view"
+)
+
+type Assignment struct {
+	Id             uuid.UUID      `json:"id" db:"id"`
+	ClassroomId    uuid.UUID      `json:"classroom_id" db:"classroom_id"`
+	Name           string         `json:"name" db:"name"`
+	Description    string         `json:"description" db:"description"`
+	AssignmentMode AssignmentMode `json:"assignment_mode" db:"assignment_mode"`
+	DueAt          time.Time      `json:"due_at" db:"due_at"`
+	CreatedAt      time.Time      `json:"created_at" db:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at" db:"updated_at"`
+}

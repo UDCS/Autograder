@@ -39,7 +39,7 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 	}
 
 	var classroomPair models.UserInClassroom
-	classroomPair, err = store.GetUserClassroomInfo(userInfo.Id.String(), classroomId)
+	classroomPair, err = store.GetUserClassroomInfo(userInfo.Id, classroomId)
 	if err == nil {
 		if classroomPair.User_role != models.UserRole(role) {
 			_, err = store.db.Exec(
@@ -59,7 +59,7 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 	return nil
 }
 
-func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId uuid.UUID) (models.UserInClassroom, error) {
+func (store PostgresStore) GetUserClassroomInfo(userId uuid.UUID, classroomId uuid.UUID) (models.UserInClassroom, error) {
 
 	var user models.UserInClassroom
 
@@ -74,6 +74,19 @@ func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId uuid.
 
 	return user, nil
 
+}
+
+func (store PostgresStore) GetViewAssignments(classroomId uuid.UUID) ([]models.Assignment, error) {
+	var assignments []models.Assignment
+	err := store.db.Select(
+		&assignments,
+		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at FROM assignments WHERE classroom_id = $1 AND assignment_mode = 'view';",
+		classroomId,
+	)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+	return assignments, nil
 }
 
 func (store PostgresStore) EditClassroom(request models.EditClassroomRequest) error {
