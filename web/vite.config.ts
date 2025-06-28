@@ -25,7 +25,8 @@ export default defineConfig({
         FAQ: resolve(root, 'FAQ', 'FAQ.html'),
         resetPW: resolve(root, 'reset-password', 'reset-password.html'),
         signup: resolve(root, 'signup', 'signup.html'),
-        account: resolve(root, 'account', 'account.html')
+        account: resolve(root, 'account', 'account.html'),
+        classroom: resolve(root, 'classroom', 'classroom.html'),
       }
     }
   }

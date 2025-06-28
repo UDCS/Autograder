@@ -1,0 +1,25 @@
+.titleBanner {
+    /* margin-top: 3%; */
+    position: relative;
+    width: 100vw;
+    overflow: hidden;
+    height: 10vw;
+}
+.bannerImage {
+    width: 100vw;
+    object-fit: cover;
+    display: block;
+}
+.title {
+    position: absolute;
+    color: white;
+    text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
+    top: 50%;           
+    left: 25%;          
+    transform: translate(-50%, -50%); 
+    font-family: "Monomaniac One";
+    font-size: 5vw;
+    overflow: hidden;
+    width: fit-content;
+    max-width: 100%;
+}
