@@ -19,7 +19,7 @@ type Datastore interface {
 	EditClassroom(request models.EditClassroomRequest) error
 	DeleteClassroom(request models.DeleteClassroomRequest) error
 	GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error)
-	GetViewAssignments(classroomId uuid.UUID) ([]models.Assignment, error)
+	GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
 	// Auth
 	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)

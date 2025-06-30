@@ -2,8 +2,8 @@ package repository
 
 import (
 	"fmt"
-	"time"
 	"sort"
+	"time"
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/google/uuid"
@@ -77,7 +77,7 @@ func (store PostgresStore) GetUserClassroomInfo(userId uuid.UUID, classroomId uu
 
 }
 
-func (store PostgresStore) GetViewAssignments(classroomId uuid.UUID) ([]models.Assignment, error) {
+func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error) {
 	var assignments []models.Assignment
 	err := store.db.Select(
 		&assignments,
@@ -88,17 +88,29 @@ func (store PostgresStore) GetViewAssignments(classroomId uuid.UUID) ([]models.A
 		var questions []models.Question
 		err = store.db.Select(
 			&questions,
-			"SELECT id, assigmnet_id, header, body, points, sort_index FROM questions WHERE assigment_id = $1;",
-			assigments[i].Id
+			"SELECT id, assignment_id, header, body, points, sort_index FROM questions WHERE assignment_id = $1;",
+			assignments[i].Id,
 		)
-		sort.Slice(questions, func(x, y int){
-			return questions[x].SortIndex < questions[y].SortIndex
+		if err != nil {
+			return []models.Assignment{}, err
+		}
+		for i := range questions {
+
+			questionId := questions[i].Id
+			var score uint16
+			err = store.db.Get(
+				&score,
+				"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
+				questionId, userId,
+			)
+			questions[i].Score = score
+		}
+		sort.Slice(questions, func(i int, j int) bool {
+			return questions[i].SortIndex < questions[j].SortIndex
 		})
-		assignments[i].Questions=questions
+		assignments[i].Questions = questions
 	}
-	if err != nil {
-		return []models.Assignment{}, err
-	}
+
 	return assignments, nil
 }
 

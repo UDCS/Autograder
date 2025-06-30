@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 	"time"
-	"fmt"
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/json_response"
@@ -114,7 +113,6 @@ func (router *HttpRouter) DeleteClassroom(c echo.Context) error {
 }
 
 func (router *HttpRouter) GetViewAssignments(c echo.Context) error {
-	fmt.Print("GetViewAssignments called\n")
 	tokenString, err := middlewares.GetAccessToken(c)
 
 	if err != nil {

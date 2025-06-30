@@ -147,7 +147,7 @@ func (app *GraderApp) GetViewAssignments(jwksToken string, classroomId uuid.UUID
 		}
 	}
 
-	assignments, err := app.store.GetViewAssignments(classroomId)
+	assignments, err := app.store.GetViewAssignments(userInfo.Id, classroomId)
 	if err != nil {
 		return []models.Assignment{}, err
 	}
