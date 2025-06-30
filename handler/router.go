@@ -83,7 +83,7 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.POST("", router.CreateClassroom)
 	classroom.PATCH("/edit/:room_id", router.EditClassroom)
 	classroom.DELETE("/delete/:room_id", router.DeleteClassroom)
-	classroom.GET("/:classroom_id/view_assignments", router.GetViewAssignments)
+	classroom.GET("/:room_id/view_assignments", router.GetViewAssignments)
 }
 
 func (router *HttpRouter) Engage(port string) {

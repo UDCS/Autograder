@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 	"time"
+	"fmt"
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/json_response"
@@ -113,6 +114,7 @@ func (router *HttpRouter) DeleteClassroom(c echo.Context) error {
 }
 
 func (router *HttpRouter) GetViewAssignments(c echo.Context) error {
+	fmt.Print("GetViewAssignments called\n")
 	tokenString, err := middlewares.GetAccessToken(c)
 
 	if err != nil {
@@ -121,7 +123,7 @@ func (router *HttpRouter) GetViewAssignments(c echo.Context) error {
 	}
 
 	var classroomId uuid.UUID
-	classroomId, err = uuid.Parse(c.Param("classroom_id"))
+	classroomId, err = uuid.Parse(c.Param("room_id"))
 	if err != nil {
 		logger.Error("could not parse classroom id", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))

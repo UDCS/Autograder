@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"time"
+	"sort"
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/google/uuid"
@@ -83,6 +84,18 @@ func (store PostgresStore) GetViewAssignments(classroomId uuid.UUID) ([]models.A
 		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at FROM assignments WHERE classroom_id = $1 AND assignment_mode = 'view';",
 		classroomId,
 	)
+	for i := 0; i < len(assignments); i++ {
+		var questions []models.Question
+		err = store.db.Select(
+			&questions,
+			"SELECT id, assigmnet_id, header, body, points, sort_index FROM questions WHERE assigment_id = $1;",
+			assigments[i].Id
+		)
+		sort.Slice(questions, func(x, y int){
+			return questions[x].SortIndex < questions[y].SortIndex
+		})
+		assignments[i].Questions=questions
+	}
 	if err != nil {
 		return []models.Assignment{}, err
 	}

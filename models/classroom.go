@@ -120,13 +120,23 @@ const (
 	View  AssignmentMode = "view"
 )
 
+type Question struct {
+	Id					uuid.UUID	`json:"id" db:"id"`
+	AssignmentId		uuid.UUID	`json:"assigment_id" db:"assignment_id"`
+	Header				string		`json:"header" db:"header"`
+	Body				string		`json:"body" db:"body"`
+	Points				uint16		`json:"points" db:"points"`
+	SortIndex			uint8		`json:"sort_index" db:"sort_index"`
+}
+
 type Assignment struct {
-	Id             uuid.UUID      `json:"id" db:"id"`
-	ClassroomId    uuid.UUID      `json:"classroom_id" db:"classroom_id"`
-	Name           string         `json:"name" db:"name"`
-	Description    string         `json:"description" db:"description"`
-	AssignmentMode AssignmentMode `json:"assignment_mode" db:"assignment_mode"`
-	DueAt          time.Time      `json:"due_at" db:"due_at"`
-	CreatedAt      time.Time      `json:"created_at" db:"created_at"`
-	UpdatedAt      time.Time      `json:"updated_at" db:"updated_at"`
+	Id             	uuid.UUID      	`json:"id" db:"id"`
+	ClassroomId    	uuid.UUID      	`json:"classroom_id" db:"classroom_id"`
+	Name           	string         	`json:"name" db:"name"`
+	Description    	string         	`json:"description" db:"description"`
+	AssignmentMode	AssignmentMode 	`json:"assignment_mode" db:"assignment_mode"`
+	DueAt          	time.Time      	`json:"due_at" db:"due_at"`
+	CreatedAt 		time.Time      	`json:"created_at" db:"created_at"`
+	UpdatedAt		time.Time      	`json:"updated_at" db:"updated_at"`
+	Questions		[]Question		`json:"questions"`
 }
