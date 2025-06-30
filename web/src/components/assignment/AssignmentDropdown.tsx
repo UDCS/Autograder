@@ -3,9 +3,10 @@ import "./AssignmentDropdown.css"
 
 interface AssignmentDropdownProps {
     name: string;
+    children: React.ReactNode;
 }
 
-function AssignmentDropdown({name}: AssignmentDropdownProps) {
+function AssignmentDropdown({name, children}: AssignmentDropdownProps) {
     const [selected, setSelected] = useState(false);
     const triangle = () => {
         return selected ? "▲" : "▼"; 
@@ -18,7 +19,8 @@ function AssignmentDropdown({name}: AssignmentDropdownProps) {
             </div>
             {selected? 
                 <div className="assignmentBody">
-                    This is an assignment
+                    
+                    {children}
                 </div>
             :<></>}
         </div>

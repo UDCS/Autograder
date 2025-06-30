@@ -1,5 +1,4 @@
 .titleBanner {
-    /* margin-top: 3%; */
     position: relative;
     width: 100vw;
     overflow: hidden;
@@ -15,7 +14,7 @@
     color: white;
     text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
     top: 50%;           
-    left: 25%;          
+    left: 20%;          
     transform: translate(-50%, -50%); 
     font-family: "Monomaniac One";
     font-size: 5vw;

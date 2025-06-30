@@ -12,6 +12,7 @@
     width: 100%;
     background-color: #9a9a9a;
     color: white;
+    font-weight: bold;
     user-select: none;
     font-family: "Azeret Mono";
     text-align: left;
@@ -29,7 +30,10 @@
 }
 
 .assignmentBody {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
     background-color: #595959;
     color: black;
-    padding: 1%;
+    padding: 2.5%;
 }
