@@ -84,6 +84,9 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at FROM assignments WHERE classroom_id = $1 AND assignment_mode = 'view';",
 		classroomId,
 	)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
 	for i := 0; i < len(assignments); i++ {
 		var questions []models.Question
 		err = store.db.Select(
@@ -98,7 +101,7 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 
 			questionId := questions[i].Id
 			var score uint16
-			err = store.db.Get(
+			_ = store.db.Get(
 				&score,
 				"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
 				questionId, userId,
