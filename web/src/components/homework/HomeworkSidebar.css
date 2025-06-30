@@ -1,0 +1,16 @@
+.homeworkSidebar {
+    border-radius: 15px;
+    border: 1.5px solid black;
+    background: #cacaca;
+    color: white;
+    min-height: 50vh;
+}
+
+.homeworkHeader {
+    color: white;
+    border-bottom: 2px solid black;
+    padding: 5%;
+    font-family: "Azeret Mono";
+    font-size: 175%;
+    word-break: break-all;
+}
