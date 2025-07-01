@@ -144,7 +144,7 @@ func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Class
 		var room models.Classroom
 		err = store.db.Get(
 			&room,
-			"SELECT id, name, created_at, updated_at FROM classrooms WHERE id = $1",
+			"SELECT id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index FROM classrooms WHERE id = $1",
 			element.Classroom_id,
 		)
 		classrooms = append(classrooms, room)
