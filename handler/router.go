@@ -26,6 +26,8 @@ type Handler interface {
 	EditClassroom(c context.Context) error
 	DeleteClassroom(c context.Context) error
 	ChangeUserInfo(c context.Context) error
+	GetViewAssignments(c context.Context) error
+	GetClassroom(c context.Context) error
 }
 
 type HttpRouter struct {
@@ -72,7 +74,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.POST("/password", router.PasswordResetRequest)
 	auth.POST("/reset_password/:requestId", router.PasswordReset)
 	auth.POST("/refresh", router.RefreshToken)
-	auth.PUT("/:roomId/user", router.MatchUsersToClassroom)
+	auth.PUT("/:room_id/user", router.MatchUsersToClassroom)
 	auth.GET("/get_classrooms", router.GetClassroomsOfUser)
 	auth.PUT("/user_info", router.ChangeUserInfo)
 	auth.GET("/valid_login", router.IsValidLogin)
@@ -80,8 +82,10 @@ func (router *HttpRouter) SetupRoutes() {
 
 	classroom := api.Group("/classroom")
 	classroom.POST("", router.CreateClassroom)
+	classroom.GET("/:room_id", router.GetClassroom)
 	classroom.PATCH("/edit/:room_id", router.EditClassroom)
 	classroom.DELETE("/delete/:room_id", router.DeleteClassroom)
+	classroom.GET("/:room_id/view_assignments", router.GetViewAssignments)
 }
 
 func (router *HttpRouter) Engage(port string) {

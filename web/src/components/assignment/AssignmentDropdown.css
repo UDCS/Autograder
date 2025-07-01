@@ -1,0 +1,39 @@
+.assignmentDropdown {
+    width: 100%;
+    border: 1.5px solid black;
+    box-sizing: border-box;
+}
+
+.revealButton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    background-color: #9a9a9a;
+    color: white;
+    font-weight: bold;
+    user-select: none;
+    font-family: "Azeret Mono";
+    text-align: left;
+    font-size: 150%;
+    padding: 1%;
+}
+
+.openAssignment {
+    background: #d9d9d9;
+    color: black;
+    font-family: "Azeret Mono";
+    padding: .5%;
+    font-size: 85%;
+    border-radius: 15px;
+}
+
+.assignmentBody {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background-color: #595959;
+    color: black;
+    padding: 2.5%;
+}

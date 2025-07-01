@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
@@ -39,7 +40,7 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 	}
 
 	var classroomPair models.UserInClassroom
-	classroomPair, err = store.GetUserClassroomInfo(userInfo.Id.String(), classroomId)
+	classroomPair, err = store.GetUserClassroomInfo(userInfo.Id, classroomId)
 	if err == nil {
 		if classroomPair.User_role != models.UserRole(role) {
 			_, err = store.db.Exec(
@@ -59,7 +60,7 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 	return nil
 }
 
-func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId uuid.UUID) (models.UserInClassroom, error) {
+func (store PostgresStore) GetUserClassroomInfo(userId uuid.UUID, classroomId uuid.UUID) (models.UserInClassroom, error) {
 
 	var user models.UserInClassroom
 
@@ -74,6 +75,49 @@ func (store PostgresStore) GetUserClassroomInfo(userId string, classroomId uuid.
 
 	return user, nil
 
+}
+
+func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error) {
+	var assignments []models.Assignment
+	err := store.db.Select(
+		&assignments,
+		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at, sort_index FROM assignments WHERE classroom_id = $1 AND assignment_mode = 'view';",
+		classroomId,
+	)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+	sort.Slice(assignments, func(i int, j int) bool {
+		return assignments[i].SortIndex < assignments[j].SortIndex
+	})
+	for i := 0; i < len(assignments); i++ {
+		var questions []models.Question
+		err = store.db.Select(
+			&questions,
+			"SELECT id, assignment_id, header, body, points, sort_index FROM questions WHERE assignment_id = $1;",
+			assignments[i].Id,
+		)
+		if err != nil {
+			return []models.Assignment{}, err
+		}
+		for i := range questions {
+
+			questionId := questions[i].Id
+			var score uint16
+			_ = store.db.Get(
+				&score,
+				"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
+				questionId, userId,
+			)
+			questions[i].Score = score
+		}
+		sort.Slice(questions, func(i int, j int) bool {
+			return questions[i].SortIndex < questions[j].SortIndex
+		})
+		assignments[i].Questions = questions
+	}
+
+	return assignments, nil
 }
 
 func (store PostgresStore) EditClassroom(request models.EditClassroomRequest) error {

@@ -27,15 +27,24 @@ var (
 	//go:embed dist/account/account.html
 	accountHTML embed.FS
 
-	distDirFS       = echo.MustSubFS(dist, "dist")
-	distIndexHTML   = echo.MustSubFS(indexHTML, "dist")
-	distTestHTML    = echo.MustSubFS(testHTML, "dist/test")
-	distLoginHTML   = echo.MustSubFS(loginHTML, "dist/login")
-	distAboutHTML   = echo.MustSubFS(aboutHTML, "dist/about")
-	distFAQHTML     = echo.MustSubFS(FAQHTML, "dist/FAQ")
-	distResetPWHTML = echo.MustSubFS(resetPWHTML, "dist/reset-password")
-	distSignupHTML  = echo.MustSubFS(signupHTML, "dist/signup")
-	distAccountHTML = echo.MustSubFS(accountHTML, "dist/account")
+	//go:embed dist/classroom/classroom.html
+	classroomHTML embed.FS
+
+	//go:embed public
+	publicDir embed.FS
+
+	distDirFS         = echo.MustSubFS(dist, "dist")
+	distIndexHTML     = echo.MustSubFS(indexHTML, "dist")
+	distTestHTML      = echo.MustSubFS(testHTML, "dist/test")
+	distLoginHTML     = echo.MustSubFS(loginHTML, "dist/login")
+	distAboutHTML     = echo.MustSubFS(aboutHTML, "dist/about")
+	distFAQHTML       = echo.MustSubFS(FAQHTML, "dist/FAQ")
+	distResetPWHTML   = echo.MustSubFS(resetPWHTML, "dist/reset-password")
+	distSignupHTML    = echo.MustSubFS(signupHTML, "dist/signup")
+	distAccountHTML   = echo.MustSubFS(accountHTML, "dist/account")
+	distClassroomHTML = echo.MustSubFS(classroomHTML, "dist/classroom")
+
+	distPublicDir = echo.MustSubFS(publicDir, "public")
 )
 
 // RegisterHandlers registers the web handlers to serve the frontend
@@ -48,5 +57,7 @@ func RegisterHandlers(e *echo.Echo) {
 	e.FileFS("/reset-password", "reset-password.html", distResetPWHTML)
 	e.FileFS("/signup", "signup.html", distSignupHTML)
 	e.FileFS("/account", "account.html", distAccountHTML)
+	e.FileFS("/classroom", "classroom.html", distClassroomHTML)
+	e.StaticFS("/public", distPublicDir)
 	e.StaticFS("/", distDirFS)
 }

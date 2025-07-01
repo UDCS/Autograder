@@ -137,6 +137,12 @@ DELETE
 URL: http://localhost:8080/api/classroom/delete/<classroomId>
 ```
 
+Get 'view mode' assignments
+```
+GET
+URL: http://localhost:8080/api/classroom/<classroomId>/view_assignments
+```
+
 Login:
 ```
 POST 

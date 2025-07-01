@@ -1,0 +1,13 @@
+.homeworkAssignment {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-top: 2px solid black;
+    padding: 2%;
+    box-sizing: border-box;
+    font-family: "Azeret Mono";
+    word-break: break-all;
+    overflow-wrap: break-word;
+    line-height: 30px;
+}

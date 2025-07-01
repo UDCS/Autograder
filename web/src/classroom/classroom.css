@@ -1,0 +1,26 @@
+#classroomBody {
+    display: flex;
+    margin-left: 5%;
+    margin-right: 5%;
+    margin-top: 2%;
+}
+#assignments {
+    flex: 3;
+    padding: 1%;
+}
+#homework { 
+    flex: 1;
+    padding: 1%;
+}
+#dummyHomeworkSidebar {
+    width:100%;
+    border: 1px solid black;
+}
+.errorMsg {
+    width: 100%;
+    margin-top: 3%;
+    font-size: 200%;
+    color: red;
+    font-family: "Azeret Mono";
+    text-align: center;
+}

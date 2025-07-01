@@ -75,7 +75,7 @@ func (app *GraderApp) EditClassroom(jwksToken string, request models.EditClassro
 		return fmt.Errorf("unauthorized: only an admin or an instructor can edit a classroom")
 	}
 
-	user, err := app.store.GetUserClassroomInfo(userInfo.Id.String(), request.RoomId)
+	user, err := app.store.GetUserClassroomInfo(userInfo.Id, request.RoomId)
 
 	if err != nil && claims.Role != models.Admin {
 		return fmt.Errorf("invalid change request")
@@ -110,7 +110,7 @@ func (app *GraderApp) DeleteClassroom(jwksToken string, request models.DeleteCla
 		return fmt.Errorf("error - user does not exist")
 	}
 
-	user, err := app.store.GetUserClassroomInfo(userInfo.Id.String(), request.RoomId)
+	user, err := app.store.GetUserClassroomInfo(userInfo.Id, request.RoomId)
 
 	if err != nil && claims.Role != models.Admin {
 		return fmt.Errorf("invalid change request")
@@ -127,4 +127,56 @@ func (app *GraderApp) DeleteClassroom(jwksToken string, request models.DeleteCla
 	}
 
 	return nil
+}
+
+func (app *GraderApp) GetViewAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return []models.Assignment{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return []models.Assignment{}, fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		_, err = app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return []models.Assignment{}, fmt.Errorf("user not in classroom")
+		}
+	}
+
+	assignments, err := app.store.GetViewAssignments(userInfo.Id, classroomId)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+	return assignments, nil
+}
+
+func (app *GraderApp) GetClassroom(jwksToken string, classroomId uuid.UUID) (models.Classroom, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+
+	if err != nil {
+		return models.Classroom{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return models.Classroom{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		_, err = app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return models.Classroom{}, fmt.Errorf("user not in classroom")
+		}
+	}
+
+	classroom, err := app.store.GetClassroomInfo(classroomId)
+	if err != nil {
+		return models.Classroom{}, err
+	}
+
+	return classroom, nil
 }
