@@ -1,6 +1,6 @@
 import "./AssignmentQuestion.css"
 
-type CompletionState = "none" | "partial" | "full";
+export type CompletionState = "none" | "partial" | "full";
 
 interface AssignmentQuestionProps {
     completionState?: CompletionState;

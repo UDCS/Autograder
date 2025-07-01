@@ -81,12 +81,15 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 	var assignments []models.Assignment
 	err := store.db.Select(
 		&assignments,
-		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at FROM assignments WHERE classroom_id = $1 AND assignment_mode = 'view';",
+		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at, sort_index FROM assignments WHERE classroom_id = $1 AND assignment_mode = 'view';",
 		classroomId,
 	)
 	if err != nil {
 		return []models.Assignment{}, err
 	}
+	sort.Slice(assignments, func(i int, j int) bool {
+		return assignments[i].SortIndex < assignments[j].SortIndex
+	})
 	for i := 0; i < len(assignments); i++ {
 		var questions []models.Question
 		err = store.db.Select(

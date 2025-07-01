@@ -15,7 +15,7 @@
     text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000;
     top: 50%;           
     left: 20%;          
-    transform: translate(-50%, -50%); 
+    transform: translate(0, -50%); 
     font-family: "Monomaniac One";
     font-size: 5vw;
     overflow: hidden;

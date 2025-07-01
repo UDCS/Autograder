@@ -153,3 +153,30 @@ func (app *GraderApp) GetViewAssignments(jwksToken string, classroomId uuid.UUID
 	}
 	return assignments, nil
 }
+
+func (app *GraderApp) GetClassroom(jwksToken string, classroomId uuid.UUID) (models.Classroom, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+
+	if err != nil {
+		return models.Classroom{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return models.Classroom{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		_, err = app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return models.Classroom{}, fmt.Errorf("user not in classroom")
+		}
+	}
+
+	classroom, err := app.store.GetClassroomInfo(classroomId)
+	if err != nil {
+		return models.Classroom{}, err
+	}
+
+	return classroom, nil
+}

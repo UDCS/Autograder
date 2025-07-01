@@ -139,5 +139,6 @@ type Assignment struct {
 	DueAt          time.Time      `json:"due_at" db:"due_at"`
 	CreatedAt      time.Time      `json:"created_at" db:"created_at"`
 	UpdatedAt      time.Time      `json:"updated_at" db:"updated_at"`
+	SortIndex      int            `json:"sort_index" db:"sort_index"`
 	Questions      []Question     `json:"questions"`
 }
