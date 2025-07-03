@@ -1,5 +1,10 @@
 # Autograder
 
+## Big Picture ##
+1. Front end is written in React, which is a Typescript framework. Vite is the front-end build tool.
+2. Database will be Postgres
+3. Backend is Go with the Echo framework.
+   
 ## How to setup the development environment 
 
 ### On Linux/Mac
