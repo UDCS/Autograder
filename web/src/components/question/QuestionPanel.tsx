@@ -5,7 +5,6 @@ import QuestionScore from "./QuestionScore";
 import ConsoleOutput from "../assignment/ConsoleOutput";
 
 function QuestionPanel() {
-    var outputList = ["Expected: 2. Your output: 5", "2 test cases are hidden"];
     return <div className="questionPanel">
         <div className="questionTitle">Question Title</div>
         <div className="questionDescription">Question description</div>
