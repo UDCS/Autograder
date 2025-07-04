@@ -1,0 +1,9 @@
+body {
+    background: linear-gradient(90deg, #0CAADC -40%, #ffffff 120%);
+}
+.panelParent {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 3%;
+}
