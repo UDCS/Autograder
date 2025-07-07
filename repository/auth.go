@@ -10,11 +10,20 @@ import (
 
 func (store PostgresStore) CreateInvitation(invitation models.Invitation) (*models.Invitation, error) {
 	var createdInvitation models.Invitation
-	err := store.db.QueryRowx(
-		`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at, classroom_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-		RETURNING id, email, user_role, created_at, updated_at, expires_at, classroom_id;`,
-		invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt, invitation.ClassroomId,
-	).StructScan(&createdInvitation)
+	var err error
+	if invitation.ClassroomId != uuid.Nil {
+		err = store.db.QueryRowx(
+			`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at, classroom_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+			RETURNING id, email, user_role, created_at, updated_at, expires_at, classroom_id;`,
+			invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt, invitation.ClassroomId,
+		).StructScan(&createdInvitation)
+	} else {
+		err = store.db.QueryRowx(
+			`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at, classroom_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+			RETURNING id, email, user_role, created_at, updated_at, expires_at, classroom_id;`,
+			invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt, nil,
+		).StructScan(&createdInvitation)
+	}
 	return &createdInvitation, err
 }
 
@@ -145,7 +154,7 @@ func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Class
 		err = store.db.Get(
 			&room,
 			"SELECT id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index FROM classrooms WHERE id = $1",
-			element.Classroom_id,
+			element.ClassroomId,
 		)
 		classrooms = append(classrooms, room)
 	}

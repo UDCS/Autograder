@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -134,6 +135,32 @@ func (router *HttpRouter) GetViewAssignments(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"assignments": assignments})
+}
+
+func (router *HttpRouter) GetAssignment(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	var assignmentId uuid.UUID
+	assignmentId, err = uuid.Parse(c.Param("assignment_id"))
+	if err != nil {
+		logger.Error("could not parse assignment id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	fmt.Println(assignmentId)
+
+	assignment, err := router.app.GetAssignment(tokenString, assignmentId)
+	if err != nil {
+		logger.Error("could not get all assignments", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, assignment)
 }
 
 func (router *HttpRouter) GetClassroom(c echo.Context) error {

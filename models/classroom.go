@@ -88,9 +88,9 @@ type Classroom struct {
 }
 
 type UserInClassroom struct {
-	User_id      uuid.UUID `json:"user_id" db:"user_id"`
-	User_role    UserRole  `json:"user_role" db:"user_role"`
-	Classroom_id uuid.UUID `json:"classroom_id" db:"classroom_id"`
+	UserId      uuid.UUID `json:"user_id" db:"user_id"`
+	UserRole    UserRole  `json:"user_role" db:"user_role"`
+	ClassroomId uuid.UUID `json:"classroom_id" db:"classroom_id"`
 }
 
 type AddToClassRequest struct {
@@ -112,12 +112,19 @@ type DeleteClassroomRequest struct {
 	RoomId uuid.UUID `json:"classroom_id"`
 }
 
-type AssignmentMode string
+type (
+	AssignmentMode string
+	ProgLang       string
+)
 
 const (
-	Draft AssignmentMode = "draft"
-	Edit  AssignmentMode = "edit"
-	View  AssignmentMode = "view"
+	Draft  AssignmentMode = "draft"
+	Edit   AssignmentMode = "edit"
+	View   AssignmentMode = "view"
+	Racket ProgLang       = "racket"
+	Java   ProgLang       = "java"
+	Python ProgLang       = "python"
+	C      ProgLang       = "c"
 )
 
 type Question struct {

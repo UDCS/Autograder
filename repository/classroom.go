@@ -42,10 +42,10 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 	var classroomPair models.UserInClassroom
 	classroomPair, err = store.GetUserClassroomInfo(userInfo.Id, classroomId)
 	if err == nil {
-		if classroomPair.User_role != models.UserRole(role) {
+		if classroomPair.UserRole != models.UserRole(role) {
 			_, err = store.db.Exec(
 				"UPDATE user_classroom_matching SET user_role = $3 WHERE user_id = $1 AND classroom_id = $2;",
-				classroomPair.User_id, classroomPair.Classroom_id, role,
+				classroomPair.UserId, classroomPair.ClassroomId, role,
 			)
 			if err != nil {
 				return err
@@ -118,6 +118,47 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 	}
 
 	return assignments, nil
+}
+
+func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error) {
+	var assignment models.Assignment
+	err := store.db.QueryRowx(
+		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at, sort_index FROM assignments WHERE id = $1;",
+		assignmentId,
+	).StructScan(&assignment)
+	if err != nil {
+		return models.Assignment{}, err
+	}
+
+	var questions []models.Question
+
+	err = store.db.Select(
+		&questions,
+		"SELECT id, assignment_id, header, body, points, sort_index FROM questions WHERE assignment_id = $1;",
+		assignment.Id,
+	)
+	if err != nil {
+		return models.Assignment{}, err
+	}
+
+	sort.Slice(questions, func(i int, j int) bool {
+		return questions[i].SortIndex < questions[j].SortIndex
+	})
+
+	for i := range questions {
+		questionId := questions[i].Id
+		var score uint16
+		_ = store.db.Get(
+			&score,
+			"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
+			questionId, userId,
+		)
+		questions[i].Score = score
+	}
+
+	assignment.Questions = questions
+
+	return assignment, nil
 }
 
 func (store PostgresStore) EditClassroom(request models.EditClassroomRequest) error {
