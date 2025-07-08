@@ -231,7 +231,7 @@ func (app *GraderApp) UpdateSubmissionCode(jwksToken string, request models.Upda
 
 	err = app.store.UpdateSubmissionCode(request)
 	if err != nil {
-		return fmt.Errorf(err.Error())
+		return err
 	}
 
 	return nil
