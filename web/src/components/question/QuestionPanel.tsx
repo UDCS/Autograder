@@ -4,10 +4,20 @@ import BlueButton from "../bluebutton/BlueButton";
 import QuestionScore from "./QuestionScore";
 import ConsoleOutput from "../assignment/ConsoleOutput";
 
-function QuestionPanel() {
+export interface Question {
+    id?: string;
+    assignment_id?: string;
+    header?: string;
+    body?: string;
+    points?: number;
+    score?: number;
+    sort_index?: number;
+}
+
+function QuestionPanel({info}: {info: Question}) {
     return <div className="questionPanel">
-        <div className="questionTitle">Question Title</div>
-        <div className="questionDescription">Question description</div>
+        <div className="questionTitle">{info.header}</div>
+        <div className="questionDescription">{info.body}</div>
         <div className="resetStarterCodeParent">
             <button className="resetStarterCode">Reset Starter Code</button>
         </div>
@@ -21,11 +31,11 @@ function QuestionPanel() {
                 </BlueButton>
             </div>
             <div className="scoreParent">
-                <QuestionScore score={0} points={10}/>
+                <QuestionScore score={info?.score} points={info?.points}/>
             </div>
         </div>
         <div className="consoleParent">
-            <ConsoleOutput output={"Input: 2. Expected output: 3. Your output: 5.\n2 test cases are hidden"}/>
+            <ConsoleOutput output={""}/>
         </div>
     </div>
 }

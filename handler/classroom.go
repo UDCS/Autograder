@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -151,8 +150,6 @@ func (router *HttpRouter) GetAssignment(c echo.Context) error {
 		logger.Error("could not parse assignment id", zap.Error(err))
 		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
 	}
-
-	fmt.Println(assignmentId)
 
 	assignment, err := router.app.GetAssignment(tokenString, assignmentId)
 	if err != nil {

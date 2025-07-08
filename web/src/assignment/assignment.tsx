@@ -1,10 +1,6 @@
 import { createRoot } from "react-dom/client";
-import Navbar from "../components/navbar/Navbar";
-import AssignmentPanel from "../components/assignment/AssignmentPanel";
+import AssignmentBody from "./AssignmentBody";
 
-createRoot(document.getElementById('root')!).render(<div>
-    <Navbar />
-    <div className="panelParent">
-        <AssignmentPanel />
-    </div>
-</div>)
+createRoot(document.getElementById('root')!).render(
+    <AssignmentBody />
+)
