@@ -29,9 +29,8 @@ jobs:
         run: npm run build
 
       - name: Deploy to Firebase Hosting
-        uses: w9jds/firebase-action@v13.0.1
-        with:
-          args: deploy --only hosting
+        run: |
+          cd web
+          npx firebase-tools deploy --only hosting
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-        working-directory: web
