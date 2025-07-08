@@ -32,5 +32,6 @@ jobs:
         uses: w9jds/firebase-action@v13.0.1
         with:
           args: deploy --only hosting
+          entryPoint: web
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
