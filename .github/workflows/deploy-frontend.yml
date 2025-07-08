@@ -29,9 +29,10 @@ jobs:
         run: npm run build
 
       - name: Deploy to Firebase Hosting
-        uses: w9jds/firebase-action@v13.0.1
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          args: deploy --only hosting
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UDCS_AUTOGRADER }}
+          projectId: udcs-autograder
+          channelId: live
           entryPoint: web
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
