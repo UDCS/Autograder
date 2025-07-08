@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/jwt_token"
@@ -210,4 +211,28 @@ func (app *GraderApp) GetClassroom(jwksToken string, classroomId uuid.UUID) (mod
 	}
 
 	return classroom, nil
+}
+
+func (app *GraderApp) UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	request.UserId = userInfo.Id
+	request.Id = uuid.New()
+	request.UpdatedAt = time.Now()
+
+	err = app.store.UpdateSubmissionCode(request)
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
+
+	return nil
 }

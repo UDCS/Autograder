@@ -30,6 +30,7 @@ type App interface {
 	// Assignments
 	GetViewAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
 	GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error)
+	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
 }
 
 type GraderApp struct {

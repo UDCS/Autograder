@@ -188,3 +188,33 @@ func (store PostgresStore) DeleteClassroom(request models.DeleteClassroomRequest
 	}
 	return nil
 }
+
+func (store PostgresStore) UpdateSubmissionCode(request models.UpdateSubmissionRequest) error {
+	var exists bool
+	err := store.db.Get(
+		&exists,
+		"SELECT EXISTS (SELECT * FROM student_submissions WHERE user_id=$1 AND question_id=$2)",
+		request.UserId, request.QuestionId,
+	)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		_, err = store.db.Exec("UPDATE student_submissions SET code=$1, updated_at=$2 WHERE user_id=$3 AND question_id=$4",
+			request.Code, request.UpdatedAt, request.UserId, request.QuestionId,
+		)
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err = store.db.Exec("INSERT INTO student_submissions (id, user_id, question_id, code, updated_at) VALUES ($1, $2, $3, $4, $5)",
+			request.Id, request.UserId, request.QuestionId, request.Code, request.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

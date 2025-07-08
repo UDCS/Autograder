@@ -27,6 +27,7 @@ function AssignmentPanel({info}: {info: Assignment}) {
         <div className="assignmentTitle">
             {info.name}
         </div>
+        <div className="assignmentDescription">{info.description}</div>
         {...questionsToPanel()}
     </div>
 }

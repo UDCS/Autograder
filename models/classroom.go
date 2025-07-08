@@ -149,3 +149,11 @@ type Assignment struct {
 	SortIndex      int            `json:"sort_index" db:"sort_index"`
 	Questions      []Question     `json:"questions"`
 }
+
+type UpdateSubmissionRequest struct {
+	Id         uuid.UUID `json:"id"`
+	UserId     uuid.UUID `json:"user_id"`
+	QuestionId uuid.UUID `json:"question_id"`
+	Code       string    `json:"code"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}

@@ -30,6 +30,7 @@ type Handler interface {
 	// Assignments
 	GetViewAssignments(c context.Context) error
 	GetAssignment(c context.Context) error
+	UpdateSubmissionCode(c context.Context) error
 }
 
 type HttpRouter struct {
@@ -89,6 +90,7 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.DELETE("/delete/:room_id", router.DeleteClassroom)
 	classroom.GET("/:room_id/view_assignments", router.GetViewAssignments)
 	classroom.GET("/assignment/:assignment_id", router.GetAssignment)
+	classroom.POST("/question/:question_id/submission", router.UpdateSubmissionCode)
 }
 
 func (router *HttpRouter) Engage(port string) {

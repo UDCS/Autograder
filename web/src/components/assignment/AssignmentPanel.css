@@ -16,3 +16,9 @@
     font-weight: bold;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
+
+.assignmentDescription {
+    font-family: "Azeret Mono";
+    font-weight: lighter;
+    font-size: 125%;
+}

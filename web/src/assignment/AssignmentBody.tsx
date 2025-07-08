@@ -10,14 +10,12 @@ function AssignmentBody() {
     const assignmentId = urlParams.get('id');
 
     useEffect(() => {
-        var isError = false;
         const getAssignment = async () => {
             var response = await fetch(`/api/classroom/assignment/${assignmentId}`);
             if (response.ok) {
                 var json = await response.json();
                 setAssignmentInfo(json);
             } else {
-                isError = true;
                 setErrorMessage("Error getting the assignment. Either the assignment does not exist or you do not have the permissions to see it.");
             }
         }
