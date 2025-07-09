@@ -38,8 +38,8 @@ jobs:
         run: |
           gcloud run deploy autograder-backend \
             --source . \
-            --region $REGION \
-            --project $PROJECT_ID \
+            --region us-central1 \
+            --project udcs-autograder \
             --allow-unauthenticated
 
       - name: Deploy to Firebase Hosting
