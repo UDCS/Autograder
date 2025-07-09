@@ -74,8 +74,14 @@ jobs:
       - name: Build Go binary
         run: go build -v ./...
       - name: Deploy to production
-        env:
-          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }} # Assumes a secret for authentication
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UDCS_AUTOGRADER }}
+          channelId: live
+          projectId: udcs-autograder
+          entryPoint: web
+      - name: Build go file
         run: go run main.go
         
   # build_and_deploy:
