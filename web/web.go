@@ -60,4 +60,5 @@ func RegisterHandlers(e *echo.Echo) {
 	e.FileFS("/classroom", "classroom.html", distClassroomHTML)
 	e.StaticFS("/public", distPublicDir)
 	e.StaticFS("/", distDirFS)
+
 }
