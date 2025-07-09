@@ -1,80 +1,78 @@
-name: Deploy Backend to Firebase
+name: Deploy Backend to Cloud Run
 
 on:
   push:
     branches:
       - live  # or your default branch
 
-env:
-  PROJECT_ID: udcs-autograder
-  REGION: us-central1
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [ '1.23.x' ]
-
-    defaults:
-      run:
-        working-directory: web
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Setup Go
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
-          cache-dependency-path: subdir/go.sum
-
-      - name: Download and install goose
-        run: go install github.com/pressly/goose/v3/cmd/goose@latest
-      
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
+          go-version: '1.21'
+          
       - name: Build frontend
-        working-directory: web
         run: |
+          cd web
           yarn install
           yarn build
 
-      - name: List contents of build output
-        run: ls -R
-      - uses: google-github-actions/auth@v1
-        with: 
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_UDCS_AUTOGRADER }}'
+      - name: Build and Test
+        run: |
+          go mod tidy
+          go test ./...
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_UDCS_AUTOGRADER }}'
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          project_id: ${{env.PROJECT_ID}}
-      - name: Pre-creating Artifact Registry Repository
-        run:
-          gcloud artifacts repositories create cloud-run-source-deploy \
-          --repository-format docker \
-          --location ${{env.REGION}} \
-          --project ${{env.PROJECT_ID}} 
-
-      - name: Deploy Go backend via Cloud Run (no Dockerfile)
+      - name: Download Cloud SQL Proxy v2
         run: |
-          gcloud run deploy autograder-backend \
-            --source . \
-            --region ${{env.REGION}} \
-            --project ${{env.PROJECT_ID}} \
-            --allow-unauthenticated
+          curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.10.0/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+      
+      - name: Create cloudsql directory
+        run: |
+          sudo mkdir /cloudsql && sudo chown $USER /cloudsql
+          echo '${{ secrets.GCP_SA_KEY }}' > /tmp/gcp-key.json
+          chmod 600 /tmp/gcp-key.json
 
-      - name: Deploy to Firebase Hosting
-        run: firebase deploy --only hosting
+      - name: Start Cloud SQL Proxy
+        run: |
+          ./cloud-sql-proxy udcs-autograder:us-central1:autograder-db \
+            --address 127.0.0.1 \
+            --port 1234 \
+            --credentials-file=/tmp/gcp-key.json &
+
+          # Wait a few seconds to let the proxy start
+          sleep 5
+          
+      - name: Run Goose Migrations
+        run: |
+          go install github.com/pressly/goose/v3/cmd/goose@latest
+          export PATH=$PATH:$(go env GOPATH)/bin
+          goose -dir db/migrations postgres "user=${{ secrets.DB_USER }} password=${{ secrets.DB_PASSWORD }} dbname=${{ secrets.DB_NAME }} host=127.0.0.1 port=1234 sslmode=disable" up
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with: 
+          service: autograder-api
+          region: us-central1
+          source: .
+          project_id: udcs-autograder
+          flags: --add-cloudsql-instances=udcs-autograder:us-central1:autograder-db --timeout=600s --port=8080
+          env_vars: |
+            DB_HOST=cloudsql
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
