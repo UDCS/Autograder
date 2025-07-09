@@ -136,6 +136,30 @@ func (router *HttpRouter) GetViewAssignments(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"assignments": assignments})
 }
 
+func (router *HttpRouter) GetAssignment(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	var assignmentId uuid.UUID
+	assignmentId, err = uuid.Parse(c.Param("assignment_id"))
+	if err != nil {
+		logger.Error("could not parse assignment id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	assignment, err := router.app.GetAssignment(tokenString, assignmentId)
+	if err != nil {
+		logger.Error("could not get all assignments", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, assignment)
+}
+
 func (router *HttpRouter) GetClassroom(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 
@@ -159,6 +183,42 @@ func (router *HttpRouter) GetClassroom(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, classroom)
+}
+
+func (router *HttpRouter) UpdateSubmissionCode(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	var updateRequest models.UpdateSubmissionRequest
+
+	err = c.Bind(&updateRequest)
+
+	if err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse request body"))
+	}
+
+	questionId, err := uuid.Parse(c.Param("question_id"))
+
+	if err != nil {
+		logger.Error("failed to parse question id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse question id"))
+	}
+
+	updateRequest.QuestionId = questionId
+
+	err = router.app.UpdateSubmissionCode(tokenString, updateRequest)
+
+	if err != nil {
+		logger.Error("failed to update submission code", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to update submission code"))
+	}
+
+	return c.JSON(http.StatusAccepted, json_response.JSONMessage{Message: "student code accepted"})
 }
 
 type CreateClassroomRequest struct {

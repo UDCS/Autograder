@@ -1,0 +1,24 @@
+.questionScore {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+.score {
+    font-family: 'Azeret Mono';
+    font-size: 125%;
+}
+.green {
+    color: #1DFF38;
+}
+.yellow {
+    color: #FFD902;
+}
+.red {
+    color: #FF1D21;
+}
+.completionIndicator {
+    width: 40px;
+    height: 40px;
+}

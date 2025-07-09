@@ -27,6 +27,7 @@ export default defineConfig({
         signup: resolve(root, 'signup', 'signup.html'),
         account: resolve(root, 'account', 'account.html'),
         classroom: resolve(root, 'classroom', 'classroom.html'),
+        assignment: resolve(root, 'assignment', 'assignment.html')
       }
     }
   }

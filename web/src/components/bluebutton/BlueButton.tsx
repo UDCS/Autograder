@@ -6,9 +6,10 @@ type BlueButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 }
 
 const BlueButton: FC<BlueButtonProps> = ({children, ...props}) => {
+    const {className, ...withoutClassname} = props;
     return (
-        <button className={`blueButton ${props.className}`}
-            {...props}>
+        <button className={`blueButton ${className}`}
+            {...withoutClassname}>
             {children}
         </button>
     );

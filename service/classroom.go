@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/jwt_token"
@@ -81,7 +82,7 @@ func (app *GraderApp) EditClassroom(jwksToken string, request models.EditClassro
 		return fmt.Errorf("invalid change request")
 	}
 
-	if user.User_role != models.Instructor && claims.Role != models.Admin {
+	if user.UserRole != models.Instructor && claims.Role != models.Admin {
 		return fmt.Errorf("unauthorized: only an admin or an instructor can edit a classroom")
 	}
 
@@ -116,7 +117,7 @@ func (app *GraderApp) DeleteClassroom(jwksToken string, request models.DeleteCla
 		return fmt.Errorf("invalid change request")
 	}
 
-	if user.User_role != models.Instructor && claims.Role != models.Admin {
+	if user.UserRole != models.Instructor && claims.Role != models.Admin {
 		return fmt.Errorf("unauthorized: only an admin or an instructor can delete a classroom")
 	}
 
@@ -154,6 +155,37 @@ func (app *GraderApp) GetViewAssignments(jwksToken string, classroomId uuid.UUID
 	return assignments, nil
 }
 
+func (app *GraderApp) GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return models.Assignment{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return models.Assignment{}, fmt.Errorf("error retrieving user info")
+	}
+
+	assignment, err := app.store.GetAssignment(assignmentId, userInfo.Id)
+	if err != nil {
+		return models.Assignment{}, err
+	}
+
+	classroomId := assignment.ClassroomId
+
+	if userInfo.UserRole != models.Admin {
+		userClassroomInfo, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return models.Assignment{}, fmt.Errorf("user not in classroom")
+		}
+		if assignment.AssignmentMode != models.View && userClassroomInfo.UserRole == models.Student {
+			return models.Assignment{}, fmt.Errorf("user does not have permission to view assignment")
+		}
+	}
+
+	return assignment, nil
+}
+
 func (app *GraderApp) GetClassroom(jwksToken string, classroomId uuid.UUID) (models.Classroom, error) {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 
@@ -179,4 +211,28 @@ func (app *GraderApp) GetClassroom(jwksToken string, classroomId uuid.UUID) (mod
 	}
 
 	return classroom, nil
+}
+
+func (app *GraderApp) UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	request.UserId = userInfo.Id
+	request.Id = uuid.New()
+	request.UpdatedAt = time.Now()
+
+	err = app.store.UpdateSubmissionCode(request)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -88,9 +88,9 @@ type Classroom struct {
 }
 
 type UserInClassroom struct {
-	User_id      uuid.UUID `json:"user_id" db:"user_id"`
-	User_role    UserRole  `json:"user_role" db:"user_role"`
-	Classroom_id uuid.UUID `json:"classroom_id" db:"classroom_id"`
+	UserId      uuid.UUID `json:"user_id" db:"user_id"`
+	UserRole    UserRole  `json:"user_role" db:"user_role"`
+	ClassroomId uuid.UUID `json:"classroom_id" db:"classroom_id"`
 }
 
 type AddToClassRequest struct {
@@ -112,22 +112,32 @@ type DeleteClassroomRequest struct {
 	RoomId uuid.UUID `json:"classroom_id"`
 }
 
-type AssignmentMode string
+type (
+	AssignmentMode string
+	ProgLang       string
+)
 
 const (
-	Draft AssignmentMode = "draft"
-	Edit  AssignmentMode = "edit"
-	View  AssignmentMode = "view"
+	Draft  AssignmentMode = "draft"
+	Edit   AssignmentMode = "edit"
+	View   AssignmentMode = "view"
+	Racket ProgLang       = "racket"
+	Java   ProgLang       = "java"
+	Python ProgLang       = "python"
+	C      ProgLang       = "c"
 )
 
 type Question struct {
-	Id           uuid.UUID `json:"id" db:"id"`
-	AssignmentId uuid.UUID `json:"assigment_id" db:"assignment_id"`
-	Header       string    `json:"header" db:"header"`
-	Body         string    `json:"body" db:"body"`
-	Points       uint16    `json:"points" db:"points"`
-	Score        uint16    `json:"score" db:"score"`
-	SortIndex    uint8     `json:"sort_index" db:"sort_index"`
+	Id                  uuid.UUID `json:"id" db:"id"`
+	AssignmentId        uuid.UUID `json:"assigment_id" db:"assignment_id"`
+	Header              string    `json:"header" db:"header"`
+	Body                string    `json:"body" db:"body"`
+	Points              uint16    `json:"points" db:"points"`
+	Score               uint16    `json:"score" db:"score"`
+	SortIndex           uint8     `json:"sort_index" db:"sort_index"`
+	ProgrammingLanguage ProgLang  `json:"prog_lang" db:"prog_lang"`
+	DefaultCode         string    `json:"default_code" db:"default_code"`
+	CodeSubmission      string    `json:"code" db:"code"`
 }
 
 type Assignment struct {
@@ -141,4 +151,12 @@ type Assignment struct {
 	UpdatedAt      time.Time      `json:"updated_at" db:"updated_at"`
 	SortIndex      int            `json:"sort_index" db:"sort_index"`
 	Questions      []Question     `json:"questions"`
+}
+
+type UpdateSubmissionRequest struct {
+	Id         uuid.UUID `json:"id"`
+	UserId     uuid.UUID `json:"user_id"`
+	QuestionId uuid.UUID `json:"question_id"`
+	Code       string    `json:"code"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }

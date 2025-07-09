@@ -26,8 +26,11 @@ type Handler interface {
 	EditClassroom(c context.Context) error
 	DeleteClassroom(c context.Context) error
 	ChangeUserInfo(c context.Context) error
-	GetViewAssignments(c context.Context) error
 	GetClassroom(c context.Context) error
+	// Assignments
+	GetViewAssignments(c context.Context) error
+	GetAssignment(c context.Context) error
+	UpdateSubmissionCode(c context.Context) error
 }
 
 type HttpRouter struct {
@@ -86,6 +89,8 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.PATCH("/edit/:room_id", router.EditClassroom)
 	classroom.DELETE("/delete/:room_id", router.DeleteClassroom)
 	classroom.GET("/:room_id/view_assignments", router.GetViewAssignments)
+	classroom.GET("/assignment/:assignment_id", router.GetAssignment)
+	classroom.POST("/question/:question_id/submission", router.UpdateSubmissionCode)
 }
 
 func (router *HttpRouter) Engage(port string) {

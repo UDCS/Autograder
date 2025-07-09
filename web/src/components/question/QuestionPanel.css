@@ -1,0 +1,66 @@
+.questionPanel {
+    border-radius: 20px;
+    box-shadow: 0 0 13.9px -6px rgba(0, 0, 0, 0.25);
+    background: white;
+    padding: 2%;
+    width: 100%;
+    box-sizing: border-box;
+}
+.questionTitle {
+    font-family: 'Azeret Mono';
+    font-size: 150%;   
+    margin-bottom: 4%;
+}
+.questionDescription {
+    font-size: 100%;
+    font-family: 'Azeret Mono';
+}
+.resetStarterCodeParent {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2%;
+    margin-bottom: 1%;
+    width: 100%;
+}
+.resetStarterCode {
+    font-family: "Azeret Mono";
+    font-size: 100%;
+    padding: .75%;
+    background: var(--color-NCS-blue);
+    color: white;
+    border-radius: 20px;
+}
+.resetStarterCode:active {
+    background: var(--color-process-cyan);
+}
+.blueButton:hover {
+    background-color: var(--color-aero-blue);
+}
+.editorParent {
+    height: 400px;
+}
+.submitAndScore {
+    display: flex;
+    width: 100%;
+}
+.submitParent {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex: 1;
+}
+.submitButton {
+    width: 50%;
+    padding: 1%;
+    border-radius: 10px;
+}
+.scoreParent {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 1;
+}
+.consoleParent {
+    margin-top: 2%;
+    width: 100%;
+}
