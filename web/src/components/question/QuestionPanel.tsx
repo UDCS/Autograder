@@ -53,6 +53,9 @@ function QuestionPanel({info}: {info: Question}) {
         var d = new Date();
         setTimeLastChange(d);
     }
+    const onSubmit = () => {
+        updateUserCode();
+    }
     const onChange = (val: string | undefined) => {
         setCode(val);
 
@@ -89,7 +92,7 @@ function QuestionPanel({info}: {info: Question}) {
         </div>
         <div className="submitAndScore">
             <div className="submitParent">
-                <BlueButton className="submitButton">
+                <BlueButton className="submitButton" onClick={onSubmit}>
                     Submit
                 </BlueButton>
             </div>
