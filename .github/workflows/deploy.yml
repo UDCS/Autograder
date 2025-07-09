@@ -67,6 +67,7 @@ jobs:
           --repository-format docker \
           --location ${{env.REGION}} \
           --project ${{env.PROJECT_ID}} 
+
       - name: Deploy Go backend via Cloud Run (no Dockerfile)
         run: |
           gcloud run deploy autograder-backend \
