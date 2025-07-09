@@ -61,7 +61,13 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{env.PROJECT_ID}}
-
+      - name: Pre-creating Artifact Registry Repository
+        run:
+          gcloud artifacts repositories create cloud-run-source-deploy \
+          --repository-format=docker \
+          --location=${{env.REGION}}
+          --project=${{env.PROJECT_ID}}
+          
       - name: Deploy Go backend via Cloud Run (no Dockerfile)
         run: |
           gcloud run deploy autograder-backend \
