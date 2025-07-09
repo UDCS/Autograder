@@ -20,6 +20,7 @@ const TextField: React.FC<TextFieldProps> = ({
   email = false,
   onChange,
   password,
+  className,
   ...props
 }) => {
   const [value, setValue] = useState<string>("");
@@ -72,13 +73,13 @@ const TextField: React.FC<TextFieldProps> = ({
   })
 
   return (
-    <div className={`textfield-container ${props.className}`} {...props}>
+    <div className={`textfield-container ${className}`} {...props}>
       {label && <label className="textfield-label">{label}</label>}
       <input
         type={email ? "email" : password ? "password" : "text"}
         value={value}
         onChange={handleChange}
-        className={`textfield-input ${error ? 'error' : ''} ${props.className}`}
+        className={`textfield-input ${error ? 'error' : ''} ${className}`}
         placeholder={initialValue ? initialValue : email ? "Email" : password ? "Password" : "Enter Text Here"}
       />
       {error && <span className="error-message">{error}</span>}
@@ -86,39 +87,5 @@ const TextField: React.FC<TextFieldProps> = ({
   );
 };
 
-/*
-
-// Example usage with TypeScript:
-interface FormData {
-  value: string;
-  isValid: boolean;
-  error: string;
-}
-
-function App() {
-  const handleTextChange = (data: FormData) => {
-    console.log('Value:', data.value);
-    console.log('Is Valid:', data.isValid);
-    console.log('Error:', data.error);
-  };
-
-  return (
-    <div>
-      <TextField 
-        initialValue="john@example.com"
-        label="Email"
-        email
-        onChange={handleTextChange}
-      />
-      <TextField 
-        initialValue="Regular text"
-        label="Name"
-        password
-        onChange={handleTextChange}
-      />
-    </div>
-  );
-}
-*/
 
 export default TextField;

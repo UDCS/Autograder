@@ -6,8 +6,6 @@ interface QuestionScoreProps {
 }
 
 function QuestionScore({points, score}: QuestionScoreProps) {
-    console.log(points, score);
-    console.log(points && score)
     var completionIndicatorSrc = "/public/svg/XMark.svg";
     var colorClass = "red";
     if (score !== undefined && points !== undefined) {

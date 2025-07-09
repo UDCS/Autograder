@@ -10,6 +10,7 @@ function AssignmentBody() {
     const assignmentId = urlParams.get('id');
 
     useEffect(() => {
+        var isError = false;
         const getAssignment = async () => {
             var response = await fetch(`/api/classroom/assignment/${assignmentId}`);
             if (response.ok) {
@@ -19,11 +20,32 @@ function AssignmentBody() {
                 setErrorMessage("Error getting the assignment. Either the assignment does not exist or you do not have the permissions to see it.");
             }
         }
+        const verifyLogin = async () => {
+            try {
+                var response = await fetch('/api/auth/valid_login');
+                if (response.ok) {
+                    var json = await response.json();
+                    if (json['message'] != 'true') {
+                        isError = true;
+                        setErrorMessage("You need to be logged in to view assignments");
+                        stopLoading();
+                    }
+                } else {
+                    isError = true;
+                    setErrorMessage("You need to be logged in to view assignments");
+                    stopLoading();
+                }
+            } catch (err){
+                console.error("Fetch error: ", err);
+            }
+        }
         const stopLoading = () => {
             setLoading(false);
         }
         (async function () {
             if (loading) {
+                await verifyLogin();
+                if (isError) return;
                 await getAssignment();
                 stopLoading();
             }

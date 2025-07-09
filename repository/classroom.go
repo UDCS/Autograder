@@ -134,7 +134,7 @@ func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUI
 
 	err = store.db.Select(
 		&questions,
-		"SELECT id, assignment_id, header, body, points, sort_index FROM questions WHERE assignment_id = $1;",
+		"SELECT id, assignment_id, header, body, points, sort_index, prog_lang, default_code FROM questions WHERE assignment_id = $1;",
 		assignment.Id,
 	)
 	if err != nil {
@@ -154,6 +154,11 @@ func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUI
 			questionId, userId,
 		)
 		questions[i].Score = score
+		_ = store.db.Get(
+			&questions[i],
+			"SELECT code from student_submissions WHERE user_id=$1 AND question_id=$2",
+			userId, questions[i].Id,
+		)
 	}
 
 	assignment.Questions = questions
