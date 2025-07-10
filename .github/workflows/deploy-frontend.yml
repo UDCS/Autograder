@@ -1,41 +1,38 @@
-# name: Deploy Frontend to Firebase
+name: Deploy Frontend to Firebase
 
-# on:
-#   push:
-#     branches:
-#       - live  # or your default branch
+on:
+  push:
+    branches:
+      - live  # or your default branch
 
-# jobs:
-#   build-and-deploy:
-#     runs-on: ubuntu-latest
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
-#     defaults:
-#       run:
-#         working-directory: web
+    defaults:
+      run:
+        working-directory: web
 
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-#       - name: Set up Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: 20
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-#       - name: Install dependencies
-#         run: npm install
+      - name: Install dependencies
+        run: npm install
 
-#       - name: Build Vite app
-#         run: npm run build
+      - name: Build Vite app
+        run: npm run build
 
-#       - name: List contents of build output
-#         run: ls -R
-
-#       - name: Deploy to Firebase Hosting
-#         uses: FirebaseExtended/action-hosting-deploy@v0
-#         with:
-#           repoToken: ${{ secrets.GITHUB_TOKEN }}
-#           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UDCS_AUTOGRADER }}
-#           projectId: udcs-autograder
-#           channelId: live
-#           entryPoint: web
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_UDCS_AUTOGRADER }}
+          projectId: udcs-autograder
+          channelId: live
+          entryPoint: web
