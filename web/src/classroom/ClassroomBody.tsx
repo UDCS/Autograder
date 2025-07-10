@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AssignmentDropdown from "../components/assignment/AssignmentDropdown";
-import AssignmentQuestion, { CompletionState } from "../components/assignment/AssignmentQuestion";
+import QuestionBulletPoint, { CompletionState } from "../components/question/QuestionBulletPoint";
 import HomeworkAssignment from "../components/homework/HomeworkAssignment";
 import HomeworkSidebar from "../components/homework/HomeworkSidebar";
 import Navbar from "../components/navbar/Navbar";
@@ -18,21 +18,22 @@ function ClassroomBody() {
     const urlParams = new URLSearchParams(window.location.search);
     const classroomId = urlParams.get('id');
 
-    const questionsJSONToReact = (questions: any[]) => {
+    const questionsJSONToReact = (questions: any[], assignmentId: string) => {
         if (questions) {
             return questions.map((q) => {
                 const points = q["points"];
                 const score = q["score"];
                 const name = q["header"];
+                const questionId = q["id"];
                 var state: CompletionState = "none";
                 if (score >= points) {
                     state = "full";
                 } else if (score > 0) {
                     state = "partial";
                 }
-                return <AssignmentQuestion completionState={state}>
+                return <QuestionBulletPoint completionState={state} questionId={questionId} assignmentId={assignmentId}>
                     {name}
-                </AssignmentQuestion>
+                </QuestionBulletPoint>
             });
         }
         return [];
@@ -41,8 +42,8 @@ function ClassroomBody() {
     const assignmentsJSONToReact = () => {
         if (!assignments) return [];
         return assignments.map((a) => {
-            return <AssignmentDropdown name={a['name']}>
-                {...questionsJSONToReact(a["questions"])}
+            return <AssignmentDropdown id={a['id']} name={a['name']}>
+                {...questionsJSONToReact(a["questions"], a["id"])}
             </AssignmentDropdown>
         });
     }
@@ -55,7 +56,7 @@ function ClassroomBody() {
             var timeDifference = dueDate.getTime() - now.getTime();
             return timeDifference <= msInTwoWeeks; 
         }).map(a => 
-            <HomeworkAssignment name={a['name']} dueDate={new Date(a["due_at"])} />
+            <HomeworkAssignment name={a['name']} dueDate={new Date(a["due_at"])} assignmentId={a['id']} />
         )
     }
 

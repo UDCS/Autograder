@@ -79,7 +79,7 @@ function QuestionPanel({info}: {info: Question}) {
     const resetStarterCode = () => {
         setCode(info.default_code);
     };
-    return <div className="questionPanel">
+    return <div className="questionPanel" id={info.id}>
         <div className="questionTitle">{info.header}</div>
         <div className="questionDescription">{info.body}</div>
         <div className="resetStarterCodeParent">
