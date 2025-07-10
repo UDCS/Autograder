@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+
 	"github.com/UDCS/Autograder/handler"
 	"github.com/UDCS/Autograder/repository"
 	"github.com/UDCS/Autograder/service"
@@ -31,10 +32,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	graderHandler.SetupRoutes()
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080" 
+		port = "8080"
 	}
-
 	graderHandler.Engage(port)
 }
