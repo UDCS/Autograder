@@ -1,13 +1,13 @@
 server:
   port: "8080"
   
-db:
-  host: localhost
-  port: 5432
-  user: postgres
-  password: postgres
-  dbname: autograder
-  sslmode: disable
+# db:
+#   host: localhost
+#   port: 5432
+#   user: postgres
+#   password: postgres
+#   dbname: autograder
+#   sslmode: disable
 
 auth:
   jwt:
