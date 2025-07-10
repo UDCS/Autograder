@@ -1,79 +1,37 @@
-name: Deploy Backend to Firebase
+name: Deploy Backend to Cloud Run
 
 on:
   push:
     branches:
       - live  # or your default branch
 
-env:
-  PROJECT_ID: udcs-autograder
-  REGION: us-central1
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [ '1.23.x' ]
-
-    defaults:
-      run:
-        working-directory: web
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Setup Go
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ matrix.go-version }}
-          cache-dependency-path: subdir/go.sum
+          go-version: '1.21'
 
-      - name: Download and install goose
-        run: go install github.com/pressly/goose/v3/cmd/goose@latest
-      
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      - name: Build frontend
-        working-directory: web
+      - name: Build and Test
         run: |
-          yarn install
-          yarn build
-
-      - name: List contents of build output
-        run: ls -R
-      - uses: google-github-actions/auth@v1
-        with: 
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_UDCS_AUTOGRADER }}'
+          go mod tidy
+          go test ./...
 
       - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_UDCS_AUTOGRADER }}'
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
         with:
-          project_id: ${{env.PROJECT_ID}}
-      - name: Pre-creating Artifact Registry Repository
-        run:
-          gcloud artifacts repositories create cloud-run-source-deploy \
-          --repository-format docker \
-          --location ${{env.REGION}} \
-          --project ${{env.PROJECT_ID}} 
-      - name: Deploy Go backend via Cloud Run (no Dockerfile)
-        run: |
-          gcloud run deploy autograder-backend \
-            --source . \
-            --region ${{env.REGION}} \
-            --project ${{env.PROJECT_ID}} \
-            --allow-unauthenticated
-
-      - name: Deploy to Firebase Hosting
-        run: firebase deploy --only hosting
+          service: autograder-api
+          region: us-central1
+          source: .
+          project_id: udcs-autograder
