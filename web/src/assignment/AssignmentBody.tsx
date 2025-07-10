@@ -48,6 +48,14 @@ function AssignmentBody() {
                 if (isError) return;
                 await getAssignment();
                 stopLoading();
+            } else if (errorMessage === "") {
+                const hash = window.location.hash.substring(1);
+                if (hash) {
+                    const el = document.getElementById(hash);
+                    if (el) {
+                        el.scrollIntoView({ behavior: "smooth" });
+                    }
+                }
             }
         })();
     });
