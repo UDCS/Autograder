@@ -34,7 +34,7 @@ type HttpRouter struct {
 	engine *echo.Echo
 	app    service.App
 }
-
+ 
 func New(app service.App) *HttpRouter {
 	e := echo.New()
 	// e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache") // TODO: figure out how to set HTTPS
@@ -89,6 +89,9 @@ func (router *HttpRouter) SetupRoutes() {
 }
 
 func (router *HttpRouter) Engage(port string) {
+    router.engine.GET("/", func(c echo.Context) error {
+        return c.String(200, "Autograder backend is alive!")
+    })
 	web.RegisterHandlers(router.engine)
 	router.engine.Logger.Fatal(router.engine.Start(":" + port))
 }
