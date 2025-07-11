@@ -4,9 +4,25 @@
 body {
     font-family: "Azeret Mono";
     margin: 0;
-    overflow: hidden;
 }
 
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    align-items: stretch;     /* Makes all cards equal height */
+}
+.section-title {
+    font-family: 'Azeret Mono';
+    font-size: 200%;
+    margin-bottom: 1%;
+    margin-left: 1%;
+    font-weight: bold;
+}
+.section {
+    margin-top: 1%;
+    margin-bottom: 1%;
+}
 .classes {
     position: absolute;
     top: 10%;
