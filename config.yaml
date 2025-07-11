@@ -1,17 +1,17 @@
 server:
   port: "8080"
-  
+
 db:
-  host: ${{ secrets.DB_HOST }}
-  port: ${{ secrets.DB_PORT }}
-  user: ${{ secrets.DB_USER }}
-  password: ${{ secrets.DB_PASS }}
-  dbname: ${{ secrets.DB_NAME }}
-  sslmode: disable
+  host: "localhost"
+  port: "5432"
+  user: "postgres"
+  password: "postgres"
+  dbname: "autograder"
+  sslmode: "disable"
 
 auth:
   jwt:
-    secret: ${{ secrets.JWT_SECRET }}
+    secret: "dev-jwt-secret"  # Will be overridden by JWT_SECRET env var
     access_token_duration: 15m
     refresh_token_duration: 48h
   admins:

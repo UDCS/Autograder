@@ -57,8 +57,29 @@ func GetConfig() *Config {
 			panic(err)
 		}
 
+		configInstance = &Config{}
 		if err := viper.Unmarshal(&configInstance); err != nil {
 			panic(err)
+		}
+
+		// Override with env vars (if set)
+		if v := viper.GetString("DB_HOST"); v != "" {
+			configInstance.Db.Host = v
+		}
+		if v := viper.GetString("DB_PORT"); v != "" {
+			configInstance.Db.Port = v
+		}
+		if v := viper.GetString("DB_USER"); v != "" {
+			configInstance.Db.User = v
+		}
+		if v := viper.GetString("DB_PASSWORD"); v != "" {
+			configInstance.Db.Password = v
+		}
+		if v := viper.GetString("DB_NAME"); v != "" {
+			configInstance.Db.DBName = v
+		}
+		if v := viper.GetString("JWT_SECRET"); v != "" {
+			configInstance.Auth.JWT.Secret = v
 		}
 	})
 
