@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
 	"log"
 	"os"
 
@@ -37,5 +39,13 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Autograder is alive!")
+	})
+
+	log.Printf("Starting server on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+
 	graderHandler.Engage(port)
 }
