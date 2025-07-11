@@ -11,7 +11,7 @@ db:
 
 auth:
   jwt:
-    secret: "dev-jwt-secret"  # Will be overridden by JWT_SECRET env var
+    secret: "dev-jwt-secret"  # Will be overridden by JWT_SECRET env var 
     access_token_duration: 15m
     refresh_token_duration: 48h
   admins:
