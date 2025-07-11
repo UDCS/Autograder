@@ -36,7 +36,7 @@ jobs:
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
-        with:
+        with: 
           service: autograder-api
           region: us-central1
           source: .
