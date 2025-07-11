@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
 	"log"
 	"os"
 	"github.com/UDCS/Autograder/handler"
