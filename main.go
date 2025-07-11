@@ -34,18 +34,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	graderHandler.SetupRoutes()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintln(w, "Autograder is alive!")
-	})
-
-	log.Printf("Starting server on port %s", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
 
 	graderHandler.Engage(port)
 }
