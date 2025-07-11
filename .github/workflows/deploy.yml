@@ -41,3 +41,4 @@ jobs:
           region: us-central1
           source: .
           project_id: udcs-autograder
+          cloudsql_instances: udcs-autograder:us-central1:autograder-db
