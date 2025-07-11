@@ -42,3 +42,10 @@ jobs:
           source: .
           project_id: udcs-autograder
           cloudsql_instances: udcs-autograder:us-central1:autograder-db
+        env:
+          DB_HOST: cloudsql
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}

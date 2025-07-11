@@ -64,7 +64,11 @@ func GetConfig() *Config {
 
 		// Override with env vars (if set)
 		if v := viper.GetString("DB_HOST"); v != "" {
-			configInstance.Db.Host = v
+			if v == "cloudsql" {
+				configInstance.Db.Host = "/cloudsql/udcs-autograder:us-central1:autograder-db"
+			} else {
+				configInstance.Db.Host = v
+			}
 		}
 		if v := viper.GetString("DB_PORT"); v != "" {
 			configInstance.Db.Port = v
