@@ -29,9 +29,6 @@ jobs:
           go mod tidy
           go test ./...
 
-      - name: Dump all env vars (for debugging)
-        run: printenv | sort
-
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -71,7 +68,7 @@ jobs:
           region: us-central1
           source: .
           project_id: udcs-autograder
-          flags: '--add-cloudsql-instances=udcs-autograder:us-central1:autograder-db'
+          flags: --add-cloudsql-instances=udcs-autograder:us-central1:autograder-db --verbosity=debug --log-http
         env:
           DB_HOST: cloudsql
           DB_PORT: ${{ secrets.DB_PORT }}
