@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
 	"log"
 	"os"
 	"github.com/UDCS/Autograder/handler"
@@ -10,6 +12,10 @@ import (
 	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/UDCS/Autograder/utils/starter"
 )
+
+// import (
+// 	"github.com/labstack/echo/v4"
+// )
 
 func main() {
 	err := logger.New()
@@ -32,5 +38,13 @@ func main() {
 	if port == "" {
 		port = "8080" 
 	}
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "Autograder is alive!")
+	})
+
+	log.Printf("Starting server on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+
 	graderHandler.Engage(port)
 }
