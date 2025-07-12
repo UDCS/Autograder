@@ -41,7 +41,7 @@ jobs:
           region: us-central1
           source: .
           project_id: udcs-autograder
-          flags: --add-cloudsql-instances=udcs-autograder:us-central1:autograder-db --check-path=/healthz --timeout=600s --port=8080
+          flags: --add-cloudsql-instances=udcs-autograder:us-central1:autograder-db --timeout=600s --port=8080
           env_vars: |
             DB_HOST=cloudsql
             DB_PORT=${{ secrets.DB_PORT }}
