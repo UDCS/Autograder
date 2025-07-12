@@ -36,18 +36,16 @@ var (
 	//go:embed public
 	publicDir embed.FS
 
-	distDirFS             = echo.MustSubFS(dist, "dist")
-	distIndexHTML         = echo.MustSubFS(indexHTML, "dist")
-	distTestHTML          = echo.MustSubFS(testHTML, "dist/test")
-	distLoginHTML         = echo.MustSubFS(loginHTML, "dist/login")
-	distAboutHTML         = echo.MustSubFS(aboutHTML, "dist/about")
-	distFAQHTML           = echo.MustSubFS(FAQHTML, "dist/FAQ")
-	distResetpasswordHTML = echo.MustSubFS(resetpasswordHTML, "dist/resetpassword")
-	distSignupHTML        = echo.MustSubFS(signupHTML, "dist/signup")
-	distAccountHTML       = echo.MustSubFS(accountHTML, "dist/account")
-	distDashboardHTML     = echo.MustSubFS(dashboardHTML, "dist/dashboard")
-	distClassroomHTML     = echo.MustSubFS(classroomHTML, "dist/classroom")
-	distAssignmentHTML    = echo.MustSubFS(assignmentHTML, "dist/assignment")
+	distDirFS = echo.MustSubFS(dist, "dist")
+	//distIndexHTML     = echo.MustSubFS(indexHTML, "dist")
+	distTestHTML      = echo.MustSubFS(testHTML, "dist/test")
+	distLoginHTML     = echo.MustSubFS(loginHTML, "dist/login")
+	distAboutHTML     = echo.MustSubFS(aboutHTML, "dist/about")
+	distFAQHTML       = echo.MustSubFS(FAQHTML, "dist/FAQ")
+	distResetPWHTML   = echo.MustSubFS(resetPWHTML, "dist/reset-password")
+	distSignupHTML    = echo.MustSubFS(signupHTML, "dist/signup")
+	distAccountHTML   = echo.MustSubFS(accountHTML, "dist/account")
+	distClassroomHTML = echo.MustSubFS(classroomHTML, "dist/classroom")
 
 	distPublicDir = echo.MustSubFS(publicDir, "public")
 )
