@@ -19,10 +19,12 @@ var (
 	aboutHTML embed.FS
 	//go:embed dist/FAQ/FAQ.html
 	FAQHTML embed.FS
-	//go:embed dist/reset-password/reset-password.html
-	resetPWHTML embed.FS
+	//go:embed dist/resetpassword/resetpassword.html
+	resetpasswordHTML embed.FS
 	//go:embed dist/signup/signup.html
 	signupHTML embed.FS
+	//go:embed dist/dashboard/dashboard.html
+	dashboardHTML embed.FS
 	//go:embed dist/account/account.html
 	accountHTML embed.FS
 	//go:embed dist/classroom/classroom.html
@@ -33,17 +35,18 @@ var (
 	//go:embed public
 	publicDir embed.FS
 
-	distDirFS          = echo.MustSubFS(dist, "dist")
-	distIndexHTML      = echo.MustSubFS(indexHTML, "dist")
-	distTestHTML       = echo.MustSubFS(testHTML, "dist/test")
-	distLoginHTML      = echo.MustSubFS(loginHTML, "dist/login")
-	distAboutHTML      = echo.MustSubFS(aboutHTML, "dist/about")
-	distFAQHTML        = echo.MustSubFS(FAQHTML, "dist/FAQ")
-	distResetPWHTML    = echo.MustSubFS(resetPWHTML, "dist/reset-password")
-	distSignupHTML     = echo.MustSubFS(signupHTML, "dist/signup")
-	distAccountHTML    = echo.MustSubFS(accountHTML, "dist/account")
-	distClassroomHTML  = echo.MustSubFS(classroomHTML, "dist/classroom")
-	distAssignmentHTML = echo.MustSubFS(assignmentHTML, "dist/assignment")
+	distDirFS             = echo.MustSubFS(dist, "dist")
+	distIndexHTML         = echo.MustSubFS(indexHTML, "dist")
+	distTestHTML          = echo.MustSubFS(testHTML, "dist/test")
+	distLoginHTML         = echo.MustSubFS(loginHTML, "dist/login")
+	distAboutHTML         = echo.MustSubFS(aboutHTML, "dist/about")
+	distFAQHTML           = echo.MustSubFS(FAQHTML, "dist/FAQ")
+	distResetpasswordHTML = echo.MustSubFS(resetpasswordHTML, "dist/resetpassword")
+	distSignupHTML        = echo.MustSubFS(signupHTML, "dist/signup")
+	distAccountHTML       = echo.MustSubFS(accountHTML, "dist/account")
+	distDashboardHTML     = echo.MustSubFS(dashboardHTML, "dist/dashboard")
+	distClassroomHTML     = echo.MustSubFS(classroomHTML, "dist/classroom")
+	distAssignmentHTML    = echo.MustSubFS(assignmentHTML, "dist/assignment")
 
 	distPublicDir = echo.MustSubFS(publicDir, "public")
 )
@@ -55,8 +58,9 @@ func RegisterHandlers(e *echo.Echo) {
 	e.FileFS("/login", "login.html", distLoginHTML)
 	e.FileFS("/about", "about.html", distAboutHTML)
 	e.FileFS("/faq", "FAQ.html", distFAQHTML)
-	e.FileFS("/reset-password", "reset-password.html", distResetPWHTML)
+	e.FileFS("/resetpassword", "resetpassword.html", distResetpasswordHTML)
 	e.FileFS("/signup", "signup.html", distSignupHTML)
+	e.FileFS("/dashboard", "dashboard.html", distDashboardHTML)
 	e.FileFS("/account", "account.html", distAccountHTML)
 	e.FileFS("/classroom", "classroom.html", distClassroomHTML)
 	e.FileFS("/assignment", "assignment.html", distAssignmentHTML)

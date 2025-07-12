@@ -4,8 +4,7 @@ import '/global.css'
 import AnimatedLogo from './AnimatedLogo';
 
 
-
-// The text within the navbar is somehow not centered. This is a problem to fix later
+// The text within the navbar is somehow not centered vertically. This is a problem to fix later
 function Navbar(){
 
     const [isLoggedIn, setLoggedIn] = useState(false);
@@ -32,12 +31,15 @@ function Navbar(){
                 <AnimatedLogo />
             </div>
             <div className= "nav-right">
-                <a id="nav-item" href="/about">About Us</a>
-                <a id= "nav-item" href="/faq">Help/FAQ</a>
+                <a className="nav-item" href="/about">About Us</a>
+                <a className= "nav-item" href="/faq">Help/FAQ</a>
                 {!isLoggedIn ? 
-                    <a id= "nav-item" href="/login">Login</a>
-                    : 
-                    <a id= "nav-item" href="/account">Account</a>
+                    <a className= "nav-item" href="/login">Login</a>
+                    :
+                    <> 
+                        <a className="nav-item" href="/dashboard">Dashboard</a>
+                        <a className= "nav-item" href="/account">Account</a>
+                    </>
                 }
             </div>
         </nav>
