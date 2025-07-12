@@ -1,21 +1,23 @@
 import './classroomwidget.css';
 import Classroompic from './Classroompic.png'
 
-interface ClassroomWidgetProps {
-  className?: string;
-  courseCode?: string;
-  startDate?: string;
-  endDate?: string;
+export interface ClassroomWidgetProps {
+  name?: string;
+  course_code?: string;
+  start_date?: string;
+  end_date?: string;
+  id?: string;
 };
 
 const ClassroomWidget = ({ 
-    className,
-    courseCode,
-    startDate,
-    endDate 
+    name,
+    course_code,
+    start_date,
+    end_date,
+    id
 }: ClassroomWidgetProps) => {
   return (
-    <div className="course-card">
+    <a className="course-card" href={`/classroom?id=${id}`}>
       <img
         src= {Classroompic}
         alt="Course background"
@@ -23,15 +25,15 @@ const ClassroomWidget = ({
       />
       <div className="course-card-overlay" />
       <div className="course-card-text">
-        <p className='course-card-name'>{className}</p>
-        <p className="course-card-code">{courseCode}</p>
+        <p className='course-card-name'>{name}</p>
+        <p className="course-card-code">{course_code}</p>
         <p className="course-card-date">
-          Start:{startDate} 
+          Start:{start_date} 
           <br />
-          End: {endDate}
+          End: {end_date}
         </p>
       </div>
-    </div>
+    </a>
   );
 };
 

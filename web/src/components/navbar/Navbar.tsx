@@ -32,12 +32,15 @@ function Navbar(){
                 <AnimatedLogo />
             </div>
             <div className= "nav-right">
-                <a id="nav-item" href="/about">About Us</a>
-                <a id= "nav-item" href="/faq">Help/FAQ</a>
+                <a className="nav-item" href="/about">About Us</a>
+                <a className= "nav-item" href="/faq">Help/FAQ</a>
                 {!isLoggedIn ? 
-                    <a id= "nav-item" href="/login">Login</a>
-                    : 
-                    <a id= "nav-item" href="/account">Account</a>
+                    <a className= "nav-item" href="/login">Login</a>
+                    :
+                    <> 
+                        <a className="nav-item" href="/dashboard">Dashboard</a>
+                        <a className= "nav-item" href="/account">Account</a>
+                    </>
                 }
             </div>
         </nav>

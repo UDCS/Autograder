@@ -44,11 +44,11 @@ var (
 	distResetpasswordHTML = echo.MustSubFS(resetpasswordHTML, "dist/resetpassword")
 	distSignupHTML        = echo.MustSubFS(signupHTML, "dist/signup")
 	distAccountHTML       = echo.MustSubFS(accountHTML, "dist/account")
+	distDashboardHTML     = echo.MustSubFS(dashboardHTML, "dist/dashboard")
 	distClassroomHTML     = echo.MustSubFS(classroomHTML, "dist/classroom")
 	distAssignmentHTML    = echo.MustSubFS(assignmentHTML, "dist/assignment")
 
-	distPublicDir     = echo.MustSubFS(publicDir, "public")
-	distDashboardHTML = echo.MustSubFS(dashboardHTML, "dist/dashboard")
+	distPublicDir = echo.MustSubFS(publicDir, "public")
 )
 
 // RegisterHandlers registers the web handlers to serve the frontend

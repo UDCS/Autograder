@@ -17,7 +17,7 @@
     padding-right: 1vw;
 }
 
-#nav-item {
+.nav-item {
     font-family: 'Azeret Mono';
     text-transform: uppercase;
     text-decoration: none;

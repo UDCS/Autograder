@@ -4,6 +4,7 @@
 body {
     font-family: "Azeret Mono";
     margin: 0;
+    background: linear-gradient(90deg, #0CAADC -20%, #ffffff 120%);
 }
 
 .card-grid {
@@ -16,8 +17,9 @@ body {
     font-family: 'Azeret Mono';
     font-size: 200%;
     margin-bottom: 1%;
-    margin-left: 1%;
+    margin-left: 2%;
     font-weight: bold;
+    text-shadow: 2px 2px 0px rgba(255, 255, 255, 1);
 }
 .section {
     margin-top: 1%;
@@ -27,5 +29,25 @@ body {
     position: absolute;
     top: 10%;
     left: 10%;
-
+}
+.errorParent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+.error {
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Azeret Mono';
+    font-size: 150%;
+    margin-top: 2%;
+    padding: 2%;
+    border: 2px solid black;
+    border-radius: 25px;
+    box-shadow: 25px 25px 13.9px -6px rgba(0, 0, 0, 0.25);
+    color: red;
+    min-height: 30vh;
 }
