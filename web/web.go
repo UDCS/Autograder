@@ -11,7 +11,7 @@ var (
 	//go:embed all:dist
 	dist embed.FS
 	//go:embed dist/index.html
-	indexHTML embed.FS
+	//indexHTML embed.FS
 	//go:embed dist/test/test.html
 	testHTML embed.FS
 	//go:embed dist/login/login.html
@@ -35,7 +35,7 @@ var (
 	publicDir embed.FS
 
 	distDirFS         = echo.MustSubFS(dist, "dist")
-	distIndexHTML     = echo.MustSubFS(indexHTML, "dist")
+	//distIndexHTML     = echo.MustSubFS(indexHTML, "dist")
 	distTestHTML      = echo.MustSubFS(testHTML, "dist/test")
 	distLoginHTML     = echo.MustSubFS(loginHTML, "dist/login")
 	distAboutHTML     = echo.MustSubFS(aboutHTML, "dist/about")
