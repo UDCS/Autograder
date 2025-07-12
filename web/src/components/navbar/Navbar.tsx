@@ -4,7 +4,6 @@ import '/global.css'
 import AnimatedLogo from './AnimatedLogo';
 
 
-
 // The text within the navbar is somehow not centered vertically. This is a problem to fix later
 function Navbar(){
 

@@ -1,7 +1,7 @@
 import './classroomwidget.css';
 import Classroompic from './Classroompic.png'
 
-export interface ClassroomWidgetProps {
+interface ClassroomWidgetProps {
   name?: string;
   course_code?: string;
   start_date?: string;
