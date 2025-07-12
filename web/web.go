@@ -2,7 +2,7 @@ package web
 
 import (
 	"embed"
-	"net/http" 
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -11,7 +11,7 @@ var (
 	//go:embed all:dist
 	dist embed.FS
 	//go:embed dist/index.html
-	indexHTML embed.FS
+	//indexHTML embed.FS
 	//go:embed dist/test/test.html
 	testHTML embed.FS
 	//go:embed dist/login/login.html
