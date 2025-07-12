@@ -1,4 +1,4 @@
-import ClassroomWidget from "../components/classroom-widget/ClassroomWidget";
+import ClassroomWidget from "../components/classroom-widget/ClassroomWidget2";
 
 function DashboardSection({classes, title}: {classes: any[], title: string}) {
     return <>
