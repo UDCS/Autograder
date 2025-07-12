@@ -53,7 +53,10 @@ var (
 
 // RegisterHandlers registers the web handlers to serve the frontend
 func RegisterHandlers(e *echo.Echo) {
-	e.FileFS("/", "index.html", distIndexHTML)
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Autograder is healthy")
+	})
+	//e.FileFS("/", "index.html", distIndexHTML)
 	e.FileFS("/test", "test.html", distTestHTML)
 	e.FileFS("/login", "login.html", distLoginHTML)
 	e.FileFS("/about", "about.html", distAboutHTML)
