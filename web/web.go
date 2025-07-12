@@ -2,7 +2,7 @@ package web
 
 import (
 	"embed"
-	"net/http" 
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -11,7 +11,7 @@ var (
 	//go:embed all:dist
 	dist embed.FS
 	//go:embed dist/index.html
-	indexHTML embed.FS
+	//indexHTML embed.FS
 	//go:embed dist/test/test.html
 	testHTML embed.FS
 	//go:embed dist/login/login.html
@@ -36,18 +36,16 @@ var (
 	//go:embed public
 	publicDir embed.FS
 
-	distDirFS             = echo.MustSubFS(dist, "dist")
-	distIndexHTML         = echo.MustSubFS(indexHTML, "dist")
-	distTestHTML          = echo.MustSubFS(testHTML, "dist/test")
-	distLoginHTML         = echo.MustSubFS(loginHTML, "dist/login")
-	distAboutHTML         = echo.MustSubFS(aboutHTML, "dist/about")
-	distFAQHTML           = echo.MustSubFS(FAQHTML, "dist/FAQ")
-	distResetpasswordHTML = echo.MustSubFS(resetpasswordHTML, "dist/resetpassword")
-	distSignupHTML        = echo.MustSubFS(signupHTML, "dist/signup")
-	distAccountHTML       = echo.MustSubFS(accountHTML, "dist/account")
-	distDashboardHTML     = echo.MustSubFS(dashboardHTML, "dist/dashboard")
-	distClassroomHTML     = echo.MustSubFS(classroomHTML, "dist/classroom")
-	distAssignmentHTML    = echo.MustSubFS(assignmentHTML, "dist/assignment")
+	distDirFS = echo.MustSubFS(dist, "dist")
+	//distIndexHTML     = echo.MustSubFS(indexHTML, "dist")
+	distTestHTML      = echo.MustSubFS(testHTML, "dist/test")
+	distLoginHTML     = echo.MustSubFS(loginHTML, "dist/login")
+	distAboutHTML     = echo.MustSubFS(aboutHTML, "dist/about")
+	distFAQHTML       = echo.MustSubFS(FAQHTML, "dist/FAQ")
+	distResetPWHTML   = echo.MustSubFS(resetPWHTML, "dist/reset-password")
+	distSignupHTML    = echo.MustSubFS(signupHTML, "dist/signup")
+	distAccountHTML   = echo.MustSubFS(accountHTML, "dist/account")
+	distClassroomHTML = echo.MustSubFS(classroomHTML, "dist/classroom")
 
 	distPublicDir = echo.MustSubFS(publicDir, "public")
 )
