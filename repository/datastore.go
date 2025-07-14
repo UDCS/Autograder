@@ -58,6 +58,6 @@ func New(dbConfig *config.Db) PostgresStore {
 }
 
 func getConnStringFromConfig(dbConfig *config.Db) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.DBName, dbConfig.SslMode)
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s",
+		dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.SslMode)
 }
