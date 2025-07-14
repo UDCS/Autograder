@@ -34,12 +34,18 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Start Cloud SQL Auth Proxy
+      - name: Download Cloud SQL Proxy v2
         run: |
-          wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
-          chmod +x cloud_sql_proxy
-          ./cloud_sql_proxy udcs-autograder:us-central1:autograder-db &
-          
+          curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.10.0/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+      
+      - name: Start Cloud SQL Proxy
+        run: 
+          ./cloud-sql-proxy \
+            --unix-socket /cloudsql \
+            --credentials-file=${{ secrets.GCP_SA_KEY }} \
+            udcs-autograder:us-central1:autograder-db &
+        
       - name: Run Goose Migrations
         run: |
           go install github.com/pressly/goose/v3/cmd/goose@latest
