@@ -41,10 +41,9 @@ jobs:
       
       - name: Start Cloud SQL Proxy
         run: 
-          ./cloud-sql-proxy \
+          ./cloud-sql-proxy udcs-autograder:us-central1:autograder-db \
             --unix-socket /cloudsql \
-            --credentials-file=${{ secrets.GCP_SA_KEY }} \
-            udcs-autograder:us-central1:autograder-db &
+            --credentials-file=${{ secrets.GCP_SA_KEY }} &
         
       - name: Run Goose Migrations
         run: |
