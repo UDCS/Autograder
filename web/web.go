@@ -2,7 +2,6 @@ package web
 
 import (
 	"embed"
-	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -11,7 +10,7 @@ var (
 	//go:embed all:dist
 	dist embed.FS
 	//go:embed dist/index.html
-	//indexHTML embed.FS
+	indexHTML embed.FS
 	//go:embed dist/test/test.html
 	testHTML embed.FS
 	//go:embed dist/login/login.html
@@ -36,8 +35,8 @@ var (
 	//go:embed public
 	publicDir embed.FS
 
-	distDirFS = echo.MustSubFS(dist, "dist")
-	//distIndexHTML     = echo.MustSubFS(indexHTML, "dist")
+	distDirFS         = echo.MustSubFS(dist, "dist")
+	distIndexHTML     = echo.MustSubFS(indexHTML, "dist")
 	distTestHTML      = echo.MustSubFS(testHTML, "dist/test")
 	distLoginHTML     = echo.MustSubFS(loginHTML, "dist/login")
 	distAboutHTML     = echo.MustSubFS(aboutHTML, "dist/about")
@@ -52,10 +51,7 @@ var (
 
 // RegisterHandlers registers the web handlers to serve the frontend
 func RegisterHandlers(e *echo.Echo) {
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Autograder is healthy")
-	})
-	//e.FileFS("/", "index.html", distIndexHTML)
+	e.FileFS("/", "index.html", distIndexHTML)
 	e.FileFS("/test", "test.html", distTestHTML)
 	e.FileFS("/login", "login.html", distLoginHTML)
 	e.FileFS("/about", "about.html", distAboutHTML)
