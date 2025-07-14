@@ -50,6 +50,9 @@ jobs:
             --address 127.0.0.1 \
             --port ${{ secrets.DB_PORT }} \
             --credentials-file=/tmp/gcp-key.json &
+
+          # Wait a few seconds to let the proxy start
+          sleep 5
           
       - name: Run Goose Migrations
         run: |
