@@ -40,15 +40,16 @@ jobs:
           chmod +x cloud-sql-proxy
       
       - name: Create cloudsql directory
-        run: sudo mkdir /cloudsql && sudo chown $USER /cloudsql
+        run: |
+          sudo mkdir /cloudsql && sudo chown $USER /cloudsql
+          echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-key.json
+          chmod 600 /tmp/gcp-key.json
 
       - name: Start Cloud SQL Proxy
         run: |
-          echo "${{ secrets.GCP_SA_KEY }}" > /tmp/gcp-key.json
-          chmod 600 /tmp/gcp-key.json
           ./cloud-sql-proxy udcs-autograder:us-central1:autograder-db \
             --address 127.0.0.1 \
-            --port ${{ secrets.DB_PORT }} \
+            --port 1234 \
             --credentials-file=/tmp/gcp-key.json &
 
           # Wait a few seconds to let the proxy start
@@ -58,7 +59,7 @@ jobs:
         run: |
           go install github.com/pressly/goose/v3/cmd/goose@latest
           export PATH=$PATH:$(go env GOPATH)/bin
-          goose -dir db/migrations postgres "user=${{ secrets.DB_USER }} password=${{ secrets.DB_PASSWORD }} dbname=${{ secrets.DB_NAME }} host=127.0.0.1 port=${{ secrets.DB_PORT }} sslmode=disable" up
+          goose -dir db/migrations postgres "user=${{ secrets.DB_USER }} password=${{ secrets.DB_PASSWORD }} dbname=${{ secrets.DB_NAME }} host=127.0.0.1 port=1234 sslmode=disable" up
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
