@@ -24,6 +24,9 @@ func (store PostgresStore) CreateInvitation(invitation models.Invitation) (*mode
 			invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt, nil,
 		).StructScan(&createdInvitation)
 	}
+	if err != nil {
+		return &models.Invitation{}, err
+	}
 	return &createdInvitation, err
 }
 
