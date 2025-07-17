@@ -9,6 +9,7 @@ function DashboardBody() {
     const [enrolledClasses, setEnrolledClasses] = useState<any[]>([]);
     const [activeClasses, setActiveClasses] = useState<any[]>([]);
     const [expiredClasses, setExpiredClasses] = useState<any[]>([]);
+    
     useEffect(() => {
         var isError = false;
         const parseDateString = (dateString: string) => {
@@ -82,7 +83,7 @@ function DashboardBody() {
         }
     })
     return <>
-        {loading? <></> : <>
+        {loading? <div>Loading Classrooms  . . . </div> : <>
             <Navbar />
             {errorMessage === "" ? 
             <>

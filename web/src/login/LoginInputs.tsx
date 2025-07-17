@@ -1,4 +1,4 @@
-import {useState } from "react";
+import {useEffect, useState } from "react";
 import TextField from "../components/textfield/Textfield";
 
 interface FormData {
@@ -10,6 +10,7 @@ interface FormData {
 function LoginInputs() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    
     const login = async () => {
 
         try {
@@ -31,6 +32,22 @@ function LoginInputs() {
         }
 
     }
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Enter") {
+                login();
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [login]);
+
+    
     return <div className="signin-page">
         <div className="signin-card">
             <h1 className="signin-title">Sign In</h1>

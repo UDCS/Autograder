@@ -9,7 +9,6 @@ function Navbar(){
 
     const [isLoggedIn, setLoggedIn] = useState(false);
 
-
     useEffect(() => {
         const getIsLoggedIn = async () => {
             try {
@@ -37,7 +36,6 @@ function Navbar(){
                     <a className= "nav-item" href="/login">Login</a>
                     :
                     <> 
-                        <a className="nav-item" href="/dashboard">Dashboard</a>
                         <a className= "nav-item" href="/account">Account</a>
                     </>
                 }

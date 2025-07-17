@@ -5,7 +5,24 @@ function AnimatedLogo() {
     const [isAnimating, setIsAnimating] = useState(false)
     const [isHovering, setIsHovering] = useState(false)
     const [isAbbreviated, setIsAbbreviated] = useState(true)
+    
+    const [isLoggedIn, setLoggedIn] = useState(false);
 
+    useEffect(() => {
+        const getIsLoggedIn = async () => {
+            try {
+                var response = await fetch('/api/auth/valid_login');
+                if (response.ok) {
+                    var json = await response.json();
+                    setLoggedIn(json['message'] == 'true');
+                }
+            } catch (err){
+                console.error("Fetch error: ", err);
+            }
+        };
+        getIsLoggedIn();
+    });
+    
     const animateLogo = () => {
         var chars = ["U", "T", "O", "R", "A", "D", "E", "R"]
         let logo = document.getElementById("logo")!;
@@ -89,7 +106,7 @@ function AnimatedLogo() {
 
     return <a id="logo" 
             onMouseOver={whenHoverIn} 
-            onMouseOut={whenHoverOut} href="/">AG</a>
+            onMouseOut={whenHoverOut} href={!isLoggedIn ? "/" : "/dashboard"}>AG</a>
 }
 
 export default AnimatedLogo;
