@@ -9,6 +9,7 @@ function DashboardBody() {
     const [enrolledClasses, setEnrolledClasses] = useState<any[]>([]);
     const [activeClasses, setActiveClasses] = useState<any[]>([]);
     const [expiredClasses, setExpiredClasses] = useState<any[]>([]);
+    const [noClasses, setNoClasses] = useState(false);
     
     useEffect(() => {
         var isError = false;
@@ -45,27 +46,25 @@ function DashboardBody() {
             if (request.ok) {
                 var json = await request.json();
                 var classrooms = json['classrooms'];
-                console.log(classrooms);
-                var now = new Date().getTime();
-                console.log("now: ", now)
-                for (let classroom of classrooms) {
-                    console.log(classroom);
-                    let classStart = parseDateString(classroom.start_date).getTime();
-                    let classExpire = parseDateString(classroom.end_date).getTime();
-                    console.log("start: ",classStart);
-                    console.log("expire: ", classExpire)
-
-                    if (now > classExpire) {
-                        currentExpiredClasses.push(classroom);
-                    } else if (now < classStart) {
-                        currentEnrolledClasses.push(classroom);
-                    } else {
-                        currentActiveClasses.push(classroom);
+                if (classrooms != null) {
+                    var now = new Date().getTime();
+                    for (let classroom of classrooms) {
+                        let classStart = parseDateString(classroom.start_date).getTime();
+                        let classExpire = parseDateString(classroom.end_date).getTime();
+                        if (now > classExpire) {
+                            currentExpiredClasses.push(classroom);
+                        } else if (now < classStart) {
+                            currentEnrolledClasses.push(classroom);
+                        } else {
+                            currentActiveClasses.push(classroom);
+                        }
                     }
+                    setEnrolledClasses(currentEnrolledClasses);
+                    setActiveClasses(currentActiveClasses);
+                    setExpiredClasses(currentExpiredClasses);
+                } else {
+                    setNoClasses(true);
                 }
-                setEnrolledClasses(currentEnrolledClasses);
-                setActiveClasses(currentActiveClasses);
-                setExpiredClasses(currentExpiredClasses);
             } else {
                 setErrorMessage("Error retrieving the classrooms")
             }
@@ -83,13 +82,23 @@ function DashboardBody() {
         }
     })
     return <>
-        {loading? <div>Loading Classrooms  . . . </div> : <>
+        {loading? <></> : <>
             <Navbar />
             {errorMessage === "" ? 
             <>
-                <DashboardSection title="Enrolled Classes" classes={enrolledClasses}/>
-                <DashboardSection title="Active Classes" classes={activeClasses} />
-                <DashboardSection title="Expired Classes" classes={expiredClasses} />
+                {!noClasses ? 
+                <>
+                    <DashboardSection title="Enrolled Classes" classes={enrolledClasses}/>
+                    <DashboardSection title="Active Classes" classes={activeClasses} />
+                    <DashboardSection title="Expired Classes" classes={expiredClasses} />
+                </>
+                :
+                <div className="errorParent">
+                    <div className="error">
+                        You are not part of any classrooms
+                    </div>
+                </div>
+                }
             </>
             : 
             <div className="errorParent">
