@@ -1,18 +1,7 @@
-import QuestionPanel, { Question } from "../question/QuestionPanel";
+import { Assignment, Question } from "../../models/classroom";
+import QuestionPanel from "../question/QuestionPanel";
 import "./AssignmentPanel.css";
 
-export interface Assignment {
-    id?: string;
-    classroom_id?: string;
-    name?: string;
-    description?: string;
-    assignment_mode?: string;
-    due_at?: Date;
-    created_at?: Date;
-    updated_at?: Date;
-    sort_index?: number;
-    questions?: Question[];
-}
 
 function AssignmentPanel({info}: {info: Assignment}) {
     const questionsToPanel = () => {

@@ -1,0 +1,20 @@
+.sidebar {
+    display: flex; 
+    padding: 2%;
+    flex-direction: column;
+    margin: 1%;
+    gap: 5rem;
+    border: 2px solid black;
+    border-radius: 20px 0 20px 0;
+}
+.sidebarItem {
+    font-family: "Azeret Mono";
+    font-size: 125%;
+    color: black;
+    cursor: pointer;
+}
+.selected {
+    color: var(--color-aero-blue);
+    font-weight: bold;
+    text-decoration: underline;
+}
