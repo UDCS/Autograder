@@ -4,19 +4,7 @@ import BlueButton from "../bluebutton/BlueButton";
 import QuestionScore from "./QuestionScore";
 import ConsoleOutput from "../assignment/ConsoleOutput";
 import { useState } from "react";
-
-export interface Question {
-    id?: string;
-    assignment_id?: string;
-    header?: string;
-    body?: string;
-    points?: number;
-    score?: number;
-    sort_index?: number;
-    default_code?: string;
-    code?: string;
-    prog_lang?: string;
-}
+import { Question } from "../../models/classroom";
 
 var timeLastChange = new Date();
 const setTimeLastChange = (d: Date) => {

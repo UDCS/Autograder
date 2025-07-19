@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/navbar/Navbar";
 import DashboardSection from "./DashboardSection";
+import { parseDateString } from "../utils/classroom";
 
 function DashboardBody() {
     const [loading, setLoading] = useState(true);
@@ -13,10 +14,7 @@ function DashboardBody() {
     
     useEffect(() => {
         var isError = false;
-        const parseDateString = (dateString: string) => {
-            let parts = dateString.split("-").map((p, i) => Number(p) - Number(i == 1));
-            return new Date(parts[0], parts[1], parts[2]);
-        }
+        
         const verifyLogin = async () => {
             try {
                 var response = await fetch('/api/auth/valid_login');
