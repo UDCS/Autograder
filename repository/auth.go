@@ -8,6 +8,16 @@ import (
 	"github.com/google/uuid"
 )
 
+func (store PostgresStore) GetName(email string) {
+	var name string
+	err := store.db.Get(
+		&name,
+		"SELECT last_name FROM users WHERE email = '$1'",
+		email
+	)
+	return name, err
+}
+
 func (store PostgresStore) CreateInvitation(invitation models.Invitation) (*models.Invitation, error) {
 	var createdInvitation models.Invitation
 	var err error

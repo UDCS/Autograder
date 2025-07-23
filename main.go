@@ -9,6 +9,7 @@ import (
 	"github.com/UDCS/Autograder/utils/config"
 	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/UDCS/Autograder/utils/starter"
+	"github.com/UDCS/Autograder/utils/email"
 )
 
 func main() {
@@ -30,4 +31,9 @@ func main() {
 
 	graderHandler.SetupRoutes()
 	graderHandler.Engage(config.Server.Port)
+
+	err = email.Setup()
+	if err != nil{
+		panic(err)
+	}
 }

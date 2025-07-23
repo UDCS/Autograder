@@ -39,7 +39,15 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 	}
 
 	// TODO: email the invitation with the link containg both token and invitation I
-	email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
+	//email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
+	msg :=
+	"Subject: Create an Autograder Account\n\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visitting auth/regiser/"
+	+ invitation.Id.String() + "?token=" + token +
+	"\n\nThis email cannot be replied to. If you have any questions, please contact your professor."
+	err = email.Send(invitation.Email, msg)
+	if err != nil {
+		return nil, err
+	}
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7)
@@ -65,7 +73,12 @@ func (app *GraderApp) InviteAdmin(invitation models.Invitation) (*models.Invitat
 	}
 
 	// TODO: email the invitation with the link containg both token and invitation I
-	email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
+	//email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
+	msg :=
+	"Subject: Create an Admin Autograder Account\n\nAn Autograder admin has invited you to create an admin Autograder account.\n\nYou may create the account be visitting auth/regiser/"
+	+ invitation.Id.String() + "?token=" + token +
+	"\n\nThis email cannot be replied to. If you have any questions, please contact the admin."
+	err = email.Send(invitation.Email, msg)
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 14)
