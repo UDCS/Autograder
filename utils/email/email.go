@@ -3,7 +3,6 @@ package email
 import (
 	"os"
 	"strings"
-	"fmt"
 	"net/smtp"
 )
 
