@@ -12,7 +12,6 @@ import (
 )
 
 type Datastore interface {
-	GetName(email string) (string, error)
 	// Classroom
 	CreateClassroom(classroom models.Classroom) (*models.Classroom, error)
 	MatchUserToClassroom(email string, role string, classroomId uuid.UUID) error
