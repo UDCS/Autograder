@@ -1,5 +1,5 @@
 import { Classroom } from "../../models/classroom";
-import "./StudentsSubpage.css"
+import "./css/StudentsSubpage.css"
 
 interface StudentsSubpageProps {
     classroomInfo: Classroom

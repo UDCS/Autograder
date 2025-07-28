@@ -1,5 +1,6 @@
+import CalendarInput from "../../components/calendar-input/CalendarInput";
 import { Classroom } from "../../models/classroom";
-import "./DetailsSubpage.css"
+import "./css/DetailsSubpage.css"
 
 interface DetailsSubpageProps {
     classroomInfo: Classroom;
@@ -11,6 +12,8 @@ function DetailsSubpage({classroomInfo}: DetailsSubpageProps) {
             <input />
             <br />
             {JSON.stringify(classroomInfo)}
+            <br />
+            <CalendarInput onChange={(newDate: string) => {console.log(newDate);}} />
         </>
     );
 }
