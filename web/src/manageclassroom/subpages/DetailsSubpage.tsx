@@ -4,7 +4,7 @@ import CalendarInput from "../../components/calendar-input/CalendarInput";
 import SelectDropdown from "../../components/select-dropdown/SelectDropdown";
 import TextArea from "../../components/textarea/TextArea";
 import { Classroom } from "../../models/classroom";
-import "./css/DetailsSubpage.css"
+import "../css/DetailsSubpage.css"
 import Popup from "../../components/popup/Popup";
 
 interface DetailsSubpageProps {

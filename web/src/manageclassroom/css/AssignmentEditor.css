@@ -1,0 +1,35 @@
+.assignment-editor {
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+    gap: 2rem;
+    background: white;
+    border-radius: 20px;
+    padding: 2%;
+    box-shadow: 0 10px 15px 0px rgba(0, 0, 0, 0.25);
+}
+.title-and-visibility {
+    display: flex;
+    width: 100%;
+    gap: 3rem;
+}
+.title-parent {
+    flex: 1;
+}
+.visibility-input {
+    height: 100%;
+}
+.due-date {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+.label {
+    font-family: "Azeret Mono";
+    font-size: 100%;
+}
+.description {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
