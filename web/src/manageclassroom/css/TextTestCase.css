@@ -1,0 +1,65 @@
+.text-test-case {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+    gap: 1rem;
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+    padding-top: 2%;
+    padding-bottom: 2%;
+}
+.testcase-textareas {
+    display: flex;
+    gap: 1rem;
+}
+.textarea-label {
+    font-family: "Azeret Mono";
+    font-size: 100%;
+}
+.textarea-half {    
+    flex: 1;
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+}
+.textarea-parent {
+    width: 100%;
+}
+.testcase-textarea {
+    padding: 2%;
+    box-sizing: border-box;
+    height: 100%;
+}
+.testcase-delete-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: .5rem;
+    font-family: "Azeret Mono";
+    color: white;
+    font-size: 125%;
+    border-radius: 20px;
+    padding: 2%;
+}
+.testcase-delete-parent {
+    display: flex;
+    justify-content: left;
+    flex: 1;
+}
+.visibility-parent {
+    display: flex;
+    justify-content: right;
+    flex: 1;
+    font-family: "Azeret Mono";
+    font-size: 125%;
+}
+.delete-visibility {
+    display: flex;
+}
+.visibility-checkbox {
+    background: var(--color-process-cyan);
+    width: 25px;
+    height: 25px;
+}

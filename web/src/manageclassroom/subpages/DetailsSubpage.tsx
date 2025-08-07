@@ -1,5 +1,5 @@
 import { useState } from "react";
-import BlueButton from "../../components/bluebutton/BlueButton";
+import BlueButton from "../../components/buttons/BlueButton";
 import CalendarInput from "../../components/calendar-input/CalendarInput";
 import SelectDropdown from "../../components/select-dropdown/SelectDropdown";
 import TextArea from "../../components/textarea/TextArea";

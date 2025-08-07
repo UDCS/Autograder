@@ -1,13 +1,16 @@
 .sidebar {
+    position: sticky;
+    height: fit-content;
+    align-self: flex-start;
+    top: 1%;
     display: flex; 
-    padding: 2%;
     flex-direction: column;
     margin: 1%;
-    gap: 5rem;
     border: 2px solid black;
     border-radius: 20px 0 20px 0;
 }
 .sidebarItem {
+    padding: 2.5rem;
     font-family: "Azeret Mono";
     font-size: 125%;
     color: black;

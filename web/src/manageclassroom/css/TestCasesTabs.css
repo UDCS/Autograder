@@ -1,0 +1,61 @@
+.testcases-tabs {
+    width: 100%;
+    box-sizing: border-box;
+    background: #eee;
+}
+.tabs {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid black;
+    width: 100%;
+    box-sizing: border-box;
+}
+.font-size {
+    flex: 1;
+    display: flex;
+    justify-content: right;
+    align-items: right;
+}
+.tabs-body { 
+    display: flex;
+    box-sizing: border-box;
+    height: 90vh;
+}
+.tabs-editor {
+    flex: 1;
+}
+.run-tests-solution {
+    flex: 1;
+}
+.tab {
+    padding: 1.5%;
+    height: 100%;
+    font-family: "Azeret Mono";
+    user-select: none;
+    font-size: 100%;
+}
+.hidden {
+    flex: 1;
+    display: none;
+}
+.selected {
+    text-decoration: underline;
+}
+.tab-body {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    flex: 1;
+}
+.run-tests-button {
+    margin-top: .5%;
+    margin-bottom: .5%;
+    font-size: 100%;
+    width: 30%;
+    padding: .5%;
+}
+.tabs-editor {
+    height: 100%;
+    box-sizing: border-box;
+    width: 100%;
+}

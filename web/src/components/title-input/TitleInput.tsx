@@ -2,11 +2,11 @@ import { useState, useRef, useEffect, TextareaHTMLAttributes } from "react";
 import "./TitleInput.css"; // styles below
 import clsx from "clsx";
 
-type TitleInputProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'ref' | 'value'> & {
+type TitleInputProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'ref'> & {
     onChange?: (newText: string) => void;
 };
-function TitleInput({onChange, className, ...props}: TitleInputProps) {
-    const [value, setValue] = useState("");
+function TitleInput({onChange, className, value: v, ...props}: TitleInputProps) {
+    const [value, setValue] = useState(v ?? "");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

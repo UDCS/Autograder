@@ -1,0 +1,10 @@
+.question-editor {
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+    gap: 2rem;
+    background: white;
+    border-radius: 20px;
+    padding: 2%;
+    box-shadow: 0 10px 15px 0px rgba(0, 0, 0, 0.25);
+}

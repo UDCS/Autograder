@@ -5,8 +5,6 @@ import './Textfield.css';
 type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & {
   initialValue?: string;
   label?: string;
-  email?: boolean;
-  password?: boolean;
   onChange?: (data: {
     value: string;
     isValid: boolean;
@@ -17,9 +15,8 @@ type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & 
 const TextField: React.FC<TextFieldProps> = ({
   initialValue = '',
   label = 'Input',
-  email = false,
+  type,
   onChange,
-  password,
   className,
   ...props
 }) => {
@@ -32,7 +29,7 @@ const TextField: React.FC<TextFieldProps> = ({
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const validateInput = (newValue: string): string => {
-    if (email) {
+    if (type == "email") {
       if (!newValue) {
         return 'Email is required';
       }
@@ -42,6 +39,9 @@ const TextField: React.FC<TextFieldProps> = ({
     }
     return '';
   };
+
+  var email = type === "email";
+  var password = type === "password";
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -76,7 +76,7 @@ const TextField: React.FC<TextFieldProps> = ({
     <div className={`textfield-container ${className}`} {...props}>
       {label && <label className="textfield-label">{label}</label>}
       <input
-        type={email ? "email" : password ? "password" : "text"}
+        type={type}
         value={value}
         onChange={handleChange}
         className={`textfield-input ${error ? 'error' : ''} ${className}`}
