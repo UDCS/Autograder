@@ -1,9 +1,20 @@
 package email
 
-// TODO
-// write a generic email client that takes an HTML body, email address and a link
-// and sends an email to the email address
-// This function contract is incomplete
-func Send(link string) {
-	println("Sending email to: ", link) // This is a placeholder; REMOVE IT
+import (
+	"os"
+	"errors"
+	"net/smtp"
+)
+
+func Send(dest string, msg string) error {
+	email := os.Getenv("EMAIL")
+	if email == ""{
+		return errors.New("Environment variable 'EMAIL' does not exist")
+	}
+	pass := os.Getenv("PASS")
+	if pass == ""{
+		return errors.New("Environment variable 'PASS' does not exist")
+	}
+	auth := smtp.PlainAuth("", email, pass, "smtp.gmail.com")
+	return smtp.SendMail("smtp.gmail.com:587", auth, email, []string{dest}, []byte(msg))
 }

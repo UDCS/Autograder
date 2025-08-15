@@ -39,7 +39,14 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 	}
 
 	// TODO: email the invitation with the link containg both token and invitation I
-	email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
+	//email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
+	//msg := "Subject: Create an Autograder Account\n\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visitting auth/regiser/" + invitation.Id.String() + "?token=" + token + "\n\nThis email cannot be replied to. If you have any questions, please contact your professor."
+	msg := fmt.Sprintf("Subject: Create an Autograder Account\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visitting https://udcs-autograder.web.app/auth/regiser/%s?token=%s\n\nThis email cannot be replied to. If you have any questions, please contact your professor.", invitation.Id.String(), token)
+	err = email.Send(invitation.Email, msg)
+	if err != nil {
+		fmt.Print(err.Error())
+		return nil, err
+	}
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7)
@@ -65,7 +72,13 @@ func (app *GraderApp) InviteAdmin(invitation models.Invitation) (*models.Invitat
 	}
 
 	// TODO: email the invitation with the link containg both token and invitation I
-	email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
+	//email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
+	/*msg :=
+	"Subject: Create an Admin Autograder Account\n\nAn Autograder admin has invited you to create an admin Autograder account.\n\nYou may create the account be visitting auth/regiser/"
+	+ invitation.Id.String() + "?token=" + token +
+	"\n\nThis email cannot be replied to. If you have any questions, please contact the admin."*/
+	msg := fmt.Sprintf("Subject: Create an Admin Autograder Account\nAn Autograder admin has invited you to create an Autograder account.\n\nYou may create the account be visitting https://udcs-autograder.web.app/auth/regiser/%s?token=%s\n\nThis email cannot be replied to. If you have any questions, please contact the admin.", invitation.Id.String(), token)
+	err = email.Send(invitation.Email, msg)
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 14)
@@ -206,7 +219,9 @@ func (app *GraderApp) PasswordResetRequest(jwksToken string) error {
 	}
 
 	// TODO: email the link for the change
-	email.Send("auth/reset_password/" + resetRequest.Id.String() + "?token=" + token)
+	//email.Send("auth/reset_password/" + resetRequest.Id.String() + "?token=" + token)
+	msg := fmt.Sprintf("Password Reset Link\nPlease visit the following link to reset your password: https://udcs-autograder.web.app/auth/reset_password/%s?token=%s", resetRequest.Id.String(), token)
+	email.Send(resetRequest.Email, msg)
 
 	resetRequest.UserId = retrievedUser.Id
 	resetRequest.TokenHash = tokenHash
