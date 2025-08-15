@@ -2,18 +2,19 @@ package email
 
 import (
 	"os"
-	"strings"
+	"errors"
 	"net/smtp"
 )
 
 func Send(dest string, msg string) error {
-	str, err := os.ReadFile("email_info")
-	if err != nil {
-		return err
+	email := os.Getenv("EMAIL")
+	if email == ""{
+		return errors.New("Environment variable 'EMAIL' does not exist")
 	}
-	arr := strings.Split(string(str),"\n")
-	email := arr[0]
-	pass := arr[1]
+	pass := os.Getenv("PASS")
+	if pass == ""{
+		return errors.New("Environment variable 'PASS' does not exist")
+	}
 	auth := smtp.PlainAuth("", email, pass, "smtp.gmail.com")
 	return smtp.SendMail("smtp.gmail.com:587", auth, email, []string{dest}, []byte(msg))
 }
