@@ -15,6 +15,7 @@
     font-size: 125%;
     color: black;
     cursor: pointer;
+    user-select: none;
 }
 .selected {
     color: var(--color-aero-blue);

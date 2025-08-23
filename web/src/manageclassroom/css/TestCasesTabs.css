@@ -17,6 +17,7 @@
     align-items: right;
 }
 .tabs-body { 
+    overflow-x: hidden;
     display: flex;
     box-sizing: border-box;
     height: 90vh;
@@ -46,6 +47,7 @@
     flex-direction: column;
     box-sizing: border-box;
     flex: 1;
+    overflow-x: hidden;
 }
 .run-tests-button {
     margin-top: .5%;

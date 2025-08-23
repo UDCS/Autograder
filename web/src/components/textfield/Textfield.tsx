@@ -1,15 +1,16 @@
 import React, { useState, ChangeEvent, InputHTMLAttributes, useEffect} from 'react';
 import './Textfield.css';
 
+export type TextFieldInput = {
+  value: string;
+  isValid: boolean;
+  error: string;
+}
 // Define props interface
 type TextFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & {
   initialValue?: string;
   label?: string;
-  onChange?: (data: {
-    value: string;
-    isValid: boolean;
-    error: string;
-  }) => void;
+  onChange?: (data: TextFieldInput) => void;
 }
 
 const TextField: React.FC<TextFieldProps> = ({

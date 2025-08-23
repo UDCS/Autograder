@@ -1,0 +1,27 @@
+.testcase-expand {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    width: 100%;
+}
+.testcase-expand-top {
+    padding-top: .5%;
+    padding-bottom: .5%;
+    display: flex;
+    width: 100%;
+}
+.testcase-expand-label {
+    font-family: "Azeret Mono";
+    font-size: 125%;
+}
+.testcase-expand-points {
+    font-size: 85%;
+}
+.expand-triangle {
+    padding-right: 2%;
+    font-size: 200%;
+    text-align: end;
+    flex: 1;
+    user-select: none;
+}

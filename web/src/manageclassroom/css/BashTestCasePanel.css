@@ -1,0 +1,40 @@
+.file-buttons {
+    display: flex;
+    gap: .5rem;
+    flex-direction: row-reverse;
+    width: 100%;
+}
+.file-icon-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    background-color: transparent;
+    border: none;
+    user-select: none;
+}
+.delete-file-button {
+    background-image: url("/public/svg/DeleteButton.svg");
+}
+.edit-file-button {
+    background-image: url("/public/svg/EditButton.svg");
+}
+.primary-bash {
+    display: flex;
+    overflow-x: auto;
+    width: 100%;
+    gap: 1.5rem;
+    align-items: center;
+}
+.primary-bash-parent {
+    width: 25%;
+}
+.testcase-label {
+    font-size: 100%;
+    font-family: "Azeret Mono";
+}

@@ -6,9 +6,11 @@ type TestCaseButtonProps = {
     selected?: boolean;
     setSelectedTestCase: (testCaseId: string) => void; 
     testCaseInfo: TestCase;
+    onCopy?: () => void;
+    onDelete?: () => void;
 }
 
-function TestCaseButton({selected, setSelectedTestCase, testCaseInfo}: TestCaseButtonProps) {
+function TestCaseButton({selected, setSelectedTestCase, onCopy, onDelete, testCaseInfo}: TestCaseButtonProps) {
     const processCyan = "var(--color-process-cyan)"
     const NCSBlue = "var(--color-NCS-blue)"
     const testCaseTypes = {
@@ -21,7 +23,7 @@ function TestCaseButton({selected, setSelectedTestCase, testCaseInfo}: TestCaseB
     return (
         <div className="testcase-button-parent">
             <ColorButton 
-                onClick={() => setSelectedTestCase(testCaseInfo.id)} 
+                onClick={() => {setSelectedTestCase(testCaseInfo.id)}} 
                 className="testcase-button" 
                 mainColor={mainColor} 
                 hoverColor={hoverColor} 
@@ -39,10 +41,10 @@ function TestCaseButton({selected, setSelectedTestCase, testCaseInfo}: TestCaseB
                 </div>
             </ColorButton>
             <div className="copy-delete-buttons">
-                <button className="icon-button copy-icon-button">
+                <button className="icon-button copy-icon-button" onClick={() => onCopy?.()}>
 
                 </button>
-                <button className="icon-button delete-icon-button">
+                <button className="icon-button delete-icon-button" onClick={() => onDelete?.()}>
 
                 </button>
             </div>

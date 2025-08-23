@@ -5,12 +5,19 @@ import { Editor } from "@monaco-editor/react";
 import FontSizeInput from "../../components/font-size-input/FontSizeInput";
 import BlueButton from "../../components/buttons/BlueButton";
 import TestCasesEditor from "./TestCasesEditor";
+import { Question } from "../../models/classroom";
 
-function TestCasesTabs() {
-    type TabSelection = "default_code" | "solution" | "test_cases";
+type TabSelection = "default_code" | "solution" | "test_cases";
+function TestCasesTabs({question}: {question: Question}) {
     const [selected, setSelected] = useState<TabSelection>("default_code");
 
     const [fontSize, setFontSize] = useState<number>();
+    const handleDefaultCodeChange = (newDef?: string) => {
+        question.default_code = newDef;
+    } 
+    const handleSolutionCodeChange = (newSol?: string) => {
+        question.solution_code = newSol;
+    }
     return (
         <div className="testcases-tabs">
             <div className="tabs">
@@ -30,17 +37,17 @@ function TestCasesTabs() {
             <div className="tabs-body">
                 <div className={clsx(selected !== "default_code" && "hidden", "default-code", selected === "default_code" && "tab-body")}>
                     <div className="tabs-editor">
-                        <Editor defaultLanguage="python" options={{fontSize: fontSize}} />
+                        <Editor key={question.prog_lang} defaultLanguage={question.prog_lang!} options={{fontSize: fontSize}} value={question.default_code} onChange={handleDefaultCodeChange} />
                     </div>
                 </div>
                 <div className={clsx(selected !== "solution" && "hidden","solution", selected === "solution" && "tab-body")}>                    
                     <div className="tabs-editor">
-                        <Editor defaultLanguage="python" options={{fontSize: fontSize}} />
+                        <Editor key={question.prog_lang} defaultLanguage={question.prog_lang!} options={{fontSize: fontSize}} value={question.solution_code} onChange={handleSolutionCodeChange} />
                     </div>
                     <BlueButton className="run-tests-button">Run Tests on Solution</BlueButton>
                 </div>
                 <div className={clsx(selected !== "test_cases" && "hidden", "test-cases", selected === "test_cases" && "tab-body")}>
-                    <TestCasesEditor />
+                    <TestCasesEditor question={question} fontSize={fontSize} />
                 </div>
             </div>
         </div>

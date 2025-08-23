@@ -14,6 +14,7 @@
     align-items: flex-start;
 }
 #body {
+    overflow-x: hidden;
     width: 100%;
     padding: 2%;
     display: flex;
@@ -47,6 +48,9 @@
 }
 .edit-buttons {
     display: flex;
+}
+.with-padding {
+    padding: 2%;
 }
 .button-parent {
     display: flex;

@@ -1,4 +1,5 @@
 .question-editor {
+    overflow-x: hidden;
     display: flex;
     flex: 1 1 100%;
     flex-direction: column;
@@ -7,4 +8,22 @@
     border-radius: 20px;
     padding: 2%;
     box-shadow: 0 10px 15px 0px rgba(0, 0, 0, 0.25);
+}
+.question-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+.prog-lang {
+    display: flex;
+    overflow-x: auto;
+    width: 100%;
+    gap: 1.5rem;
+    align-items: center;
+}
+.prog-lang-parent {
+    width: 20%;
+}
+.prog-lang-select {
+    width: 50%;
 }

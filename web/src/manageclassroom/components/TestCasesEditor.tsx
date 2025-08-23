@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BlueButton from "../../components/buttons/BlueButton";
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import { TestCase } from "../../models/testcases";
@@ -7,70 +7,37 @@ import TestCaseButton from "./TestCaseButton";
 import TextTestCasePanel from "./TextTestCasePanel";
 import BashTestCasePanel from "./BashTestCasePanel";
 import clsx from "clsx";
+import NewTestCasePopup from "../../components/popup/NewTestCasePopup";
+import { Question } from "../../models/classroom";
+import CopyTestcasePopup from "../../components/popup/CopyTestcasePopup";
+import DeleteTestcasePopup from "../../components/popup/DeleteTestcasePopup"
 
-function TestCasesEditor() {
+function TestCasesEditor({question, fontSize: fS}: {question: Question, fontSize?: number}) {
 
-    const [selectedTestCase, setSelectedTestCase] = useState<string>("fa1374dc-723c-11f0-9cbf-0a0027000010");
+    const testCasesList: TestCase[] = question.test_cases!;
+    const [selectedTestCase, setSelectedTestCase] = useState<string>("");
+
+    const [testcaseToModify, setTestcaseToModify] = useState<string>("");
     
-    var testCases: TestCase[] = [
-        {
-            id: "fa1374dc-723c-11f0-9cbf-0a0027000010",
-            name: "Test case 1",
-            timeoutSeconds: 10,
-            type: "text",
-            points: 15,
-            body: {
-                testCases: [
-                    {
-                        inputs: "123",
-                        outputs: "456",
-                        hidden: true,
-                    },
-                    {
-                        inputs: "456\n789",
-                        outputs: "123\n456",
-                        hidden: false,
-                    }
-                ]
-            }
-        },
-        {
-            id: "d95841bd-723d-11f0-b933-0a0027000010",
-            name: "Test case 2",
-            timeoutSeconds: 15,
-            type: "text",
-            points: 20,
-            body: {
-                testCases: [
-                    {
-                        inputs: "789",
-                        outputs: "246",
-                        hidden: false,
-                    }
-                ]
-            }
-        },
-        {
-            id: "10d457c8-725e-11f0-952e-0a0027000010",
-            name: "Test case 3",
-            timeoutSeconds: 20,
-            type: "bash",
-            points: 10,
-            body: {
-                primaryBashFile: {
-                    name: "main",
-                    body: "echo Hello, World!",
-                    suffix: "sh"
-                }
-            }
+    const [fontSize, setFontSize] = useState(fS);
+
+    // popup states
+    const [isCreatePopup, setCreatePopup] = useState<boolean>(false);
+    const [isCopyPopup, setCopyPopup] = useState<boolean>(false);
+    const [isDeletePopup, setDeletePopup] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (fS !== fontSize) setFontSize(fS);
+        if (selectedTestCase === "" && testCasesList.length > 0) {
+            setSelectedTestCase(testCasesList[0].id!);
         }
-    ];
+    }, [fS]);
 
     const testCasesToButtons = (tests: TestCase[]) => {
         if (!tests) return [];
         return tests.map(
             (testCase) => {
-                return <TestCaseButton testCaseInfo={testCase} setSelectedTestCase={setSelectedTestCase} selected={selectedTestCase === testCase.id} />
+                return <TestCaseButton onDelete={() => {if (testCasesList.length > 1) {setTestcaseToModify(testCase.id); setDeletePopup(true);}}} onCopy={() => {setTestcaseToModify(testCase.id); setCopyPopup(true);}} testCaseInfo={testCase} setSelectedTestCase={setSelectedTestCase} selected={selectedTestCase === testCase.id} />
             }
         );
     }
@@ -88,7 +55,7 @@ function TestCasesEditor() {
                 }
                 return (
                     <div className={clsx(selectedTestCase === testCase.id && "test-case-panel-parent", selectedTestCase !== testCase.id && "hidden")}>
-                        <BashTestCasePanel />
+                        <BashTestCasePanel testCaseInfo={testCase} fontSize={fontSize} />
                     </div>
                 );
             }
@@ -99,12 +66,15 @@ function TestCasesEditor() {
         <div className="testcases-editor">
             <div className="testcase-button-panel">
                 <DarkBlueButton className="run-tests-button">Run Tests on Solution</DarkBlueButton>
-                <BlueButton className="new-test-case-button">+ Add Test Case</BlueButton>
-                {...testCasesToButtons(testCases)}
+                <BlueButton className="new-test-case-button" onClick={() => setCreatePopup(true)}>+ Add Test Case</BlueButton>
+                {...testCasesToButtons(testCasesList)}
             </div>
             <div className="testcase-editor-panel">
-                {...testCasesToPanels(testCases)}
+                {...testCasesToPanels(testCasesList)}
             </div>
+            {isCreatePopup && <NewTestCasePopup testcaseList={testCasesList} onClose={() => setCreatePopup(false)} />}
+            {isCopyPopup && <CopyTestcasePopup question={question} toCopy={testCasesList.find((tc) => tc.id === testcaseToModify)!} onClose={() => setCopyPopup(false)} />}
+            {isDeletePopup && <DeleteTestcasePopup changeSelected={setSelectedTestCase} question={question} onClose={() => setDeletePopup(false)} testcaseToDelete={testcaseToModify}/>}
         </div>
     );
 }

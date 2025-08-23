@@ -22,6 +22,9 @@
     padding: 3%;
     font-family: 'Azeret Mono';
     color: white;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 .type-points {
     display: flex;
@@ -31,6 +34,9 @@
     padding: 6%;
     font-family: 'Azeret Mono';
     background-color: white;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
 }
 .copy-delete-buttons {
     display: flex;
@@ -45,6 +51,7 @@
     background-position: center;
     background-size: cover;
     border: none;
+    background-color: transparent;
 }
 .delete-icon-button {
     background-image: url("/public/svg/DeleteButton.svg");

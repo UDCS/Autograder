@@ -7,10 +7,11 @@ export type TextInputOutput = {
 }
 
 export type TextTestCaseBody = {
-    testCases: TextInputOutput[];
+    testCases?: TextInputOutput[];
 }
 
 export type File = {
+    id: string;
     name: string;
     suffix: string;
     body: string;
@@ -30,4 +31,11 @@ export type TestCase = {
     timeoutSeconds: number;
     type: TestCaseType;
     body: TestCaseBody;
+}
+
+export type TestCaseResults = {
+    name: string;
+    maxPoints: number;
+    points: number;
+    consoleOutput?: string;
 }

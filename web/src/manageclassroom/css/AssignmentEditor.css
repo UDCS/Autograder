@@ -1,13 +1,21 @@
 .assignment-editor {
+    overflow-x: hidden;
     display: flex;
     flex: 1 1 100%;
+    width: 100%;
     flex-direction: column;
     background: white;
     border-radius: 20px;
     box-shadow: 0 10px 15px 0px rgba(0, 0, 0, 0.25);
     box-sizing: border-box;
 }
+.da-tabs-parent {
+    width: 100%;
+    overflow-x: hidden;
+    border: 1px solid black;
+}
 .assignment-body {
+    width: 100%;
     padding: 2%;
     display: flex;
     flex-direction: column;
@@ -67,4 +75,18 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+.questions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+}
+.create-new-question {
+    font-size: 150%;
+    font-family: "Azeret Mono";
+    color: white;
+    padding: 1%;
+    width: 100%;
+    border-radius: 25px;
 }

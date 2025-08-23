@@ -4,3 +4,11 @@
     width: 100%;
     gap: 1.5rem;
 }
+.new-assignment-button {
+    width: 100%;
+    padding: 1%;
+    font-family: "Azeret Mono";
+    color: white;
+    font-size: 150%;
+    border-radius: 25px;
+}
