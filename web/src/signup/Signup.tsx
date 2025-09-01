@@ -34,12 +34,12 @@ createRoot(document.getElementById("root")!).render(
                 <TextField 
                     initialValue="Create Password"
                     label=""
-                    password
+                    type="password"
                     onChange={handleTextChange}/>
                 <TextField 
                     initialValue="Re-Type Password"
                     label=""
-                    password
+                    type="password"
                     onChange={handleTextChange}/>
             </div>       
             <a href="/faq" className="why-am-i-here">Why am I here?</a>

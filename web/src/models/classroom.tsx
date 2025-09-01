@@ -7,7 +7,7 @@ export interface Classroom {
     end_date?: string;
     course_code?: string;
     course_description?: string;
-    banner_image_index?: string;
+    banner_image_index?: number;
 }
 
 export interface Assignment {

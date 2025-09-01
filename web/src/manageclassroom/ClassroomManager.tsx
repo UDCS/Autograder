@@ -81,7 +81,7 @@ function ClassroomManager() {
                                 <AssignmentsSubpage classroomInfo={classroomInfo} />
                             </div>
                             <div className={`${selected === "details" ? "" : "hidden"}`}>
-                                <DetailsSubpage classroomInfo={classroomInfo} />
+                                <DetailsSubpage changeClassroomTitle={setClassroomName} classroomInfo={classroomInfo} />
                             </div>
                             <div className={`${selected === "grades" ? "" : "hidden"}`}>
                                 <GradesSubpage classroomInfo={classroomInfo} />
