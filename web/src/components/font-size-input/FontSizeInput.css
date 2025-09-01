@@ -1,0 +1,17 @@
+.fontsize-input {
+    padding: 1%;
+    display: flex;
+    gap: .5em;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    font-family: "Azeret Mono";
+    font-size: 80%;
+}
+.fontsize-number {
+    width: 50%;
+    text-align: center;
+    font-size: 120%;
+    font-family: "Azeret Mono";
+    font-weight: bold;
+}

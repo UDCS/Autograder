@@ -3,7 +3,7 @@ import BlueButton from "../../components/bluebutton/BlueButton";
 import CalendarInput from "../../components/calendar-input/CalendarInput";
 import TextArea from "../../components/textarea/TextArea";
 import { Classroom } from "../../models/classroom";
-import "./css/DetailsSubpage.css"
+import "../css/DetailsSubpage.css"
 import Popup from "../../components/popup/Popup";
 import TextField, { TextFieldInput } from "../../components/textfield/Textfield";
 

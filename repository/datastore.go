@@ -21,6 +21,8 @@ type Datastore interface {
 	GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error)
 	// Assignments
 	GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
+	GetVerboseAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
+	SetVerboseAssignments(classroomId uuid.UUID, assignments []models.Assignment) error
 	GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error)
 	UpdateSubmissionCode(request models.UpdateSubmissionRequest) error
 	// Auth

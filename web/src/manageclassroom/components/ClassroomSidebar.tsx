@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "./ClassroomSidebar.css"
+import "../css/ClassroomSidebar.css"
 
 export type ClassroomSidebarSelected = "details" | "students" | "assignments" | "grades";
 

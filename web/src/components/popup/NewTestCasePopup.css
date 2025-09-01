@@ -1,0 +1,37 @@
+.new-testcase-popup {
+    display: flex;
+    flex-direction: column;
+    border: 2px solid black;
+    gap: 1.5rem;
+    width: 50%;
+}
+.popup-title {
+    font-size: 150%;
+    font-family: "Azeret Mono";
+}
+.popup-textfield {
+    font-family: "Azeret Mono";
+    font-size: 100%;
+    margin: 0;
+}
+.create-button {
+    font-family: "Azeret Mono";
+    color: white;
+    padding: 1%;
+    font-size: 125%;
+    border-radius: 20px;
+}
+.test-type-parent {
+    display: flex;
+    flex-direction: column;
+}
+.test-type-label {
+    font-family: "Azeret Mono";
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+.test-type {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}

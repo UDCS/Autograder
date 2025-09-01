@@ -1,0 +1,62 @@
+.test-case-panel {
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border: 2px solid black;
+    padding: 1.5%;
+    border-radius: 20px;
+    box-sizing: border-box;
+    max-height: 85vh;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+.title-run-test {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+}
+.test-case-run-parent {
+    flex: 1;
+    height: auto;
+}
+.test-case-title-parent {
+    flex: 6;
+    height: auto;
+}
+.test-case-title {
+    font-size: 250%;
+    width: 95%;
+    font-family: "Monomaniac One";
+}
+.run-test-button {
+    font-family: "Azeret Mono";
+    padding: 6%;
+    box-sizing: border-box;
+    font-size: 100%;
+    color: white;
+    border-radius: 20px;
+}
+.points-timeout {
+    display: flex;
+    gap: 1rem;
+}
+.test-case-textfield {
+    font-family: "Azeret Mono"
+}
+.text-testcases {
+    display: flex;
+    margin-top: 3%;
+    flex-direction: column;
+    gap: .5rem;
+    width: 100%;
+}
+.testcases-title {
+    font-size: 150%;
+    font-family: "Azeret Mono";
+}
+.new-text-test-case {
+    font-size: 175%;
+    padding: 1%;
+}

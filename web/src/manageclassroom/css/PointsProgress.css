@@ -1,0 +1,44 @@
+.points-progress-parent {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 1%;
+    gap: 1rem;
+    font-family: "Azeret Mono";
+}
+.points-progress-bar {
+    width: 100%;
+    height: 10px;
+    background: red;
+}
+.points-progress-bar::-webkit-progress-bar {
+  background-color: red;
+}
+
+.points-progress-bar::-webkit-progress-value {
+  background-color: #0f0;
+}
+
+.points-progress-bar::-moz-progress-bar {
+  background-color: #0f0;
+}
+.progress-text {
+    font-family: "Azeret Mono";
+    font-size: 100%;
+}
+.progress-text-parent {
+    display: flex;
+    width: 100%;
+    gap: 1rem;
+}
+.redtext {
+    color: red;
+}
+.greentext {
+    color: lime;
+}
+.total-points {
+    flex: 1;
+    text-align: right;
+}
