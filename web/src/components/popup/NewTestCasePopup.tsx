@@ -65,7 +65,9 @@ function NewTestCasePopup({onClose, testcaseList}: NewTestCasePopupProps) {
                 timeoutSeconds: defaultTimeout,
                 type: selectedType,
                 body: {
-                    inputOutputs: []
+                    inputs: "",
+                    outputs: "",
+                    hidden: true
                 }
             }
             testcaseList.push(newTestCase);

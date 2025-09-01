@@ -5,7 +5,7 @@ import HomeworkAssignment from "../components/homework/HomeworkAssignment";
 import HomeworkSidebar from "../components/homework/HomeworkSidebar";
 import Navbar from "../components/navbar/Navbar";
 import TitleBanner from "../components/titlebanner/TitleBanner";
-import BlueButton from "../components/bluebutton/BlueButton";
+import BlueButton from "../components/buttons/BlueButton";
 
 function ClassroomBody() {
     

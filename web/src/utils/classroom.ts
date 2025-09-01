@@ -33,13 +33,9 @@ export const createBlankQuestion = (assignmentId: string): Question => {
                 type: "text",
                 points: testcasePoints,
                 body: {
-                    inputOutputs: [
-                        {
-                            inputs: "",
-                            outputs: "",
-                            hidden: true,
-                        },
-                    ]
+                    inputs: "",
+                    outputs: "",
+                    hidden: true,
                 }
             },
         ]
