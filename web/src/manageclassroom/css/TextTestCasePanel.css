@@ -47,8 +47,9 @@
 }
 .text-testcases {
     display: flex;
+    margin-top: 3%;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: .5rem;
     width: 100%;
 }
 .testcases-title {

@@ -38,13 +38,15 @@ const dummyAssignment: Assignment = {
                     type: "text",
                     points: 10,
                     body: {
-                        testCases: [
+                        inputOutputs: [
                             {
+                                id: "2a490af3-82bf-11f0-97bb-50ebf6d4b861",
                                 inputs: "123",
                                 outputs: "456",
                                 hidden: true,
                             },
                             {
+                                id: "309ff5f1-82bf-11f0-b8e8-50ebf6d4b861",
                                 inputs: "456\n789",
                                 outputs: "123\n456",
                                 hidden: false,
@@ -114,13 +116,15 @@ const dummyAssignment2: Assignment = {
                     type: "text",
                     points: 10,
                     body: {
-                        testCases: [
+                        inputOutputs: [
                             {
+                                id: "93aa3ad7-82be-11f0-9d17-50ebf6d4b861",
                                 inputs: "123",
                                 outputs: "456",
                                 hidden: true,
                             },
                             {
+                                id: "b7619ac4-82be-11f0-909f-50ebf6d4b861",
                                 inputs: "456\n789",
                                 outputs: "123\n456",
                                 hidden: false,

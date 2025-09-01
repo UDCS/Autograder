@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -134,6 +135,39 @@ func (router *HttpRouter) GetViewAssignments(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, echo.Map{"assignments": assignments})
+}
+
+func (router *HttpRouter) GetVerboseAssignments(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	var classroomId uuid.UUID
+	classroomId, err = uuid.Parse(c.Param("room_id"))
+	if err != nil {
+		logger.Error("could not parse classroom id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	assignments, err := router.app.GetVerboseAssignments(tokenString, classroomId)
+	if err != nil {
+		logger.Error("could not get all assignments", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"assignments": assignments})
+}
+
+func (router *HttpRouter) SetVerboseAssignments(c echo.Context) error {
+	var body map[string][]models.Assignment
+	if err := c.Bind(&body); err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", body)
+	return c.JSON(http.StatusOK, json_response.NewMessage("successfully edited assignments"))
 }
 
 func (router *HttpRouter) GetAssignment(c echo.Context) error {

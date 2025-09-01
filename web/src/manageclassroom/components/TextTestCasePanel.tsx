@@ -1,21 +1,14 @@
 import { useState } from "react";
-import BlueButton from "../../components/buttons/BlueButton";
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import TextField, { TextFieldInput } from "../../components/textfield/Textfield";
 import TitleInput from "../../components/title-input/TitleInput";
-import { TestCase, TestCaseResults, TextInputOutput, TextTestCaseBody } from "../../models/testcases";
+import { TestCase, TestCaseResults, TextTestCaseBody } from "../../models/testcases";
 import "../css/TextTestCasePanel.css"
 import TextTestCase from "./TextTestCase";
 import TestRunResults from "./TestRunResults";
 
 export type TestCasePanelProps = {
     testCaseInfo: TestCase;
-}
-
-const blankTestCase: TextInputOutput = {
-    inputs: "",
-    outputs: "",
-    hidden: true,
 }
 
 const fakeTestCaseResults: TestCaseResults[] = [
@@ -27,29 +20,8 @@ function TextTestCasePanel({testCaseInfo}: TestCasePanelProps) {
 
     const body = testCaseInfo.body as TextTestCaseBody;
 
-    const [testCases, setTestCases] = useState<TextInputOutput[]>(body.testCases!);
 
     const [isTestRun, setTestRun] = useState(false);
-
-    const deleteTestCase = (indexToDelete: number) => {
-        if (body.testCases!.length > 1) changeTestCases(testCases.filter((_, i) => i !== indexToDelete))
-    }
-
-    const changeTestCases = (newTestCases: TextInputOutput[]) => {
-        body.testCases = newTestCases;
-        setTestCases(newTestCases);
-    }
-
-    const textTestCaseComponents = () => {
-        if (!testCases) return [];
-        return testCases.map((testCase: TextInputOutput, index: number) => {
-            return <TextTestCase onDelete={deleteTestCase} index={index} input_output={testCase} />
-        });
-    }
-
-    const createNewTestCase = () => {
-        changeTestCases(testCases.concat(blankTestCase))
-    }
 
     const handleTitleChange = (newTitle: string) => {
         testCaseInfo.name = newTitle;
@@ -81,9 +53,8 @@ function TextTestCasePanel({testCaseInfo}: TestCasePanelProps) {
                 <div className="testcases-title">
                     Tests:
                 </div>
-                {...textTestCaseComponents()}
+                <TextTestCase body={body}></TextTestCase>
             </div>
-            <BlueButton className="new-text-test-case" onClick={createNewTestCase}>+ New Test</BlueButton>
             {isTestRun && <TestRunResults testCasesResults={fakeTestCaseResults} close={() => setTestRun(false)} />}
         </div>
     );

@@ -1,20 +1,19 @@
 export type TestCaseType = "text" | "bash";
 
-export type TextInputOutput = {
+export type TextTestCaseBody = {
+    testcaseId?: string;
     inputs?: string;
     outputs?: string;
     hidden?: boolean;
 }
 
-export type TextTestCaseBody = {
-    testCases?: TextInputOutput[];
-}
-
 export type File = {
     id: string;
+    testcaseId?: string;
     name: string;
     suffix: string;
     body: string;
+    primaryBash?: boolean;
 }
 
 export type BashTestCaseBody = {

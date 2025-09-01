@@ -33,7 +33,7 @@ export const createBlankQuestion = (assignmentId: string): Question => {
                 type: "text",
                 points: testcasePoints,
                 body: {
-                    testCases: [
+                    inputOutputs: [
                         {
                             inputs: "",
                             outputs: "",
