@@ -5,6 +5,7 @@ import HomeworkAssignment from "../components/homework/HomeworkAssignment";
 import HomeworkSidebar from "../components/homework/HomeworkSidebar";
 import Navbar from "../components/navbar/Navbar";
 import TitleBanner from "../components/titlebanner/TitleBanner";
+import BlueButton from "../components/bluebutton/BlueButton";
 
 function ClassroomBody() {
     
@@ -59,8 +60,6 @@ function ClassroomBody() {
             <HomeworkAssignment name={a['name']} dueDate={new Date(a["due_at"])} assignmentId={a['id']} />
         )
     }
-
-    
 
     useEffect(() => {
         var isError = false;
@@ -129,6 +128,11 @@ function ClassroomBody() {
                         <div id='classroomBody'>
                             <div id="assignments">
                                 {...assignmentsJSONToReact()}
+                            </div>
+                            <div id="manage_button">
+                                <BlueButton>
+                                    Manage Classroom
+                                </BlueButton>
                             </div>
                             <div id="homework">
                                 <HomeworkSidebar>

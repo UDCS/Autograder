@@ -55,14 +55,14 @@ function LoginInputs() {
                 <TextField
                     initialValue=""
                     label=""
-                    email
+                    type="email"
                     onChange={(data: FormData): void => {
                         setUsername(data.value)
                     }}/>
                 <TextField 
                     initialValue=""
                     label=""
-                    password
+                    type="password"
                     onChange={(data: FormData) => {
                         setPassword(data.value)
                     }}/>
