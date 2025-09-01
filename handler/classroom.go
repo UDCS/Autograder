@@ -221,6 +221,25 @@ func (router *HttpRouter) UpdateSubmissionCode(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, json_response.JSONMessage{Message: "student code accepted"})
 }
 
+func (router *HttpRouter) GetUserRole(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("Failed to parse cooking for'access_token'", zap.Error(err))
+		return err
+	}
+	roomId, err := uuid.Parse(c.Param("room_id"))
+	if err != nil {
+		logger.Error("Failed to parse room_id", zap.Error(err))
+		return err
+	}
+	role, err := router.app.GetUserRole(tokenString, roomId);
+	if err != nil {
+		logger.Error("Failed to get role", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, "failed to get role")
+	}
+	return c.JSON(http.StatusOK, string(role))
+}
+
 type CreateClassroomRequest struct {
 	Name              string          `json:"name"`
 	StartDate         models.DateOnly `json:"start_date"`

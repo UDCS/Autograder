@@ -27,6 +27,7 @@ type Handler interface {
 	DeleteClassroom(c context.Context) error
 	ChangeUserInfo(c context.Context) error
 	GetClassroom(c context.Context) error
+	GetUserRole(c context.Context) error
 	// Assignments
 	GetViewAssignments(c context.Context) error
 	GetAssignment(c context.Context) error
@@ -91,6 +92,7 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.GET("/:room_id/view_assignments", router.GetViewAssignments)
 	classroom.GET("/assignment/:assignment_id", router.GetAssignment)
 	classroom.POST("/question/:question_id/submission", router.UpdateSubmissionCode)
+	classroom.GET("/role/:room_id", router.GetUserRole)
 }
 
 func (router *HttpRouter) Engage(port string) {

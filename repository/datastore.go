@@ -19,6 +19,7 @@ type Datastore interface {
 	EditClassroom(request models.EditClassroomRequest) error
 	DeleteClassroom(request models.DeleteClassroomRequest) error
 	GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error)
+	GetUserRole(user string, classroomId uuid.UUID) (models.UserRole, error)
 	// Assignments
 	GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
 	GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error)

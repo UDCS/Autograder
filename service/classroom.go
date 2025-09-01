@@ -236,3 +236,11 @@ func (app *GraderApp) UpdateSubmissionCode(jwksToken string, request models.Upda
 
 	return nil
 }
+
+func (app *GraderApp) GetUserRole(jwksToken string, roomId uuid.UUID) (models.UserRole, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return "", fmt.Errorf("invalid authorization credentials")
+	}
+	return app.store.GetUserRole(claims.Subject, roomId)
+}
