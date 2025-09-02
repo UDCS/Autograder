@@ -1,15 +1,17 @@
-import { ReactNode } from "react";
+import { HTMLAttributes, ReactNode } from "react";
 import "./Popup.css"; 
+import clsx from "clsx";
 
-type PopupProps = {
+export type PopupProps = Omit<HTMLAttributes<HTMLDivElement>, 'onClick'> & {
   children: ReactNode;
   onClose: () => void;
+  onClick?: () => void;
 };
 
-function Popup ({ children, onClose }: PopupProps)  {
+function Popup ({ children, className, onClick, onClose, ...props }: PopupProps)  {
   return (
-    <div className="popup-overlay" onClick={onClose}>
-      <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+    <div className="popup-overlay" onClick={onClose} >
+      <div className={clsx("popup-content", className)} onClick={(e) => {e.stopPropagation(); onClick?.();}} {...props}>
         {children}
       </div>
     </div>

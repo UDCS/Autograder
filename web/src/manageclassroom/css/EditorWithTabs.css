@@ -1,0 +1,12 @@
+.editor-with-tabs {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+}
+.tab-editor-parent {
+    flex-grow: 1;
+    width: 100%;
+    min-height: 0;
+}

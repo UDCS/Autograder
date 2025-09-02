@@ -1,6 +1,6 @@
 import { Editor } from "@monaco-editor/react";
 import "./QuestionPanel.css"
-import BlueButton from "../bluebutton/BlueButton";
+import BlueButton from "../buttons/BlueButton";
 import QuestionScore from "./QuestionScore";
 import ConsoleOutput from "../assignment/ConsoleOutput";
 import { useState } from "react";

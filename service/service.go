@@ -30,6 +30,8 @@ type App interface {
 	GetUserRole(jwksToken string, roomId uuid.UUID) (models.UserRole, error)
 	// Assignments
 	GetViewAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
+	GetVerboseAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
+	SetVerboseAssignments(jwksToken string, classroomId uuid.UUID, assignments []models.Assignment) error
 	GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error)
 	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
 }

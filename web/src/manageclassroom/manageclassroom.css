@@ -11,8 +11,10 @@
 #content {
     display: flex;
     flex-direction: row;
+    align-items: flex-start;
 }
 #body {
+    overflow-x: hidden;
     width: 100%;
     padding: 2%;
     display: flex;
@@ -43,4 +45,55 @@
     box-shadow: 25px 25px 13.9px -6px rgba(0, 0, 0, 0.25);
     color: red;
     min-height: 30vh;
+}
+.edit-buttons {
+    display: flex;
+}
+.with-padding {
+    padding: 2%;
+}
+.button-parent {
+    display: flex;
+    flex: 1;
+    align-items: center;
+}
+.right-align {
+    justify-content: right;
+}
+.edit-button {
+    width: 50%;
+    font-family: 'Azeret Mono';
+    color: white;
+    border-radius: 20px;
+    padding: 1.5%;
+    font-size: 150%;
+    border: none;
+}
+
+.save-button {
+    background-color: var(--color-process-cyan);
+}
+
+.save-button:hover {
+    background-color: var(--color-aero-blue);
+}
+
+button.save-button:active {
+    background-color: var(--color-NCS-blue);
+}
+
+.delete-button {
+    background-color: red;
+}
+
+.delete-button:hover {
+    background-color: #e00;
+}
+
+button.delete-button:active {
+    background-color: darkred;
+}
+
+.edit-button:disabled {
+    background-color: grey;
 }

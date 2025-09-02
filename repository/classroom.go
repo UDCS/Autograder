@@ -77,6 +77,19 @@ func (store PostgresStore) GetUserClassroomInfo(userId uuid.UUID, classroomId uu
 
 }
 
+func (store PostgresStore) GetQuestionPoints(questionId uuid.UUID) (uint16, error) {
+	var points uint16
+	err := store.db.Get(
+		&points,
+		"SELECT COALESCE(SUM(points), 0) AS total_points FROM testcases WHERE question_id = $1;",
+		questionId,
+	)
+	if err != nil {
+		return points, err
+	}
+	return points, nil
+}
+
 func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error) {
 	var assignments []models.Assignment
 	err := store.db.Select(
@@ -90,34 +103,135 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 	sort.Slice(assignments, func(i int, j int) bool {
 		return assignments[i].SortIndex < assignments[j].SortIndex
 	})
-	for i := 0; i < len(assignments); i++ {
+	for assignmentIndex := 0; assignmentIndex < len(assignments); assignmentIndex++ {
 		var questions []models.Question
 		err = store.db.Select(
 			&questions,
-			"SELECT id, assignment_id, header, body, points, sort_index FROM questions WHERE assignment_id = $1;",
-			assignments[i].Id,
+			"SELECT id, assignment_id, header, body, prog_lang, sort_index FROM questions WHERE assignment_id = $1;",
+			assignments[assignmentIndex].Id,
 		)
 		if err != nil {
 			return []models.Assignment{}, err
 		}
-		for i := range questions {
-
-			questionId := questions[i].Id
+		for questionIndex := range questions {
+			questionId := questions[questionIndex].Id
 			var score uint16
-			_ = store.db.Get(
+			err = store.db.Get(
 				&score,
 				"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
 				questionId, userId,
 			)
-			questions[i].Score = score
+			if err != nil {
+				return []models.Assignment{}, err
+			}
+			points, err := store.GetQuestionPoints(questionId)
+			if err != nil {
+				return []models.Assignment{}, err
+			}
+			questions[questionIndex].Points = points
+			questions[questionIndex].Score = score
 		}
 		sort.Slice(questions, func(i int, j int) bool {
 			return questions[i].SortIndex < questions[j].SortIndex
 		})
-		assignments[i].Questions = questions
+		assignments[assignmentIndex].Questions = questions
 	}
 
 	return assignments, nil
+}
+
+func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error) {
+	var assignments []models.Assignment
+	err := store.db.Select(
+		&assignments,
+		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at, sort_index FROM assignments WHERE classroom_id = $1;",
+		classroomId,
+	)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+	sort.Slice(assignments, func(i int, j int) bool {
+		return assignments[i].SortIndex < assignments[j].SortIndex
+	})
+	for assignmentIndex := 0; assignmentIndex < len(assignments); assignmentIndex++ {
+		var questions []models.Question
+		err = store.db.Select(
+			&questions,
+			"SELECT id, assignment_id, header, body, sort_index FROM questions WHERE assignment_id = $1;",
+			assignments[assignmentIndex].Id,
+		)
+		if err != nil {
+			return []models.Assignment{}, err
+		}
+		for questionIndex := range questions {
+			var testcases []models.Testcase
+			questionId := questions[questionIndex].Id
+			err = store.db.Select(
+				&testcases,
+				"SELECT id, name, question_id, type, points, timeout_seconds FROM testcases WHERE question_id = $1;",
+				questionId,
+			)
+			if err != nil {
+				return []models.Assignment{}, err
+			}
+			points, err := store.GetQuestionPoints(questionId)
+			if err != nil {
+				return []models.Assignment{}, err
+			}
+			for testcaseIndex := range testcases {
+				testcase := &testcases[testcaseIndex]
+				switch testcase.Type {
+				case models.Text:
+					textBody := models.TextTestcaseBody{}
+					err = store.db.Get(
+						&textBody,
+						"SELECT testcase_id, inputs, outputs, hidden FROM text_testcases WHERE testcase_id = $1;",
+						testcase.Id,
+					)
+					if err != nil {
+						return []models.Assignment{}, err
+					}
+					testcase.TestcaseBody = textBody
+				default:
+					bashBody := models.BashTestcaseBody{}
+					var primaryBashFile models.File
+					var otherFiles []models.File
+					err = store.db.Select(
+						&otherFiles,
+						"SELECT id, testcase_id, name, suffix, body, primary_bash FROM bash_testcase_files WHERE testcase_id = $1 AND primary_bash = FALSE;",
+						testcase.Id,
+					)
+					if err != nil {
+						return []models.Assignment{}, err
+					}
+					err = store.db.Get(
+						&primaryBashFile,
+						"SELECT id, testcase_id, name, suffix, body, primary_bash FROM bash_testcase_files WHERE testcase_id = $1 AND primary_bash = TRUE;",
+						testcase.Id,
+					)
+					if err != nil {
+						return []models.Assignment{}, err
+					}
+					bashBody.PrimaryBashFile = primaryBashFile
+					bashBody.OtherFiles = otherFiles
+					testcase.TestcaseBody = bashBody
+				}
+			}
+			questions[questionIndex].Testcases = testcases
+			questions[questionIndex].Points = points
+		}
+		sort.Slice(questions, func(i int, j int) bool {
+			return questions[i].SortIndex < questions[j].SortIndex
+		})
+		assignments[assignmentIndex].Questions = questions
+	}
+
+	return assignments, nil
+}
+
+func (store PostgresStore) SetVerboseAssignments(classroomId uuid.UUID, assignments []models.Assignment) error {
+
+	return nil
 }
 
 func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error) {
@@ -134,7 +248,7 @@ func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUI
 
 	err = store.db.Select(
 		&questions,
-		"SELECT id, assignment_id, header, body, points, sort_index, prog_lang, default_code FROM questions WHERE assignment_id = $1;",
+		"SELECT id, assignment_id, header, body, sort_index, prog_lang, default_code FROM questions WHERE assignment_id = $1;",
 		assignment.Id,
 	)
 	if err != nil {
@@ -148,17 +262,28 @@ func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUI
 	for i := range questions {
 		questionId := questions[i].Id
 		var score uint16
-		_ = store.db.Get(
+		err = store.db.Get(
 			&score,
 			"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
 			questionId, userId,
 		)
+		if err != nil {
+			return models.Assignment{}, err
+		}
+		points, err := store.GetQuestionPoints(questionId)
+		if err != nil {
+			return models.Assignment{}, err
+		}
+		questions[i].Points = points
 		questions[i].Score = score
-		_ = store.db.Get(
+		err = store.db.Get(
 			&questions[i],
 			"SELECT code from student_submissions WHERE user_id=$1 AND question_id=$2",
 			userId, questions[i].Id,
 		)
+		if err != nil {
+			return models.Assignment{}, err
+		}
 	}
 
 	assignment.Questions = questions
