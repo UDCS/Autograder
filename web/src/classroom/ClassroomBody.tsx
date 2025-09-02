@@ -61,6 +61,10 @@ function ClassroomBody() {
         )
     }
 
+    const reRoute = () => {
+        window.location.href = `/classroom/manage/?id=${classroomId}`;
+    }
+
     useEffect(() => {
         var isError = false;
         const verifyLogin = async () => {
@@ -105,6 +109,10 @@ function ClassroomBody() {
         const stopLoading = () => {
             setLoading(false);
         }
+        // const getUserRole = async () => {
+        //     var response = await fetch(`api/classroom/${classroomId}/`)
+        // }
+
         if (loading) {
             verifyLogin().then(() => {
                     if (!isError) {
@@ -118,6 +126,7 @@ function ClassroomBody() {
             )
         } 
     });
+
     return (<>
         {!loading?
             <>
@@ -129,15 +138,19 @@ function ClassroomBody() {
                             <div id="assignments">
                                 {...assignmentsJSONToReact()}
                             </div>
-                            <div id="manage_button">
-                                <BlueButton>
-                                    Manage Classroom
-                                </BlueButton>
-                            </div>
-                            <div id="homework">
-                                <HomeworkSidebar>
-                                    {...homeworkFromJSON()}
-                                </HomeworkSidebar>
+                            <div id="sidebar">
+                                {/* {role == ("admin" || "teacher") ?  */}
+                                <div id="manage_button">
+                                        <BlueButton onClick={reRoute}>
+                                            Manage Classroom
+                                        </BlueButton>
+                                </div>
+                                {/* } */}
+                                <div id="homework">
+                                    <HomeworkSidebar>
+                                        {...homeworkFromJSON()}
+                                    </HomeworkSidebar>
+                                </div>
                             </div>
                         </div>
                     </>

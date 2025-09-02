@@ -113,7 +113,7 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
             </div>
             <div className="course-description-parent">
                 <h3 id="course-description-text" className="details-title-fonts">Course Description:</h3>
-                <TextArea id="class-description-box" onChange={handleCourseDescriptionChange} style={{width: "100%"}} rows={5} className="test">{classroomInfo.course_description}</TextArea>
+                <TextArea id="class-description-box" onChange={handleCourseDescriptionChange} style={{width: "100%"}} rows={5} className="test" value={classroomInfo.course_description}></TextArea>
             </div>
             <div>
                 <BlueButton onClick={handleServerSubmit} id="submit-changes-button">Submit Changes</BlueButton>
