@@ -351,6 +351,9 @@ func (store PostgresStore) UpdateSubmissionCode(request models.UpdateSubmissionR
 
 func (store PostgresStore) GetUserRole(user string, classroomId uuid.UUID) (models.UserRole, error) {
 	userInfo, err := store.GetUserInfo(user)
+	if err != nil {
+		return "", err
+	}
 	var role models.UserRole
 	err = store.db.Get(&role, "SELECT user_role FROM user_classroom_matching WHERE user_id=$1 AND classroom_id=$2", userInfo.Id, classroomId)
 	return role, err
