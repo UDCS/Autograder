@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -162,12 +161,42 @@ func (router *HttpRouter) GetVerboseAssignments(c echo.Context) error {
 }
 
 func (router *HttpRouter) SetVerboseAssignments(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
+	}
+
 	var body map[string][]models.Assignment
 	if err := c.Bind(&body); err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse request body"))
 	}
-	fmt.Printf("%+v\n", body)
+	var allAssignments []models.Assignment = body["assignments"]
+	for index := range allAssignments {
+		allAssignments[index].Rectify()
+	}
+	if err = router.app.SetVerboseAssignments(tokenString, allAssignments); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
 	return c.JSON(http.StatusOK, json_response.NewMessage("successfully edited assignments"))
+}
+
+func (router *HttpRouter) SetVerboseQuestions(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
+	}
+
+	var body map[string][]models.Question
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse request body"))
+	}
+	var allQuestions []models.Question = body["questions"]
+	if err = router.app.SetVerboseQuestions(tokenString, allQuestions); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+	return c.JSON(http.StatusOK, json_response.NewMessage("successfully edited classrooms"))
 }
 
 func (router *HttpRouter) GetAssignment(c echo.Context) error {

@@ -32,6 +32,7 @@ type Handler interface {
 	GetViewAssignments(c context.Context) error
 	GetVerboseAssignments(c echo.Context) error
 	SetVerboseAssignments(c echo.Context) error
+	SetVerboseQuestions(c echo.Context) error
 	GetAssignment(c context.Context) error
 	UpdateSubmissionCode(c context.Context) error
 }
@@ -93,9 +94,10 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.DELETE("/delete/:room_id", router.DeleteClassroom)
 	classroom.GET("/:room_id/view_assignments", router.GetViewAssignments)
 	classroom.GET("/:room_id/verbose_assignments", router.GetVerboseAssignments)
-	classroom.POST("/:room_id/verbose_assignments", router.SetVerboseAssignments)
+	classroom.POST("/verbose_assignments", router.SetVerboseAssignments)
 	classroom.GET("/assignment/:assignment_id", router.GetAssignment)
 	classroom.POST("/question/:question_id/submission", router.UpdateSubmissionCode)
+	classroom.POST("/verbose_questions", router.SetVerboseQuestions)
 	classroom.GET("/role/:room_id", router.GetUserRole)
 }
 

@@ -90,6 +90,20 @@ func (store PostgresStore) GetQuestionPoints(questionId uuid.UUID) (uint16, erro
 	return points, nil
 }
 
+func (store PostgresStore) GetQuestionInfo(questionId uuid.UUID) (models.Question, error) {
+	var question models.Question
+	err := store.db.Get(
+		&question,
+		"SELECT id, assignment_id, header, body, created_at, updated_at, sort_index, prog_lang, default_code FROM questions WHERE id = $1;",
+		questionId,
+	)
+	if err != nil {
+		fmt.Println(err.Error())
+		return models.Question{}, err
+	}
+	return question, nil
+}
+
 func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error) {
 	var assignments []models.Assignment
 	err := store.db.Select(
@@ -157,7 +171,7 @@ func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId u
 		var questions []models.Question
 		err = store.db.Select(
 			&questions,
-			"SELECT id, assignment_id, header, body, sort_index FROM questions WHERE assignment_id = $1;",
+			"SELECT id, assignment_id, header, body, prog_lang, default_code, sort_index FROM questions WHERE assignment_id = $1;",
 			assignments[assignmentIndex].Id,
 		)
 		if err != nil {
@@ -183,14 +197,11 @@ func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId u
 				switch testcase.Type {
 				case models.Text:
 					textBody := models.TextTestcaseBody{}
-					err = store.db.Get(
+					_ = store.db.Get(
 						&textBody,
 						"SELECT testcase_id, inputs, outputs, hidden FROM text_testcases WHERE testcase_id = $1;",
 						testcase.Id,
 					)
-					if err != nil {
-						return []models.Assignment{}, err
-					}
 					testcase.TestcaseBody = textBody
 				default:
 					bashBody := models.BashTestcaseBody{}
@@ -229,9 +240,118 @@ func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId u
 	return assignments, nil
 }
 
-func (store PostgresStore) SetVerboseAssignments(classroomId uuid.UUID, assignments []models.Assignment) error {
-
+func (store PostgresStore) SetVerboseAssignment(assignment models.Assignment) error {
+	_, err := store.db.Exec(
+		"INSERT INTO assignments (id, classroom_id, name, description, assignment_mode, due_at,  updated_at, sort_index) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO UPDATE SET name = $3, description=$4, assignment_mode=$5, due_at = $6, updated_at=$7, sort_index=$8;",
+		assignment.Id, assignment.ClassroomId, assignment.Name, assignment.Description, assignment.AssignmentMode, assignment.DueAt, time.Now(), assignment.SortIndex,
+	)
+	if err != nil {
+		return err
+	}
+	for _, question := range assignment.Questions {
+		_, err := store.db.Exec(
+			"INSERT INTO questions (id, assignment_id, header, body, prog_lang, updated_at, sort_index, default_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO UPDATE SET header = $3, body=$4, prog_lang=$5, updated_at=$6, sort_index=$7, default_code = $8;",
+			question.Id, question.AssignmentId, question.Header, question.Body, question.ProgrammingLanguage, time.Now(), question.SortIndex, question.DefaultCode,
+		)
+		if err != nil {
+			return err
+		}
+		for _, testCase := range question.Testcases {
+			_, err = store.db.Exec("INSERT INTO testcases (id, question_id, name, type, points, timeout_seconds) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET name=$3, points=$5, timeout_seconds=$6;",
+				testCase.Id, testCase.QuestionId, testCase.Name, testCase.Type, testCase.Points, testCase.TimeoutSeconds,
+			)
+			if err != nil {
+				return err
+			}
+			switch testCase.Type {
+			case models.Text:
+				var textTestCase models.TextTestcaseBody = testCase.TestcaseBody.(models.TextTestcaseBody)
+				_, err = store.db.Exec("INSERT INTO text_testcases (testcase_id, inputs, outputs, hidden) VALUES ($1, $2, $3, $4) ON CONFLICT (testcase_id) DO UPDATE SET testcase_id=$1, inputs = $2, outputs = $3, hidden = $4;",
+					textTestCase.TestcaseId, textTestCase.Inputs, textTestCase.Outputs, textTestCase.Hidden,
+				)
+				if err != nil {
+					return err
+				}
+			default:
+				var bashTestCase models.BashTestcaseBody = testCase.TestcaseBody.(models.BashTestcaseBody)
+				var primaryBash models.File = bashTestCase.PrimaryBashFile
+				_, err = store.db.Exec("INSERT INTO bash_testcase_files (id, testcase_id, name, suffix, body, primary_bash) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET id = $1, testcase_id = $2, name = $3, suffix = $4, body = $5, primary_bash = $6",
+					primaryBash.Id, primaryBash.TestcaseId, primaryBash.Name, primaryBash.Suffix, primaryBash.Body, true,
+				)
+				if err != nil {
+					return err
+				}
+				for _, file := range bashTestCase.OtherFiles {
+					_, err = store.db.Exec("INSERT INTO bash_testcase_files (id, testcase_id, name, suffix, body, primary_bash) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET id = $1, testcase_id = $2, name = $3, suffix = $4, body = $5, primary_bash = $6",
+						file.Id, file.TestcaseId, file.Name, file.Suffix, file.Body, false,
+					)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
 	return nil
+}
+
+func (store PostgresStore) SetVerboseQuestion(question models.Question) error {
+	_, err := store.db.Exec(
+		"INSERT INTO questions (id, assignment_id, header, body, prog_lang, updated_at, sort_index, default_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO UPDATE SET header = $3, body=$4, prog_lang=$5, updated_at=$6, sort_index=$7, default_code = $8;",
+		question.Id, question.AssignmentId, question.Header, question.Body, question.ProgrammingLanguage, time.Now(), question.SortIndex, question.DefaultCode,
+	)
+	if err != nil {
+		return err
+	}
+	for _, testCase := range question.Testcases {
+		_, err = store.db.Exec("INSERT INTO testcases (id, question_id, name, type, points, timeout_seconds) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET name=$3, points=$5, timeout_seconds=$6;",
+			testCase.Id, testCase.QuestionId, testCase.Name, testCase.Type, testCase.Points, testCase.TimeoutSeconds,
+		)
+		if err != nil {
+			return err
+		}
+		switch testCase.Type {
+		case models.Text:
+			var textTestCase models.TextTestcaseBody = testCase.TestcaseBody.(models.TextTestcaseBody)
+			_, err = store.db.Exec("INSERT INTO text_testcases (testcase_id, inputs, outputs, hidden) VALUES ($1, $2, $3, $4) ON CONFLICT (testcase_id) DO UPDATE SET testcase_id=$1, inputs = $2, outputs = $3, hidden = $4;",
+				textTestCase.TestcaseId, textTestCase.Inputs, textTestCase.Outputs, textTestCase.Hidden,
+			)
+			if err != nil {
+				return err
+			}
+		default:
+			var bashTestCase models.BashTestcaseBody = testCase.TestcaseBody.(models.BashTestcaseBody)
+			var primaryBash models.File = bashTestCase.PrimaryBashFile
+			_, err = store.db.Exec("INSERT INTO bash_testcase_files (id, testcase_id, name, suffix, body, primary_bash) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET id = $1, testcase_id = $2, name = $3, suffix = $4, body = $5, primary_bash = $6",
+				primaryBash.Id, primaryBash.TestcaseId, primaryBash.Name, primaryBash.Suffix, primaryBash.Body, true,
+			)
+			if err != nil {
+				return err
+			}
+			for _, file := range bashTestCase.OtherFiles {
+				_, err = store.db.Exec("INSERT INTO bash_testcase_files (id, testcase_id, name, suffix, body, primary_bash) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET id = $1, testcase_id = $2, name = $3, suffix = $4, body = $5, primary_bash = $6",
+					file.Id, file.TestcaseId, file.Name, file.Suffix, file.Body, false,
+				)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func (store PostgresStore) GetAssignmentInfo(assignmentId uuid.UUID) (models.Assignment, error) {
+	var assignment models.Assignment
+	err := store.db.Get(
+		&assignment,
+		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at, sort_index FROM assignments WHERE id=$1;",
+		assignmentId,
+	)
+	if err != nil {
+		return models.Assignment{}, err
+	}
+	return assignment, nil
 }
 
 func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error) {

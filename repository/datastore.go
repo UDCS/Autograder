@@ -23,8 +23,11 @@ type Datastore interface {
 	// Assignments
 	GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
 	GetVerboseAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
-	SetVerboseAssignments(classroomId uuid.UUID, assignments []models.Assignment) error
+	SetVerboseAssignment(assignment models.Assignment) error
+	SetVerboseQuestion(question models.Question) error
 	GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error)
+	GetAssignmentInfo(assignmentId uuid.UUID) (models.Assignment, error)
+	GetQuestionInfo(questionId uuid.UUID) (models.Question, error)
 	UpdateSubmissionCode(request models.UpdateSubmissionRequest) error
 	// Auth
 	// Invitation

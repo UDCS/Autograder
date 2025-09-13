@@ -18,31 +18,51 @@ type TestcaseBody interface {
 }
 
 type TestcaseBodyWrapper struct {
-	TestcaseBody
+	TestcaseBody `json:"body"`
 }
 
-func (testcaseBody *TestcaseBodyWrapper) UnmarshalJSON(data []byte) error {
+func (testcase *Testcase) UnmarshalJSON(data []byte) error {
 	var aux struct {
-		Type TestcaseType `json:"type"`
+		Id             uuid.UUID    `json:"id" db:"id"`
+		Name           string       `json:"name" db:"name"`
+		QuestionId     uuid.UUID    `json:"question_id" db:"question_id"`
+		Type           TestcaseType `json:"type" db:"type"`
+		TimeoutSeconds uint64       `json:"timeoutSeconds" db:"timeout_seconds"`
+		Points         uint64       `json:"points" db:"points"`
 	}
-	if err := json.Unmarshal(data, &aux); err != nil {
+	err := json.Unmarshal(data, &aux)
+	if err != nil {
 		return err
 	}
 
+	testcase.Id = aux.Id
+	testcase.Name = aux.Name
+	testcase.QuestionId = aux.QuestionId
+	testcase.Type = aux.Type
+	testcase.TimeoutSeconds = aux.TimeoutSeconds
+	testcase.Points = aux.Points
+
+	var testcaseBody TestcaseBody
 	switch aux.Type {
 	case Text:
-		var t TextTestcaseBody
-		if err := json.Unmarshal(data, &t); err != nil {
+		var auxText struct {
+			Body TextTestcaseBody `json:"body"`
+		}
+		if err = json.Unmarshal(data, &auxText); err != nil {
 			return err
 		}
-		testcaseBody.TestcaseBody = t
+		testcaseBody = auxText.Body
 	default:
-		var b BashTestcaseBody
-		if err := json.Unmarshal(data, &b); err != nil {
+		var auxBash struct {
+			Body BashTestcaseBody `json:"body"`
+		}
+		if err = json.Unmarshal(data, &auxBash); err != nil {
 			return err
 		}
-		testcaseBody.TestcaseBody = b
+		testcaseBody = auxBash.Body
 	}
+	testcase.TestcaseBody = testcaseBody
+
 	return nil
 }
 
@@ -76,11 +96,30 @@ func (b BashTestcaseBody) GetType() TestcaseType {
 }
 
 type Testcase struct {
-	Id                  uuid.UUID    `json:"id" db:"id"`
-	Name                string       `json:"name" db:"name"`
-	QuestionId          uuid.UUID    `json:"question_id" db:"question_id"`
-	Type                TestcaseType `json:"type" db:"type"`
-	TimeoutSeconds      uint64       `json:"timeoutSeconds" db:"timeout_seconds"`
-	Points              uint64       `json:"points" db:"points"`
-	TestcaseBodyWrapper `json:"body"`
+	Id             uuid.UUID    `json:"id" db:"id"`
+	Name           string       `json:"name" db:"name"`
+	QuestionId     uuid.UUID    `json:"question_id" db:"question_id"`
+	Type           TestcaseType `json:"type" db:"type"`
+	TimeoutSeconds uint64       `json:"timeoutSeconds" db:"timeout_seconds"`
+	Points         uint64       `json:"points" db:"points"`
+	TestcaseBodyWrapper
+}
+
+func (testcase *Testcase) Rectify(properQuestionId uuid.UUID) {
+	testcase.QuestionId = properQuestionId
+
+	switch testcase.Type {
+	case Text:
+		var textTestcaseBody TextTestcaseBody = testcase.TestcaseBody.(TextTestcaseBody)
+		textTestcaseBody.TestcaseId = testcase.Id
+		testcase.TestcaseBody = textTestcaseBody
+	case Bash:
+		var bashTestcaseBody BashTestcaseBody = testcase.TestcaseBody.(BashTestcaseBody)
+		bashTestcaseBody.PrimaryBashFile.TestcaseId = testcase.Id
+		for i := range bashTestcaseBody.OtherFiles {
+			file := &bashTestcaseBody.OtherFiles[i]
+			file.TestcaseId = testcase.Id
+		}
+		testcase.TestcaseBody = bashTestcaseBody
+	}
 }

@@ -181,7 +181,81 @@ func (app *GraderApp) GetVerboseAssignments(jwksToken string, classroomId uuid.U
 	}
 	return assignments, nil
 }
-func (app *GraderApp) SetVerboseAssignments(jwksToken string, classroomId uuid.UUID, assignments []models.Assignment) error {
+func (app *GraderApp) SetVerboseAssignments(jwksToken string, assignments []models.Assignment) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("error retrieving user info")
+	}
+
+	// verifies the user's role for all the assignments
+	for _, assignment := range assignments {
+		classroomId := assignment.ClassroomId
+		if userInfo.UserRole != models.Admin {
+			user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+			if err != nil {
+				return fmt.Errorf("user not in classroom")
+			} else if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+				return fmt.Errorf("user does not have the role to edit verbose assignment")
+			}
+		}
+	}
+	// updates the assignments
+	for _, assignment := range assignments {
+		// if assignment.CreatedAt.IsZero() {
+		// 	assignment.CreatedAt = time.Now()
+		// }
+		if err := app.store.SetVerboseAssignment(assignment); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (app *GraderApp) SetVerboseQuestions(jwksToken string, questions []models.Question) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("error retrieving user info")
+	}
+	// verifies the user's role for all the questions
+	for i := range questions {
+
+		question := &questions[i]
+		questionInfo, err := app.store.GetQuestionInfo(question.Id)
+		if err != nil {
+			return err
+		}
+		assignmentInfo, err := app.store.GetAssignmentInfo(question.AssignmentId)
+		if err != nil {
+			return err
+		}
+		classroomId := assignmentInfo.ClassroomId
+		question.Rectify(questionInfo.AssignmentId)
+
+		if userInfo.UserRole != models.Admin {
+			user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+			if err != nil {
+				return fmt.Errorf("user not in classroom")
+			} else if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+				return fmt.Errorf("user does not have the role to edit verbose assignment")
+			}
+		}
+	}
+	// updates the questions
+	for _, question := range questions {
+		if err := app.store.SetVerboseQuestion(question); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

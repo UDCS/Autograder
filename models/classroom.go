@@ -129,7 +129,7 @@ const (
 
 type Question struct {
 	Id                  uuid.UUID  `json:"id" db:"id"`
-	AssignmentId        uuid.UUID  `json:"assigment_id" db:"assignment_id"`
+	AssignmentId        uuid.UUID  `json:"assignment_id" db:"assignment_id"`
 	Header              string     `json:"header" db:"header"`
 	Body                string     `json:"body" db:"body"`
 	Points              uint16     `json:"points" db:"points"`
@@ -139,6 +139,16 @@ type Question struct {
 	DefaultCode         string     `json:"default_code" db:"default_code"`
 	CodeSubmission      string     `json:"code" db:"code"`
 	Testcases           []Testcase `json:"test_cases"`
+	CreatedAt           time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt           time.Time  `json:"updated_at" db:"updated_at"`
+}
+
+func (question *Question) Rectify(properAssignmentId uuid.UUID) {
+	question.AssignmentId = properAssignmentId
+	for i := range question.Testcases {
+		testcase := &question.Testcases[i]
+		testcase.Rectify(question.Id)
+	}
 }
 
 type Assignment struct {
@@ -152,6 +162,13 @@ type Assignment struct {
 	UpdatedAt      time.Time      `json:"updated_at" db:"updated_at"`
 	SortIndex      int            `json:"sort_index" db:"sort_index"`
 	Questions      []Question     `json:"questions"`
+}
+
+func (assignment *Assignment) Rectify() {
+	for i := range assignment.Questions {
+		question := &assignment.Questions[i]
+		question.Rectify(assignment.Id)
+	}
 }
 
 type UpdateSubmissionRequest struct {

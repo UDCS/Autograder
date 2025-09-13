@@ -77,12 +77,12 @@
     font-family: "Azeret Mono";
 }
 
- .classroom-code-sub-parent{
+.classroom-code-sub-parent{
     display: flex;
     align-items: baseline;
     flex: 9;
     gap: 6em;
- }
+}
 
 .classroom-code-parent{
     display: flex;
