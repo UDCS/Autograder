@@ -18,6 +18,6 @@ var (
 )
 
 func RegisterHandlers(e *echo.Echo) {
-	e.FileFS("/ui*", "index.html", distIndexHtml)
+	e.FileFS("/i*", "index.html", distIndexHtml)
 	e.StaticFS("/", distDirFS)
 }

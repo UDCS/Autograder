@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AnimatedLogo from "./AnimatedLogo";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import "./NavBar.css";
 // import "../global.css";
 
@@ -29,22 +29,22 @@ function Navbar() {
         <AnimatedLogo />
       </div>
       <div className="nav-right">
-        <Link className="nav-item" to="/about">
+        <Link className="nav-item" to="/i/about">
           About Us
         </Link>
-        <Link className="nav-item" to="/faq">
+        <Link className="nav-item" to="/i/faq">
           Help/FAQ
         </Link>
         {!isLoggedIn ? (
-          <Link className="nav-item" to="/login">
+          <Link className="nav-item" to="/i/login">
             Login
           </Link>
         ) : (
           <>
-            <Link className="nav-item" to="/dashboard">
+            <Link className="nav-item" to="/i/dashboard">
               Dashboard
             </Link>
-            <Link className="nav-item" to="/account">
+            <Link className="nav-item" to="/i/account">
               Account
             </Link>
           </>

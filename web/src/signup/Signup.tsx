@@ -1,6 +1,6 @@
 import TextField from "../components/textfield/Textfield";
 import "./Signup.css";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 interface FormData {
   value: string;
@@ -43,7 +43,7 @@ function Signup() {
             onChange={handleTextChange}
           />
         </div>
-        <Link to="/faq" className="why-am-i-here">
+        <Link to="/i/faq" className="why-am-i-here">
           Why am I here?
         </Link>
         <button className="submit-button">Sign Up</button>
