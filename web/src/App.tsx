@@ -1,11 +1,11 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router";
 import Home from "./home/Home";
 import NavBar from "./components/navbar/NavBar";
 import Login from "./login/Login";
 import Signup from "./signup/Signup";
 import About  from "./about/About";
-import Account from "./account/AccountSettings";
 import Assignment from "./assignment/Assignment";
+import Account from "./account/AccountSettings";
 import Classroom from "./classroom/Classroom";
 import Dashboard from "./dashboard/Dashboard";
 import Faq  from "./faq/FAQ";
@@ -16,17 +16,17 @@ function App() {
     <div className="app">
       <NavBar />
       <Routes>
-        <Route path="" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/assignment" element={<Assignment />} />
-        <Route path="/classroom" element={<Classroom />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/faq" element={<Faq />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/reset" element={<ResetPassword />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="*" element={<Navigate to="" />} />
+        <Route path="/i" element={<Home />} />
+        <Route path="/i/about" element={<About />} />
+        <Route path="/i/account" element={<Account />} />
+        <Route path="/i/assignment" element={<Assignment />} />
+        <Route path="/i/classroom" element={<Classroom />} />
+        <Route path="/i/dashboard" element={<Dashboard />} />
+        <Route path="/i/faq" element={<Faq />} />
+        <Route path="/i/login" element={<Login />} />
+        <Route path="/i/reset" element={<ResetPassword />} />
+        <Route path="/i/signup" element={<Signup />} />
+        <Route path="*" element={<Navigate to="/i" />} />
       </Routes>
     </div>
   );

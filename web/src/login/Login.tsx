@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import TextField from "../components/textfield/Textfield";
 import "./Login.css";
+import { Link } from "react-router";
 
 interface FormData {
   value: string;
@@ -65,9 +66,9 @@ function Login() {
             }}
           />
         </div>
-        <a href="/reset-password" className="forgot-pw">
+        <Link to="/i/reset" className="forgot-pw">
           Forgot Password?
-        </a>
+        </Link>
         <button className="submit-button" onClick={login}>
           Sign In
         </button>

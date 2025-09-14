@@ -1,5 +1,4 @@
 import Logo from "../components/logo/Logo";
-import "./Home.css";
 
 function Home() {
   return (
