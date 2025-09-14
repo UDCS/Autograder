@@ -1,12 +1,79 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import Navbar from "../components/navbar/Navbar"
-import './login.css';
-import LoginInputs from "./LoginInputs";
+import { useCallback, useEffect, useState } from "react";
+import TextField from "../components/textfield/Textfield";
+import "./Login.css";
 
+interface FormData {
+  value: string;
+  isValid: boolean;
+  error: string;
+}
 
-createRoot(document.getElementById("root")!).render(
-<StrictMode>
-    <Navbar />
-    <LoginInputs />
-</StrictMode>)
+function Login() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const login = useCallback(async () => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: username, password: password }),
+      });
+      if (!response.ok) {
+        alert("Invalid Username or Password");
+      } else {
+        window.location.href = "/dashboard";
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+    }
+  }, [username, password]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        login();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [login]);
+
+  return (
+    <div className="signin-page">
+      <div className="signin-card">
+        <h1 className="signin-title">Sign In</h1>
+        <div className="input-container">
+          <TextField
+            initialValue=""
+            label=""
+            email
+            onChange={(data: FormData): void => {
+              setUsername(data.value);
+            }}
+          />
+          <TextField
+            initialValue=""
+            label=""
+            password
+            onChange={(data: FormData) => {
+              setPassword(data.value);
+            }}
+          />
+        </div>
+        <a href="/reset-password" className="forgot-pw">
+          Forgot Password?
+        </a>
+        <button className="submit-button" onClick={login}>
+          Sign In
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default Login;
