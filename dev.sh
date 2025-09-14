@@ -1,4 +1,4 @@
 #!/bin/sh
 
-source ./emailrc
+# source ./emailrc
 cd web && yarn dev & air && fg
