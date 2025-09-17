@@ -7,6 +7,7 @@ import { useState } from "react";
 import clsx from "clsx";
 import { ProgLang, Question } from "../../models/classroom";
 import SelectDropdown from "../../components/select-dropdown/SelectDropdown";
+import { saveQuestions } from "../subpages/AssignmentsSubpage";
 
 type QuestionEditorProps = {
     question: Question;
@@ -27,6 +28,8 @@ const textToProgLang: Record<string, ProgLang> = {
     "Java": "java"
 }
 
+const questionTitleMaxLength = 64;
+
 function QuestionEditor({question, onDelete}: QuestionEditorProps) {
     const [selected, setSelected] = useState(false);
     
@@ -46,11 +49,19 @@ function QuestionEditor({question, onDelete}: QuestionEditorProps) {
         setProgLang(textToProgLang[newProgLang]);
     }
 
+    const saveQuestion = () => {
+        try {
+            saveQuestions([question]);
+        } catch (err) {
+            console.error("Failed to save question: ", err)
+        }
+    }
+
     return (
         <div className="question-editor">
             <div className="title-and-visibility">
                 <div className="title-parent">
-                    <TitleInput placeholder="Question Title" value={question.header} onChange={handleTitleChange} />
+                    <TitleInput placeholder="Question Title" value={question.header} onChange={handleTitleChange} maxLength={questionTitleMaxLength} />
                 </div>
                 <button className="expand-button" onClick={() => setSelected(!selected)}>{triangle()}</button>
             </div>
@@ -74,7 +85,7 @@ function QuestionEditor({question, onDelete}: QuestionEditorProps) {
                             Delete Question
                         </button>
                     </div>
-                    <div className="button-parent right-align">
+                    <div className="button-parent right-align" onClick={saveQuestion}>
                         <button className="edit-button save-button">
                             Save Question
                         </button>

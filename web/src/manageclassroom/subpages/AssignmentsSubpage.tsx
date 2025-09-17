@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useState } from "react";
-import { Assignment, Classroom } from "../../models/classroom";
-import { createBlankAssignment, parseDateString } from "../../utils/classroom";
+import { Assignment, Classroom, Question } from "../../models/classroom";
+import { createBlankAssignment } from "../../utils/classroom";
 import AssignmentEditor from "../components/AssignmentEditor";
 import "../css/AssignmentsSubpage.css"
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
@@ -9,141 +9,66 @@ import DeletePopup from "../../components/popup/DeletePopup";
 interface AssignmentsSubpageProps {
     classroomInfo: Classroom;
 }
-const dummyAssignment: Assignment = {
-    id: "59b2d1ba-79db-11f0-98e0-0a002700000e",
-    classroom_id: "680eac37-79db-11f0-a571-0a002700000e",
-    name: "Dummy Assignment",
-    description: "This is a dummy assignment",
-    assignment_mode: "view",
-    due_at: parseDateString("2025-05-06"),
-    created_at: parseDateString("2025-05-06"),
-    updated_at: parseDateString("2025-05-06"),
-    sort_index: 0,
-    questions: [
+
+export async function saveAssignments(assignmentList: Assignment[]) {
+    if (!assignmentList) return;
+    var classroomId = assignmentList[0].classroom_id;
+    var response = await fetch(`/api/classroom/${classroomId}/verbose_assignments`, 
         {
-            id: "13dc07c4-79dc-11f0-bbed-0a002700000e",
-            assignment_id: "59b2d1ba-79db-11f0-98e0-0a002700000e",
-            header: "Test Question",
-            body: "This is a test question",
-            points: 15,
-            sort_index: 0,
-            default_code: "int a = 10;",
-            solution_code: "int a = 13;",
-            prog_lang: "java",
-            test_cases: [
-                {
-                    id: "fa1374dc-723c-11f0-9cbf-0a0027000010",
-                    name: "Test case 1",
-                    timeoutSeconds: 10,
-                    type: "text",
-                    points: 10,
-                    body: {
-                        inputs: "123",
-                        outputs: "456",
-                        hidden: true,
-                    }
-                },
-                {
-                    id: "d95841bd-723d-11f0-b933-0a0027000010",
-                    name: "Test case 2",
-                    timeoutSeconds: 15,
-                    type: "bash",
-                    points: 20,
-                    body: {
-                        primaryBashFile: {
-                            id: "4db16122-7d5c-11f0-af3a-0a0027000010",
-                            name: "test",
-                            suffix: "sh",
-                            body: "echo Hello, world!"
-                        },
-                        otherFiles: [
-                            {
-                                id: "4db16122-7d5c-11f0-af3a-0a0027000012",
-                                name: "test",
-                                suffix: "java",
-                                body: `System.out.println("Hello, world!");`
-                            },
-                            {
-                                id: "4db16122-7d5c-11f0-af3a-0a0027000040",
-                                name: "test2",
-                                suffix: "sh",
-                                body: "echo Hello, world! (again)"
-                            },
-                        ]
-                    }
-                },
-            ]
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({"assignments": assignmentList})
         }
-    ]
+    )
+    if (!response.ok) {
+        var errorText = await response.text();
+        throw new Error(errorText);
+    }
 }
-const dummyAssignment2: Assignment = {
-    id: "79b2d1ba-79db-11f0-98e0-0a002700000e",
-    classroom_id: "680eac37-79db-11f0-a571-0a002700000e",
-    name: "Dummy Assignment 2",
-    description: "This is a dummy assignment 2",
-    assignment_mode: "view",
-    due_at: parseDateString("2025-05-06"),
-    created_at: parseDateString("2025-05-06"),
-    updated_at: parseDateString("2025-05-06"),
-    sort_index: 0,
-    questions: [
+
+export async function saveQuestions(questionList: Question[]) {
+    if (!questionList) return;
+    var response = await fetch(`/api/classroom/verbose_questions`, 
         {
-            id: "12dc07c4-79dc-11f0-bbed-0a002700000e",
-            assignment_id: "79b2d1ba-79db-11f0-98e0-0a002700000e",
-            header: "Test Question 2",
-            body: "This is a test question 2",
-            points: 15,
-            sort_index: 0,
-            default_code: "int a = 10;",
-            solution_code: "int a = 13;",
-            prog_lang: "python",
-            test_cases: [
-                {
-                    id: "fa1374dc-723c-11f0-9cbf-0a0027000010",
-                    name: "Test case 1",
-                    timeoutSeconds: 10,
-                    type: "text",
-                    points: 10,
-                    body: {
-                        inputs: "456\n789",
-                        outputs: "123\n456",
-                        hidden: false,
-                    }
-                },
-                {
-                    id: "d95841bd-723d-11f0-b933-0a0027000010",
-                    name: "Test case 2",
-                    timeoutSeconds: 15,
-                    type: "bash",
-                    points: 20,
-                    body: {
-                        primaryBashFile: {
-                            id: "4db16122-7d5c-11f0-af3a-0a0027000010",
-                            name: "test",
-                            suffix: "sh",
-                            body: "echo Hello, world!"
-                        },
-                        otherFiles: [
-                            {
-                                id: "4db16122-7d5c-11f0-af3a-0a0027000012",
-                                name: "test",
-                                suffix: "java",
-                                body: `System.out.println("Hello, world!");`
-                            },
-                            {
-                                id: "4db16122-7d5c-11f0-af3a-0a0027000040",
-                                name: "test2",
-                                suffix: "sh",
-                                body: "echo Hello, world! (again)"
-                            },
-                        ]
-                    }
-                },
-            ]
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({"questions": questionList})
         }
-    ]
+    )
+    if (!response.ok) {
+        var errorText = await response.text();
+        throw new Error(errorText);
+    }
 }
-const dummyAssignmentList = [dummyAssignment, dummyAssignment2];
+
+export async function deleteQuestionFromDatabase(questionId: string) {
+    var response = await fetch(`/api/classroom/question/${questionId}`, 
+        {
+            method: "DELETE",
+        }
+    )
+    if (!response.ok) {
+        var errorText = await response.text();
+        throw new Error(errorText);
+    }
+}
+
+export async function deleteAssignmentFromDatabase(assignmentId: string) {
+    var response = await fetch(`/api/classroom/assignment/${assignmentId}`, 
+        {
+            method: "DELETE",
+        }
+    )
+    if (!response.ok) {
+        var errorText = await response.text();
+        throw new Error(errorText);
+    }
+}
+
 export const assignmentStore: Record<string, Assignment> = {};
 
 function AssignmentsSubpage({classroomInfo}: AssignmentsSubpageProps) {
@@ -165,12 +90,10 @@ function AssignmentsSubpage({classroomInfo}: AssignmentsSubpageProps) {
         delete assignmentStore[deleteAssignmentId];            
         setDeleteAssignmentPopup(false);
         setDeleteAssignmentId("");
-    }
-
-    const getAssignments = async () => {
-        const receivedAssignments = dummyAssignmentList;
-        for (let assignment of receivedAssignments) {
-            if (assignment.id) assignmentStore[assignment.id] = assignment;
+        try {
+            deleteAssignmentFromDatabase(deleteAssignmentId);
+        } catch(err) {
+            console.error("Failed to delete assignment", err);
         }
     }
 
@@ -186,10 +109,29 @@ function AssignmentsSubpage({classroomInfo}: AssignmentsSubpageProps) {
         const newAssignment = createBlankAssignment(classroomInfo.id!);
         assignmentStore[newAssignment.id!] = newAssignment;
         forceUpdate();
+        try {
+            saveAssignments([newAssignment]);
+        } catch (err) {
+            console.error("failed to create new assignment: ", err)
+        }
     } 
 
     useEffect(() => {
         var isError = false;
+
+        const getAssignments = async () => {
+            var response = await fetch(`/api/classroom/${classroomInfo.id!}/verbose_assignments`);
+            var jsonResponse;
+            if (response.ok) {
+                jsonResponse = await response.json();
+            } else {
+                isError = true;
+            }
+            const receivedAssignments = jsonResponse["assignments"];
+            for (let assignment of receivedAssignments) {
+                if (assignment.id) assignmentStore[assignment.id] = assignment;
+            }
+        }
         (async function () {
             if (loading) {
                 await getAssignments();

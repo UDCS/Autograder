@@ -231,15 +231,15 @@ func (app *GraderApp) SetVerboseQuestions(jwksToken string, questions []models.Q
 
 		question := &questions[i]
 		questionInfo, err := app.store.GetQuestionInfo(question.Id)
-		if err != nil {
-			return err
+		if err == nil && questionInfo.AssignmentId != question.AssignmentId {
+			question.AssignmentId = questionInfo.AssignmentId
 		}
 		assignmentInfo, err := app.store.GetAssignmentInfo(question.AssignmentId)
 		if err != nil {
 			return err
 		}
 		classroomId := assignmentInfo.ClassroomId
-		question.Rectify(questionInfo.AssignmentId)
+		question.Rectify(question.AssignmentId)
 
 		if userInfo.UserRole != models.Admin {
 			user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
@@ -256,6 +256,74 @@ func (app *GraderApp) SetVerboseQuestions(jwksToken string, questions []models.Q
 			return err
 		}
 	}
+	return nil
+}
+
+func (app *GraderApp) DeleteAssignment(jwksToken string, assignmentId uuid.UUID) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("error retrieving user info")
+	}
+	assignmentInfo, err := app.store.GetAssignmentInfo(assignmentId)
+	if err != nil {
+		return fmt.Errorf("failed to get assignment info")
+	}
+	if userInfo.UserRole != models.Admin {
+		classroomId := assignmentInfo.ClassroomId
+		userInClassroom, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return fmt.Errorf("user not in classroom")
+		}
+		if userInClassroom.UserRole != models.Instructor {
+			return fmt.Errorf("user does not have the role to delete assignment")
+		}
+	}
+
+	if err = app.store.DeleteAssignment(assignmentId); err != nil {
+		return fmt.Errorf("failed to delete assignment: %s", err.Error())
+	}
+
+	return nil
+}
+
+func (app *GraderApp) DeleteQuestion(jwksToken string, questionId uuid.UUID) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("error retrieving user info")
+	}
+	questionInfo, err := app.store.GetQuestionInfo(questionId)
+	if err != nil {
+		return fmt.Errorf("failed to get question info")
+	}
+	assignmentInfo, err := app.store.GetAssignmentInfo(questionInfo.AssignmentId)
+	if err != nil {
+		return fmt.Errorf("failed to get assignment info")
+	}
+	if userInfo.UserRole != models.Admin {
+		classroomId := assignmentInfo.ClassroomId
+		userInClassroom, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return fmt.Errorf("user not in classroom")
+		}
+		if userInClassroom.UserRole != models.Instructor {
+			return fmt.Errorf("user does not have the role to delete question")
+		}
+	}
+
+	if err = app.store.DeleteQuestion(questionId); err != nil {
+		return fmt.Errorf("failed to delete assignment: %s", err.Error())
+	}
+
 	return nil
 }
 

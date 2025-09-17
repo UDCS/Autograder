@@ -23,6 +23,9 @@ function NewFilePopup({onClose, body}: NewFilePopupProps) {
             body: "",
             ...parseFileName(newFileName)
         }
+        if (!body.otherFiles) {
+            body.otherFiles = [];
+        }
         body.otherFiles?.push(newFile);
         onClose();
     }

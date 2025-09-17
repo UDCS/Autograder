@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 	"time"
@@ -84,7 +86,7 @@ func (store PostgresStore) GetQuestionPoints(questionId uuid.UUID) (uint16, erro
 		"SELECT COALESCE(SUM(points), 0) AS total_points FROM testcases WHERE question_id = $1;",
 		questionId,
 	)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return points, err
 	}
 	return points, nil
@@ -98,7 +100,6 @@ func (store PostgresStore) GetQuestionInfo(questionId uuid.UUID) (models.Questio
 		questionId,
 	)
 	if err != nil {
-		fmt.Println(err.Error())
 		return models.Question{}, err
 	}
 	return question, nil
@@ -135,7 +136,7 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 				"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
 				questionId, userId,
 			)
-			if err != nil {
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return []models.Assignment{}, err
 			}
 			points, err := store.GetQuestionPoints(questionId)
@@ -295,6 +296,28 @@ func (store PostgresStore) SetVerboseAssignment(assignment models.Assignment) er
 	return nil
 }
 
+func (store PostgresStore) DeleteAssignment(assignmentId uuid.UUID) error {
+	_, err := store.db.Exec(
+		"DELETE FROM assignments WHERE id=$1",
+		assignmentId,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (store PostgresStore) DeleteQuestion(questionId uuid.UUID) error {
+	_, err := store.db.Exec(
+		"DELETE FROM questions WHERE id=$1",
+		questionId,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (store PostgresStore) SetVerboseQuestion(question models.Question) error {
 	_, err := store.db.Exec(
 		"INSERT INTO questions (id, assignment_id, header, body, prog_lang, updated_at, sort_index, default_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO UPDATE SET header = $3, body=$4, prog_lang=$5, updated_at=$6, sort_index=$7, default_code = $8;",
@@ -387,7 +410,7 @@ func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUI
 			"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
 			questionId, userId,
 		)
-		if err != nil {
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return models.Assignment{}, err
 		}
 		points, err := store.GetQuestionPoints(questionId)
@@ -401,7 +424,7 @@ func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUI
 			"SELECT code from student_submissions WHERE user_id=$1 AND question_id=$2",
 			userId, questions[i].Id,
 		)
-		if err != nil {
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return models.Assignment{}, err
 		}
 	}

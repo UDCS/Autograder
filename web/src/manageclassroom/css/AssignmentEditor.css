@@ -45,12 +45,11 @@
     box-sizing: border-box;
 }
 .visibility-parent {
-    width: 100%;
     flex:1;
     gap: 1.5rem;
     display: flex;
     align-items: center;
-    justify-content: end;
+    justify-content: flex-end;
 }
 .due-date-parent {
     display: flex;

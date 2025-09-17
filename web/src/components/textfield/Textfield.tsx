@@ -19,6 +19,7 @@ const TextField: React.FC<TextFieldProps> = ({
   type,
   onChange,
   className,
+  maxLength,
   ...props
 }) => {
   const [value, setValue] = useState<string>("");
@@ -45,7 +46,8 @@ const TextField: React.FC<TextFieldProps> = ({
   var password = type === "password";
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
+    var newValue = e.target.value;
+    if (maxLength && newValue.length > maxLength) newValue = newValue.substring(0, maxLength);
     setValue(newValue);
     
     // Validate input if email checking is enabled

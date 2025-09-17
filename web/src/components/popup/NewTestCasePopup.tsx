@@ -8,11 +8,12 @@ import { useState } from "react";
 
 type NewTestCasePopupProps = Omit<PopupProps, 'children'> & {
     testcaseList: TestCase[];
+    setSelect: (tcId: string) => void;
 };
 
 
 const defaultTimeout = 5
-function NewTestCasePopup({onClose, testcaseList}: NewTestCasePopupProps) {
+function NewTestCasePopup({onClose, testcaseList, setSelect}: NewTestCasePopupProps) {
     
     const [selectedType, setSelectedType] = useState<TestCaseType>("text");
     const [testcaseName, setTestcaseName] = useState("");
@@ -40,8 +41,9 @@ function NewTestCasePopup({onClose, testcaseList}: NewTestCasePopupProps) {
     }
 
     const createTestcase = () => {
+        var newTestCase: TestCase
         if (selectedType === "bash") {
-            const newTestCase: TestCase = {
+            newTestCase = {
                 id: crypto.randomUUID(),
                 name: testcaseName,
                 points: testcasePoints!,
@@ -58,7 +60,7 @@ function NewTestCasePopup({onClose, testcaseList}: NewTestCasePopupProps) {
             }
             testcaseList.push(newTestCase);
         } else {
-            const newTestCase: TestCase = {
+            newTestCase = {
                 id: crypto.randomUUID(),
                 name: testcaseName,
                 points: testcasePoints!,
@@ -72,6 +74,7 @@ function NewTestCasePopup({onClose, testcaseList}: NewTestCasePopupProps) {
             }
             testcaseList.push(newTestCase);
         }
+        setSelect(newTestCase.id);
         onClose();
     }
     return (

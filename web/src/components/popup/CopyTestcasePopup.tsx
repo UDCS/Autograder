@@ -6,7 +6,6 @@ import { TestCase } from "../../models/testcases";
 import { useState } from "react";
 import GreyButton from "../buttons/GreyButton";
 import { Question } from "../../models/classroom";
-import { assignmentStore } from "../../manageclassroom/subpages/AssignmentsSubpage";
 
 type CopyTestcasePopupProps = Omit<PopupProps, 'children'> & {
     question: Question;
@@ -29,7 +28,6 @@ function CopyTestcasePopup({onClose, toCopy, question}: CopyTestcasePopupProps) 
             ...copied
         }
         question.test_cases?.push(newTestCase)
-        console.log(assignmentStore)
         onClose();
     }
 

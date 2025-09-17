@@ -7,7 +7,7 @@ import "../css/AssignmentEditor.css"
 import QuestionEditor from "./QuestionEditor";
 import clsx from "clsx";
 import { Assignment, Question, Visibility } from "../../models/classroom";
-import { assignmentStore } from "../subpages/AssignmentsSubpage";
+import { assignmentStore, deleteQuestionFromDatabase, saveAssignments, saveQuestions } from "../subpages/AssignmentsSubpage";
 import { createBlankQuestion, dateToString, parseDateString } from "../../utils/classroom";
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import DeletePopup from "../../components/popup/DeletePopup";
@@ -26,18 +26,24 @@ type AssignmentEditorProps = {
     onDelete: () => void;
 }
 
+const assignmentTitleMaxLength = 64;
+
 function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
     const [, forceUpdate] = useReducer(x => x + 1, 0);
 
-    const [delteQuestionPopup, setDeleteQuestionPopup] = useState<boolean>(false);
+    const [deleteQuestionPopup, setDeleteQuestionPopup] = useState<boolean>(false);
     const [deleteQuestionId, setDeleteQuestionId] = useState<string>("");
 
 
     const assignment: Assignment = assignmentStore[assignmentId];
+    if (!assignment.questions) assignment.questions = [];
     const [selected, setSelected] = useState(false);
 
     const triangle = () => {
         return selected ? "▲" : "▼"; 
+    }
+    const handleAssignmentTitleChange = (newTitle: string) => {
+        assignment.name = newTitle;
     }
     const handleAssignmentDescriptionChange = (newDesc: string) => {
         assignment.description = newDesc;
@@ -51,7 +57,14 @@ function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
     }
     
     const createQuestion = () => {
-        assignment.questions?.push(createBlankQuestion(assignmentId));
+        var newQuestion = createBlankQuestion(assignmentId);
+        assignment.questions?.push(newQuestion);
+
+        try {
+            saveQuestions([newQuestion]);
+        } catch (err) {
+            console.error("Failed to save questions: ", err)
+        }
         forceUpdate();
     }
     const makeDeletePopup = (deleteId: string) => {
@@ -63,7 +76,20 @@ function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
     const deleteQuestion = () => {
         assignment.questions = assignment.questions?.filter((q) => q.id !== deleteQuestionId);
         setDeleteQuestionPopup(false);
-        setDeleteQuestionId("");
+        setDeleteQuestionId(""); 
+        try {
+            deleteQuestionFromDatabase(deleteQuestionId);
+        } catch (err) {
+            console.error("Failed to delete question, ", err)
+        }
+    }
+    
+    const saveAssignment = () => {
+        try {
+            saveAssignments([assignmentStore[assignmentId]]);
+        } catch (err) {
+            console.log("something went wrong...")
+        }
     }
 
     const questionsToComponents = () => {
@@ -78,7 +104,7 @@ function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
         <div className="assignment-editor">
             <div className="title-and-visibility">
                 <div className="title-parent">
-                    <TitleInput placeholder="Assignment Title" value={assignment.name ?? ""} />
+                    <TitleInput placeholder="Assignment Title" value={assignment.name ?? ""} onChange={handleAssignmentTitleChange} maxLength={assignmentTitleMaxLength} />
                 </div>
                 <button className="expand-button" onClick={() => setSelected(!selected)}>{triangle()}</button>
             </div>
@@ -90,7 +116,6 @@ function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
                     </div>                
                     <div className="visibility-parent">
                         <div className="label">Visibility:</div>
-
                         <SelectDropdown onChange={handleVisibilityChange} className="visibility-input" defaultValue={visibilityToText[assignment.assignment_mode!]} options={["Draft", "Visible"]} />
                     </div>
                 </div>
@@ -109,13 +134,13 @@ function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
                         </button>
                     </div>
                     <div className="button-parent right-align">
-                        <button className="edit-button save-button">
+                        <button className="edit-button save-button" onClick={saveAssignment}>
                             Save Assignment
                         </button>
                     </div>
                 </div>
             </div>
-            {delteQuestionPopup && <DeletePopup onDelete={deleteQuestion} onClose={() => setDeleteQuestionPopup(false)} titleToDelete={assignment.questions!.find((q) => q.id === deleteQuestionId)!.header!}/>}
+            {deleteQuestionPopup && <DeletePopup onDelete={deleteQuestion} onClose={() => setDeleteQuestionPopup(false)} titleToDelete={assignment.questions!.find((q) => q.id === deleteQuestionId)!.header!}/>}
         </div>
     );
 }

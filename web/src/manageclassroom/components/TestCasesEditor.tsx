@@ -14,6 +14,9 @@ import DeleteTestcasePopup from "../../components/popup/DeleteTestcasePopup"
 
 function TestCasesEditor({question, fontSize: fS}: {question: Question, fontSize?: number}) {
 
+    if (!question.test_cases) {
+        question.test_cases = [];
+    }
     const testCasesList: TestCase[] = question.test_cases!;
     const [selectedTestCase, setSelectedTestCase] = useState<string>("");
 
@@ -28,7 +31,7 @@ function TestCasesEditor({question, fontSize: fS}: {question: Question, fontSize
 
     useEffect(() => {
         if (fS !== fontSize) setFontSize(fS);
-        if (selectedTestCase === "" && testCasesList.length > 0) {
+        if (selectedTestCase === "" && testCasesList && testCasesList.length > 0) {
             setSelectedTestCase(testCasesList[0].id!);
         }
     }, [fS]);
@@ -72,7 +75,7 @@ function TestCasesEditor({question, fontSize: fS}: {question: Question, fontSize
             <div className="testcase-editor-panel">
                 {...testCasesToPanels(testCasesList)}
             </div>
-            {isCreatePopup && <NewTestCasePopup testcaseList={testCasesList} onClose={() => setCreatePopup(false)} />}
+            {isCreatePopup && <NewTestCasePopup testcaseList={testCasesList} onClose={() => setCreatePopup(false)} setSelect={setSelectedTestCase} />}
             {isCopyPopup && <CopyTestcasePopup question={question} toCopy={testCasesList.find((tc) => tc.id === testcaseToModify)!} onClose={() => setCopyPopup(false)} />}
             {isDeletePopup && <DeleteTestcasePopup changeSelected={setSelectedTestCase} question={question} onClose={() => setDeletePopup(false)} testcaseToDelete={testcaseToModify}/>}
         </div>

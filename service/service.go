@@ -33,6 +33,8 @@ type App interface {
 	GetVerboseAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
 	SetVerboseAssignments(jwksToken string, assignments []models.Assignment) error
 	SetVerboseQuestions(jwksToken string, questions []models.Question) error
+	DeleteAssignment(jwksToken string, assignmentId uuid.UUID) error
+	DeleteQuestion(jwksToken string, questionId uuid.UUID) error
 	GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error)
 	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
 }

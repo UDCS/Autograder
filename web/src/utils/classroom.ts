@@ -5,6 +5,7 @@ export const parseDateString = (dateString: string) => {
     return new Date(parts[0], parts[1], parts[2]);
 }
 export const dateToString = (date: Date) => {
+    if (typeof date !== 'object') date = new Date(date);
     let day = date.getDate();
     let month = date.getMonth() + 1;
     return `${date.getFullYear()}-${month <= 9 ? "0" : ""}${month}-${day <= 9 ? "0" : ""}${day}`;

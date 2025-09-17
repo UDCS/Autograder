@@ -25,6 +25,8 @@ type Datastore interface {
 	GetVerboseAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
 	SetVerboseAssignment(assignment models.Assignment) error
 	SetVerboseQuestion(question models.Question) error
+	DeleteAssignment(assignmentId uuid.UUID) error
+	DeleteQuestion(questionId uuid.UUID) error
 	GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error)
 	GetAssignmentInfo(assignmentId uuid.UUID) (models.Assignment, error)
 	GetQuestionInfo(questionId uuid.UUID) (models.Question, error)

@@ -12,6 +12,9 @@ interface DetailsSubpageProps {
     changeClassroomTitle: (newTitle: string) => void;
 }
 
+const courseCodeMaxLength = 16;
+const classroomNameMaxLength = 64;
+
 function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpageProps) {
     const updateClassroomDetails = async (id: string, classroom: Classroom) => {
         var response = await fetch(`/api/classroom/edit/${id}/`, 
@@ -90,13 +93,13 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
             {/* Classroom Name Element */}
             <div className="classroom-name-parent">
                 <h3 id="classroom-name-text" className="details-title-fonts">Classroom Name:</h3>
-                <TextField onChange={handleClassroomNameChange} label="" initialValue="Enter Classroom Name" value={classroomInfo.name} className="classroom-name-field"></TextField>
+                <TextField onChange={handleClassroomNameChange} label="" initialValue="Enter Classroom Name" value={classroomInfo.name} className="classroom-name-field" maxLength={classroomNameMaxLength}></TextField>
             </div>
             {/* Classroom Code and Banner Image Button Element */}
             <div className="classroom-code-parent">
                     <h3 id="course-name-text" className="details-title-fonts">Course Code:</h3>
                 <div className="classroom-code-sub-parent">
-                    <TextField onChange={handleCourseCodeChange} label="" initialValue="Enter Course Code" value={classroomInfo.course_code} className="classroom-code-field"></TextField>
+                    <TextField onChange={handleCourseCodeChange} label="" initialValue="Enter Course Code" value={classroomInfo.course_code} maxLength={courseCodeMaxLength} className="classroom-code-field"></TextField>
                     <BlueButton onClick={() => setIsPopup(true)} className="change-banner-button">Change Banner Image</BlueButton>
                 </div>
             </div>
