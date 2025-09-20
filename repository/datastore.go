@@ -19,7 +19,10 @@ type Datastore interface {
 	EditClassroom(request models.EditClassroomRequest) error
 	DeleteClassroom(request models.DeleteClassroomRequest) error
 	GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error)
+	// Assignments
 	GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
+	GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error)
+	UpdateSubmissionCode(request models.UpdateSubmissionRequest) error
 	// Auth
 	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
@@ -55,6 +58,6 @@ func New(dbConfig *config.Db) PostgresStore {
 }
 
 func getConnStringFromConfig(dbConfig *config.Db) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.DBName, dbConfig.SslMode)
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s",
+		dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.SslMode)
 }

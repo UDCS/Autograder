@@ -1,0 +1,25 @@
+body {
+    background: linear-gradient(90deg, #0CAADC -40%, #ffffff 120%);
+}
+.panelParent {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 3%;
+}
+.error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: red;
+    font-family: "Azeret Mono";
+    font-size: 150%;
+    padding: 2%;
+    width: 50%;
+    border: 2px solid black;
+    border-radius: 25px;
+    background: white;
+    line-height: 1.5;
+    min-height: 20vh;
+}

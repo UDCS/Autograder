@@ -1,0 +1,24 @@
+.assignmentPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    border: 1px solid black;
+    background: white;
+    border-radius: 20px;
+    width: 75%;
+    padding: 2%;
+    box-shadow: 25px 25px 13.9px -6px rgba(0, 0, 0, 0.25);
+}
+
+.assignmentTitle {
+    font-family: "Azeret Mono";
+    font-size: 225%;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.assignmentDescription {
+    font-family: "Azeret Mono";
+    font-weight: lighter;
+    font-size: 125%;
+}

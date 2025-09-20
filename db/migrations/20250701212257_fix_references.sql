@@ -14,7 +14,7 @@ ALTER TABLE invitations
     ADD CONSTRAINT invitations_classroom_id_fkey
         FOREIGN KEY (classroom_id)
         REFERENCES classrooms(id)
-        ON DELETE CASCADE;
+        ON DELETE SET NULL;
 -- +goose StatementEnd
 
 -- +goose Down

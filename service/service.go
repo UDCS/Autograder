@@ -27,7 +27,10 @@ type App interface {
 	GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error)
 	GetClassroom(jwksToken string, classroomId uuid.UUID) (models.Classroom, error)
 	ChangeUserInfo(jwksToken string, request models.ChangeUserInfoRequest) error
+	// Assignments
 	GetViewAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
+	GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error)
+	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
 }
 
 type GraderApp struct {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useState } from "react";
 import TextField from "../components/textfield/Textfield";
 
 interface FormData {
@@ -8,9 +8,6 @@ interface FormData {
 }
 
 function LoginInputs() {
-    useEffect(() => {
-        console.log("Hello, world!");
-    });    
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const login = async () => {
