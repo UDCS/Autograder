@@ -1,17 +1,17 @@
 server:
-  port: "8080"
-
+  port: 8080
+  
 db:
-  host: "cloudsql"
-  port: "5432"
-  user: "postgres"
-  password: "postgres"
-  dbname: "autograder"
-  sslmode: "disable"
+  host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  dbname: autograder
+  sslmode: disable
 
 auth:
   jwt:
-    secret: "dev-jwt-secret"  # Will be overridden by JWT_SECRET env var 
+    secret: secret # Change this to a long random string
     access_token_duration: 15m
     refresh_token_duration: 48h
   admins:
