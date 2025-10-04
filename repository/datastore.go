@@ -30,8 +30,11 @@ type Datastore interface {
 	GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error)
 	GetAssignmentInfo(assignmentId uuid.UUID) (models.Assignment, error)
 	GetQuestionInfo(questionId uuid.UUID) (models.Question, error)
+	GetQuestionTestcases(questionId uuid.UUID) ([]models.Testcase, error)
 	UpdateSubmissionCode(request models.UpdateSubmissionRequest) error
+	GetSubmissionId(userId uuid.UUID, questionId uuid.UUID) (uuid.UUID, error)
 	// Auth
+	UserOwnsSubmission(userId uuid.UUID, submissionId uuid.UUID) bool
 	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
 	CompleteInvitation(invitationId uuid.UUID, completed bool, updatedAt time.Time) error
@@ -39,6 +42,7 @@ type Datastore interface {
 	// User
 	CreateUser(user models.User) (*models.User, error)
 	GetUserInfo(email string) (*models.User, error)
+	GetStudentQuestionGrade(userId uuid.UUID, questionId uuid.UUID) (uint16, error)
 	// Password
 	UpdateUserPassword(userId uuid.UUID, passwordHash string, updatedAt time.Time) (*models.User, error)
 	CreatePasswordChangeRequest(resetDetails models.PasswordResetDetails) error

@@ -92,6 +92,48 @@ func (store PostgresStore) GetQuestionPoints(questionId uuid.UUID) (uint16, erro
 	return points, nil
 }
 
+func (store PostgresStore) GetStudentQuestionGrade(userId uuid.UUID, questionId uuid.UUID) (uint16, error) {
+	var grade uint16 = 0
+	testcases, err := store.GetQuestionTestcases(questionId)
+	if err != nil {
+		return 0, err
+	}
+	for _, testcase := range testcases {
+		testcaseId := testcase.Id
+		var gradeAtTestcase uint16
+		_ = store.db.Get(
+			&gradeAtTestcase,
+			"SELECT score FROM testcase_grades WHERE student_id=$1 AND testcase_id=$2",
+			userId, testcaseId,
+		)
+		grade += gradeAtTestcase
+	}
+	return grade, nil
+}
+
+func (store PostgresStore) UserOwnsSubmission(userId uuid.UUID, submissionId uuid.UUID) bool {
+	var owns bool
+	store.db.Get(
+		&owns,
+		"SELECT EXISTS (SELECT 1 FROM student_submissions WHERE user_id=$1 AND submission_id=$2)",
+		userId, submissionId,
+	)
+	return owns
+}
+
+func (store PostgresStore) GetSubmissionId(userId uuid.UUID, questionId uuid.UUID) (uuid.UUID, error) {
+	var submissionId uuid.UUID
+	err := store.db.Get(
+		&submissionId,
+		"SELECT id from student_submissions WHERE user_id=$1 AND question_id=$2",
+		userId, questionId,
+	)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return submissionId, nil
+}
+
 func (store PostgresStore) GetQuestionInfo(questionId uuid.UUID) (models.Question, error) {
 	var question models.Question
 	err := store.db.Get(
@@ -130,12 +172,7 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 		}
 		for questionIndex := range questions {
 			questionId := questions[questionIndex].Id
-			var score uint16
-			err = store.db.Get(
-				&score,
-				"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
-				questionId, userId,
-			)
+			score, err := store.GetStudentQuestionGrade(userId, questionId)
 			if err != nil && !errors.Is(err, sql.ErrNoRows) {
 				return []models.Assignment{}, err
 			}
@@ -179,13 +216,9 @@ func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId u
 			return []models.Assignment{}, err
 		}
 		for questionIndex := range questions {
-			var testcases []models.Testcase
-			questionId := questions[questionIndex].Id
-			err = store.db.Select(
-				&testcases,
-				"SELECT id, name, question_id, type, points, timeout_seconds FROM testcases WHERE question_id = $1;",
-				questionId,
-			)
+			question := &questions[questionIndex]
+			questionId := question.Id
+			testcases, err := store.GetQuestionTestcases(questionId)
 			if err != nil {
 				return []models.Assignment{}, err
 			}
@@ -193,44 +226,13 @@ func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId u
 			if err != nil {
 				return []models.Assignment{}, err
 			}
-			for testcaseIndex := range testcases {
-				testcase := &testcases[testcaseIndex]
-				switch testcase.Type {
-				case models.Text:
-					textBody := models.TextTestcaseBody{}
-					_ = store.db.Get(
-						&textBody,
-						"SELECT testcase_id, inputs, outputs, hidden FROM text_testcases WHERE testcase_id = $1;",
-						testcase.Id,
-					)
-					testcase.TestcaseBody = textBody
-				default:
-					bashBody := models.BashTestcaseBody{}
-					var primaryBashFile models.File
-					var otherFiles []models.File
-					err = store.db.Select(
-						&otherFiles,
-						"SELECT id, testcase_id, name, suffix, body, primary_bash FROM bash_testcase_files WHERE testcase_id = $1 AND primary_bash = FALSE;",
-						testcase.Id,
-					)
-					if err != nil {
-						return []models.Assignment{}, err
-					}
-					err = store.db.Get(
-						&primaryBashFile,
-						"SELECT id, testcase_id, name, suffix, body, primary_bash FROM bash_testcase_files WHERE testcase_id = $1 AND primary_bash = TRUE;",
-						testcase.Id,
-					)
-					if err != nil {
-						return []models.Assignment{}, err
-					}
-					bashBody.PrimaryBashFile = primaryBashFile
-					bashBody.OtherFiles = otherFiles
-					testcase.TestcaseBody = bashBody
-				}
+			score, err := store.GetStudentQuestionGrade(userId, questionId)
+			if err != nil {
+				return []models.Assignment{}, err
 			}
-			questions[questionIndex].Testcases = testcases
-			questions[questionIndex].Points = points
+			question.Testcases = testcases
+			question.Points = points
+			question.Score = score
 		}
 		sort.Slice(questions, func(i int, j int) bool {
 			return questions[i].SortIndex < questions[j].SortIndex
@@ -364,6 +366,55 @@ func (store PostgresStore) SetVerboseQuestion(question models.Question) error {
 	return nil
 }
 
+func (store PostgresStore) GetQuestionTestcases(questionId uuid.UUID) ([]models.Testcase, error) {
+	var testcases []models.Testcase
+	err := store.db.Select(
+		&testcases,
+		"SELECT id, name, question_id, type, points, timeout_seconds FROM testcases WHERE question_id = $1;",
+		questionId,
+	)
+	if err != nil {
+		return []models.Testcase{}, err
+	}
+	for testcaseIndex := range testcases {
+		testcase := &testcases[testcaseIndex]
+		switch testcase.Type {
+		case models.Text:
+			textBody := models.TextTestcaseBody{}
+			_ = store.db.Get(
+				&textBody,
+				"SELECT testcase_id, inputs, outputs, hidden FROM text_testcases WHERE testcase_id = $1;",
+				testcase.Id,
+			)
+			testcase.TestcaseBody = textBody
+		default:
+			bashBody := models.BashTestcaseBody{}
+			var primaryBashFile models.File
+			var otherFiles []models.File
+			err = store.db.Select(
+				&otherFiles,
+				"SELECT id, testcase_id, name, suffix, body, primary_bash FROM bash_testcase_files WHERE testcase_id = $1 AND primary_bash = FALSE;",
+				testcase.Id,
+			)
+			if err != nil {
+				return []models.Testcase{}, err
+			}
+			err = store.db.Get(
+				&primaryBashFile,
+				"SELECT id, testcase_id, name, suffix, body, primary_bash FROM bash_testcase_files WHERE testcase_id = $1 AND primary_bash = TRUE;",
+				testcase.Id,
+			)
+			if err != nil {
+				return []models.Testcase{}, err
+			}
+			bashBody.PrimaryBashFile = primaryBashFile
+			bashBody.OtherFiles = otherFiles
+			testcase.TestcaseBody = bashBody
+		}
+	}
+	return testcases, nil
+}
+
 func (store PostgresStore) GetAssignmentInfo(assignmentId uuid.UUID) (models.Assignment, error) {
 	var assignment models.Assignment
 	err := store.db.Get(
@@ -404,12 +455,7 @@ func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUI
 
 	for i := range questions {
 		questionId := questions[i].Id
-		var score uint16
-		err = store.db.Get(
-			&score,
-			"SELECT score FROM grades WHERE question_id=$1 AND student_id=$2;",
-			questionId, userId,
-		)
+		score, err := store.GetStudentQuestionGrade(userId, questionId)
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return models.Assignment{}, err
 		}

@@ -37,6 +37,8 @@ type Handler interface {
 	DeleteQuestion(c echo.Context) error
 	GetAssignment(c context.Context) error
 	UpdateSubmissionCode(c context.Context) error
+	// Grader
+	GradeSubmission(c context.Context) error
 }
 
 type HttpRouter struct {
@@ -103,6 +105,9 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.POST("/question/:question_id/submission", router.UpdateSubmissionCode)
 	classroom.POST("/verbose_questions", router.SetVerboseQuestions)
 	classroom.GET("/role/:room_id", router.GetUserRole)
+
+	grader := api.Group("/grader")
+	grader.POST("/question/:question_id", router.GradeSubmission)
 }
 
 func (router *HttpRouter) Engage(port string) {

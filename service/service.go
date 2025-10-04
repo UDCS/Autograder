@@ -37,6 +37,8 @@ type App interface {
 	DeleteQuestion(jwksToken string, questionId uuid.UUID) error
 	GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error)
 	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
+	// Grader
+	GradeSubmission(jwksToken string, questionId uuid.UUID) error
 }
 
 type GraderApp struct {

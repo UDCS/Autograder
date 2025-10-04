@@ -5,6 +5,7 @@ import QuestionScore from "./QuestionScore";
 import ConsoleOutput from "../assignment/ConsoleOutput";
 import { useState } from "react";
 import { Question } from "../../models/classroom";
+import Spinner from "../spinner/Spinner";
 
 var timeLastChange = new Date();
 const setTimeLastChange = (d: Date) => {
@@ -17,6 +18,8 @@ function QuestionPanel({info}: {info: Question}) {
 
     const [code, setCode] = useState(info.code === "" ? info.default_code : info.code);
     const [changes, setChanges] = useState(0);
+
+    const [loading, setLoading] = useState(false);
 
     const updateUserCode = async (val?: string) => {
         const c = (val === undefined) ? code : val;
@@ -37,12 +40,19 @@ function QuestionPanel({info}: {info: Question}) {
             console.log(response);
         }
     }
+    const gradeUserCode = async () => {
+        var response = await fetch(`/api/grader/question/${info.id!}`, {method: "POST"});
+        if (!response.ok) {
+            console.log(response);
+        }
+    }
     const resetTimeLastChange = () => {
         var d = new Date();
         setTimeLastChange(d);
     }
     const onSubmit = () => {
-        updateUserCode();
+        setLoading(true);
+        updateUserCode().then(gradeUserCode);
     }
     const onChange = (val: string | undefined) => {
         setCode(val);
@@ -83,6 +93,7 @@ function QuestionPanel({info}: {info: Question}) {
                 <BlueButton className="submitButton" onClick={onSubmit}>
                     Submit
                 </BlueButton>
+                {loading && <Spinner />}
             </div>
             <div className="scoreParent">
                 <QuestionScore score={info?.score} points={info?.points}/>
