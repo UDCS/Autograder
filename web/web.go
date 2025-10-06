@@ -11,7 +11,6 @@ var (
 	dist embed.FS
 	//go:embed dist/index.html
 	indexHTML embed.FS
-	indexHTML embed.FS
 	//go:embed dist/test/test.html
 	testHTML embed.FS
 	//go:embed dist/login/login.html
