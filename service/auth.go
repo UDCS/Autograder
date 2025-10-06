@@ -80,6 +80,10 @@ func (app *GraderApp) InviteAdmin(invitation models.Invitation) (*models.Invitat
 	msg := fmt.Sprintf("Subject: Create an Admin Autograder Account\nAn Autograder admin has invited you to create an Autograder account.\n\nYou may create the account be visitting https://udcs-autograder.web.app/auth/regiser/%s?token=%s\n\nThis email cannot be replied to. If you have any questions, please contact the admin.", invitation.Id.String(), token)
 	err = email.Send(invitation.Email, msg)
 
+	if err != nil {
+		return nil, err
+	}
+
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 14)
 	createdInvitation, err := app.store.CreateInvitation(invitation)
