@@ -1,0 +1,61 @@
+.testcase-button-parent {
+    display: flex;
+    gap: .5rem;
+}
+.testcase-button {
+    display: flex;
+    flex-direction: column;
+    font-size: 100%;
+    border-radius: 20px;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    margin-bottom: 3vh;
+    flex: 1;
+}
+
+.testcase-button-title {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3%;
+    font-family: 'Azeret Mono';
+    color: white;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+.type-points {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 6%;
+    font-family: 'Azeret Mono';
+    background-color: white;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+.copy-delete-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-right: 4%;
+}
+.icon-button {
+    width: 25px;
+    height: 25px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    border: none;
+    background-color: transparent;
+}
+.delete-icon-button {
+    background-image: url("/public/svg/DeleteButton.svg");
+}
+.copy-icon-button {
+    background-image: url("/public/svg/CopyButton.svg");
+}

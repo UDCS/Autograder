@@ -27,10 +27,18 @@ type Handler interface {
 	DeleteClassroom(c context.Context) error
 	ChangeUserInfo(c context.Context) error
 	GetClassroom(c context.Context) error
+	GetUserRole(c context.Context) error
 	// Assignments
 	GetViewAssignments(c context.Context) error
+	GetVerboseAssignments(c echo.Context) error
+	SetVerboseAssignments(c echo.Context) error
+	SetVerboseQuestions(c echo.Context) error
+	DeleteAssignment(c echo.Context) error
+	DeleteQuestion(c echo.Context) error
 	GetAssignment(c context.Context) error
 	UpdateSubmissionCode(c context.Context) error
+	// Grader
+	GradeSubmission(c context.Context) error
 }
 
 type HttpRouter struct {
@@ -89,8 +97,17 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.PATCH("/edit/:room_id", router.EditClassroom)
 	classroom.DELETE("/delete/:room_id", router.DeleteClassroom)
 	classroom.GET("/:room_id/view_assignments", router.GetViewAssignments)
+	classroom.GET("/:room_id/verbose_assignments", router.GetVerboseAssignments)
+	classroom.POST("/:room_id/verbose_assignments", router.SetVerboseAssignments)
+	classroom.DELETE("/assignment/:assignment_id", router.DeleteAssignment)
+	classroom.DELETE("/question/:question_id", router.DeleteQuestion)
 	classroom.GET("/assignment/:assignment_id", router.GetAssignment)
 	classroom.POST("/question/:question_id/submission", router.UpdateSubmissionCode)
+	classroom.POST("/verbose_questions", router.SetVerboseQuestions)
+	classroom.GET("/role/:room_id", router.GetUserRole)
+
+	grader := api.Group("/grader")
+	grader.POST("/question/:question_id", router.GradeSubmission)
 }
 
 func (router *HttpRouter) Engage(port string) {

@@ -50,6 +50,9 @@
     flex: 1;
 }
 .submitButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 50%;
     padding: 1%;
     border-radius: 10px;

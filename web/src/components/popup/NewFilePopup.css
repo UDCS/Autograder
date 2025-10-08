@@ -1,0 +1,49 @@
+.new-file-popup {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    border: 2px solid black;
+    width: 50%;
+}
+.popup-title {
+    font-size: 150%;
+    font-family: "Azeret Mono";
+    word-wrap: break-word;
+}
+.popup-textfield {
+    font-family: "Azeret Mono";
+    font-size: 100%;
+    margin: 0;
+}
+.popup-buttons-parent {
+    display: flex;
+}
+.cancel-button-parent {
+    flex: 1;
+}
+.submit-button-parent {
+    flex: 1;
+    display: flex;
+    flex-direction: row-reverse;
+}
+.popup-cancel-button {
+    font-size: 125%;
+    width: 75%;
+    padding: 1.5%;
+    font-family: "Azeret Mono";
+    color: white;
+    border-radius: 15px;
+}
+.popup-submit-button {
+    font-size: 125%;
+    width: 75%;
+    padding: 1.5%;
+    font-family: "Azeret Mono";
+    color: white;
+    border-radius: 15px;
+}
+.popup-error {
+    font-family: "Azeret Mono";
+    font-size: 85%;
+    color: red;
+}

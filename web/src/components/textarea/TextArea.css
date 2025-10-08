@@ -1,0 +1,10 @@
+.textarea {
+  border: 2px solid black;
+  padding: 0.5%;
+  font-family: "Azeret Mono";
+  font-size: 100%;
+  border-radius: 10px;
+  resize: none;
+  overflow: hidden;       /* Prevent scrollbars if resizing */
+  min-height: 2em;        /* Prevent collapsing too small */
+}

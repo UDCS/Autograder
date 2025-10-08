@@ -1,0 +1,15 @@
+/* Spinner.css */
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--color-process-cyan); /* color of the arc */
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-left: 8px; /* spacing if next to button text */
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
