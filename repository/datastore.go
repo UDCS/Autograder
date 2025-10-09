@@ -6,6 +6,7 @@ import (
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/config"
+	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -62,6 +63,7 @@ type PostgresStore struct {
 
 func New(dbConfig *config.Db) PostgresStore {
 	ConnString := getConnStringFromConfig(dbConfig)
+	logger.Debug(ConnString)
 	db := sqlx.MustConnect("postgres", ConnString)
 
 	return PostgresStore{
