@@ -1,0 +1,107 @@
+#classroom-name-text {
+    font-family: "Azeret Mono";
+    font-weight: 700;
+    font-size: 125%;
+    word-wrap: none;
+    flex: 2;
+    word-wrap: nowrap;
+}
+
+#course-name-text {
+    word-wrap: none;
+    flex: 2;
+    word-wrap: nowrap;
+}
+
+#start-date-set {
+    display: flex;
+    flex: 1;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+#end-date-set {
+    display: flex;
+    flex: 1;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+#class-description-box {
+    width: 100%;
+}
+
+#course-description-text {
+    padding-bottom: 0.5%;
+}
+
+#submit-changes-button {
+    margin-top: 2%;
+    padding: 10px;
+    border-radius: 10px;
+    width: 100%;
+}
+
+.details-title-fonts {
+    font-family: "Azeret Mono";
+    font-weight: 700;
+    font-size: 125%;
+}
+
+.popup-style {
+    font-family: "Azeret Mono";
+    text-align: center;
+}
+
+.change-banner-button {
+    font-size: 100%;
+    padding: 10px;
+    width: 40%;
+    border-radius: 10px;
+    flex: 4;
+}
+
+.classroom-name-field {
+    font-family: "Azeret Mono";
+    flex: 8;
+}
+
+.classroom-name-parent {
+    display: flex;
+    width: 100%;
+    align-items: baseline;
+}
+
+.classroom-code-field {
+    flex: 4;
+    font-family: "Azeret Mono";
+}
+
+.classroom-code-sub-parent{
+    display: flex;
+    align-items: baseline;
+    flex: 9;
+    gap: 6em;
+}
+
+.classroom-code-parent{
+    display: flex;
+    width: 100%;
+    align-items: baseline;
+}
+
+.date-set-parent {
+    font-family: "Azeret Mono";
+    display: flex;
+    padding-top: 2%;
+    width: 100%;
+    align-items: baseline;
+}
+
+.course-description-parent {
+    font-family: "Azeret Mono";
+    display: flex;
+    padding-top: 2%;
+    width: 100;
+    flex-direction: column;
+}

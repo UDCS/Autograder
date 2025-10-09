@@ -1,0 +1,43 @@
+.testcases-editor {
+    overflow-x: hidden;
+    display: flex;
+    flex: 1;
+    padding: 1vh;
+    box-sizing: border-box;
+}
+.testcase-button-panel {
+    flex: 1;
+    max-height: 89vh;
+    overflow-y: scroll;
+}
+.testcase-editor-panel {
+    overflow-x: hidden;
+    display: flex;
+    flex: 5;
+}
+.run-tests-button {
+    border-radius: 20px;
+    padding: 2%;
+    width: 100%;
+    font-size: 100%;
+    box-sizing: border-box;
+    color: white;
+    font-family: "Azeret Mono";
+    margin-bottom: 2vh;
+}
+.hidden {
+    display: none;
+}
+.new-test-case-button {
+    box-sizing: border-box;
+    padding: 4%;
+    font-size: 100%;
+    width: 100%;
+    margin-bottom: 3vh;
+}
+.test-case-panel-parent {
+    padding: .5%;
+    display: flex;
+    flex: 1;
+    overflow-x: hidden;
+}

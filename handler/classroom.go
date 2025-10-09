@@ -136,6 +136,103 @@ func (router *HttpRouter) GetViewAssignments(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"assignments": assignments})
 }
 
+func (router *HttpRouter) GetVerboseAssignments(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	var classroomId uuid.UUID
+	classroomId, err = uuid.Parse(c.Param("room_id"))
+	if err != nil {
+		logger.Error("could not parse classroom id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	assignments, err := router.app.GetVerboseAssignments(tokenString, classroomId)
+	if err != nil {
+		logger.Error("could not get all assignments", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{"assignments": assignments})
+}
+
+func (router *HttpRouter) SetVerboseAssignments(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
+	}
+
+	var body map[string][]models.Assignment
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse request body"))
+	}
+	var allAssignments []models.Assignment = body["assignments"]
+	for index := range allAssignments {
+		allAssignments[index].Rectify()
+	}
+	if err = router.app.SetVerboseAssignments(tokenString, allAssignments); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+	return c.JSON(http.StatusOK, json_response.NewMessage("successfully edited assignments"))
+}
+
+func (router *HttpRouter) DeleteAssignment(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
+	}
+
+	assignmentId, err := uuid.Parse(c.Param("assignment_id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find parse assignment id"))
+	}
+	if err = router.app.DeleteAssignment(tokenString, assignmentId); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to delete assignment: "+err.Error()))
+	}
+	return c.JSON(http.StatusOK, json_response.NewMessage("successfully deleted assignment"))
+}
+
+func (router *HttpRouter) DeleteQuestion(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
+	}
+
+	assignmentId, err := uuid.Parse(c.Param("question_id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find parse assignment id"))
+	}
+	if err = router.app.DeleteQuestion(tokenString, assignmentId); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to delete question: "+err.Error()))
+	}
+	return c.JSON(http.StatusOK, json_response.NewMessage("successfully deleted question"))
+}
+
+func (router *HttpRouter) SetVerboseQuestions(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
+	}
+
+	var body map[string][]models.Question
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse request body"))
+	}
+	var allQuestions []models.Question = body["questions"]
+	if err = router.app.SetVerboseQuestions(tokenString, allQuestions); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+	return c.JSON(http.StatusOK, json_response.NewMessage("successfully edited classrooms"))
+}
+
 func (router *HttpRouter) GetAssignment(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 
@@ -219,6 +316,25 @@ func (router *HttpRouter) UpdateSubmissionCode(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusAccepted, json_response.JSONMessage{Message: "student code accepted"})
+}
+
+func (router *HttpRouter) GetUserRole(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("Failed to parse cooking for'access_token'", zap.Error(err))
+		return err
+	}
+	roomId, err := uuid.Parse(c.Param("room_id"))
+	if err != nil {
+		logger.Error("Failed to parse room_id", zap.Error(err))
+		return err
+	}
+	role, err := router.app.GetUserRole(tokenString, roomId)
+	if err != nil {
+		logger.Error("Failed to get role", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, "failed to get role")
+	}
+	return c.JSON(http.StatusOK, string(role))
 }
 
 type CreateClassroomRequest struct {

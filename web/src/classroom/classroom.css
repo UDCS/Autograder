@@ -4,18 +4,27 @@
     margin-right: 5%;
     margin-top: 2%;
 }
+
 #assignments {
     flex: 3;
     padding: 1%;
 }
+
+#manage_button {
+    padding: 1%;
+    border-radius: 5px;
+}
+
 #homework { 
-    flex: 1;
     padding: 1%;
 }
-#dummyHomeworkSidebar {
-    width:100%;
-    border: 1px solid black;
+
+#sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
 }
+
 .errorMsg {
     width: 100%;
     margin-top: 3%;

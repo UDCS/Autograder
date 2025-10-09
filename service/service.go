@@ -27,10 +27,18 @@ type App interface {
 	GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error)
 	GetClassroom(jwksToken string, classroomId uuid.UUID) (models.Classroom, error)
 	ChangeUserInfo(jwksToken string, request models.ChangeUserInfoRequest) error
+	GetUserRole(jwksToken string, roomId uuid.UUID) (models.UserRole, error)
 	// Assignments
 	GetViewAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
+	GetVerboseAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
+	SetVerboseAssignments(jwksToken string, assignments []models.Assignment) error
+	SetVerboseQuestions(jwksToken string, questions []models.Question) error
+	DeleteAssignment(jwksToken string, assignmentId uuid.UUID) error
+	DeleteQuestion(jwksToken string, questionId uuid.UUID) error
 	GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error)
 	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
+	// Grader
+	GradeSubmission(jwksToken string, questionId uuid.UUID) error
 }
 
 type GraderApp struct {

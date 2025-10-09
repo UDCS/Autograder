@@ -1,0 +1,45 @@
+.file-tabs {
+  display: inline-block;
+  background-color: #eee;
+  border-bottom: 1px solid #333;
+  overflow-x: auto;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.file-tab {
+  display: inline-block;
+  font-family: "Azeret Mono";
+  align-items: center;
+  padding: .5%;
+  color: #222;
+  cursor: pointer;
+  user-select: none;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+}
+
+.file-tab.active {
+  background-color: #fff;
+  color: black;
+}
+
+.file-tab:hover {
+  background-color: #ccc;
+}
+
+.tab-name {
+  margin-right: 6px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: black;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.close-btn:hover {
+  color: black;
+}

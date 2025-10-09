@@ -1,0 +1,7 @@
+.calendar-input {
+    font-size: 100%;
+    font-family: "Azeret Mono";
+    padding: .75%;
+    border: 2px solid black;
+    border-radius: 10px;
+}

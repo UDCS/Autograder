@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import BlueButton from "../components/bluebutton/BlueButton";
+import BlueButton from "../components/buttons/BlueButton";
 import TextField from "../components/textfield/Textfield";
 import ToggleSwitch from "../components/toggleswitch/ToggleSwitch";
 
