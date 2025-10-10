@@ -47,7 +47,7 @@ jobs:
 
       - name: Start Cloud SQL Proxy
         run: |
-          ./cloud-sql-proxy "${{secrets.GCP_PROJECT_ID}}:${{secrets.MAIN_REGION}}:${{secrets.DB_NAME}}" \
+          ./cloud-sql-proxy udcs-autograder:us-central1:autograder-db \
             --address 127.0.0.1 \
             --port 1234 \
             --credentials-file=/tmp/gcp-key.json &
