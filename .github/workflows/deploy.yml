@@ -47,7 +47,7 @@ jobs:
 
       - name: Start Cloud SQL Proxy
         run: |
-          ./cloud-sql-proxy udcs-autograder:us-central1:autograder-db \
+          ./cloud-sql-proxy "${{secrets.GCP_PROJECT_ID}}:${{secrets.MAIN_REGION}}:${{secrets.DB_NAME}}" \
             --address 127.0.0.1 \
             --port 1234 \
             --credentials-file=/tmp/gcp-key.json &
@@ -60,15 +60,33 @@ jobs:
           go install github.com/pressly/goose/v3/cmd/goose@latest
           export PATH=$PATH:$(go env GOPATH)/bin
           goose -dir db/migrations postgres "user=${{ secrets.DB_USER }} password=${{ secrets.DB_PASSWORD }} dbname=${{ secrets.DB_NAME }} host=127.0.0.1 port=1234 sslmode=disable" up
+      
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${{secrets.MAIN_REGION}}-docker.pkg.dev"
+
+      - name: Build and push Docker image
+        run: |
+          cd grader
+          IMAGE="${{secrets.MAIN_REGION}}-docker.pkg.dev/${{secrets.GCP_PROJECT_ID}}/cloud-run-source-deploy/autograder-grader"
+          docker build -t "$IMAGE:latest" .
+          docker push "$IMAGE:latest"
+          cd ..
+
+      - name: Update Grader Job
+        run: |
+          gcloud run jobs update grader-job \
+            --image="${{secrets.MAIN_REGION}}-docker.pkg.dev/${{secrets.GCP_PROJECT_ID}}/cloud-run-source-deploy/autograder-grader:latest" \
+            --region="${{secrets.GRADER_REGION}}"
+            --project="${{secrets.GCP_PROJECT_ID}}"
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
         with: 
           service: autograder-api
-          region: us-central1
+          region: ${{secrets.MAIN_REGION}}
           source: .
-          project_id: udcs-autograder
-          flags: --add-cloudsql-instances=udcs-autograder:us-central1:autograder-db --timeout=600s --port=8080
+          project_id: ${{secrets.GCP_PROJECT_ID}}
+          flags: --add-cloudsql-instances="${{secrets.GCP_PROJECT_ID}}:${{secrets.MAIN_REGION}}:${{secrets.DB_NAME}}" --timeout=600s --port=8080
           env_vars: |
             DB_HOST=cloudsql
             DB_PORT=${{ secrets.DB_PORT }}
