@@ -76,7 +76,7 @@ jobs:
         run: |
           gcloud run jobs update grader-job \
             --image="${{secrets.MAIN_REGION}}-docker.pkg.dev/${{secrets.GCP_PROJECT_ID}}/cloud-run-source-deploy/autograder-grader:latest" \
-            --region="${{secrets.GRADER_REGION}}"
+            --region="${{secrets.GRADER_REGION}}" \
             --project="${{secrets.GCP_PROJECT_ID}}"
 
       - name: Deploy to Cloud Run
