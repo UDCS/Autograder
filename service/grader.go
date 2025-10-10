@@ -25,7 +25,7 @@ func (app *GraderApp) GradeSubmission(jwksToken string, questionId uuid.UUID) er
 		return err
 	}
 
-	if userInfo.UserRole != models.Admin && userInfo.UserRole != models.Instructor && !app.store.UserOwnsSubmission(userInfo.Id, questionId) {
+	if userInfo.UserRole != models.Admin && userInfo.UserRole != models.Instructor && !app.store.UserOwnsSubmission(userInfo.Id, submissionId) {
 		return fmt.Errorf("user does not have permission to grade submission")
 	}
 
