@@ -1,4 +1,4 @@
-import { Assignment, Question } from "../models/classroom";
+import { Assignment, Classroom, Question } from "../models/classroom";
 
 export const parseDateString = (dateString: string) => {
     let parts = dateString.split("-").map((p, i) => Number(p) - Number(i == 1));
@@ -61,5 +61,25 @@ export const createBlankAssignment = (classroomId: string): Assignment => {
         questions: [
             createBlankQuestion(assignmentId)
         ]
+    }
+}
+
+export const createBlankClassroom = (): Classroom => {
+    const createdDate = new Date();
+    const updatedDate = createdDate;
+    const startDate = new Date();
+    const endDate = startDate.getDate() + 120;
+
+    const classroomId = crypto.randomUUID();
+    return {
+        id: classroomId,
+        name: "",
+        created_at: createdDate,
+        updated_at: updatedDate,
+        start_date: startDate.toString(),
+        end_date: endDate.toString(),
+        course_code: "",
+        course_description: "",
+        banner_image_index: 0
     }
 }
