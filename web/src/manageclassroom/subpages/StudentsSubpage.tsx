@@ -1,5 +1,7 @@
 import { Classroom } from "../../models/classroom";
-import "../css/StudentsSubpage.css"
+// import StudentRepresentation from "";
+// import StudentPanel from "../../"
+import "../css/StudentsSubpage.css";
 
 interface StudentsSubpageProps {
     classroomInfo: Classroom
@@ -7,7 +9,7 @@ interface StudentsSubpageProps {
 function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
     return (
         <>
-            <p>Students</p>
+            <h3>Students</h3>
             <input />
             <br />
             {JSON.stringify(classroomInfo)}

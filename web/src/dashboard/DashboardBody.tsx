@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/navbar/Navbar";
 import DashboardSection from "./DashboardSection";
-import { parseDateString } from "../utils/classroom";
+import { createBlankClassroom, parseDateString } from "../utils/classroom";
+import BlueButton from "../components/buttons/BlueButton";
+import DetailsSubpage from "../manageclassroom/subpages/DetailsSubpage";
+import Popup from "../components/popup/Popup";
 
 function DashboardBody() {
     const [loading, setLoading] = useState(true);
@@ -11,6 +14,8 @@ function DashboardBody() {
     const [activeClasses, setActiveClasses] = useState<any[]>([]);
     const [expiredClasses, setExpiredClasses] = useState<any[]>([]);
     const [noClasses, setNoClasses] = useState(false);
+    
+    const [isPopup, setIsPopup] = useState<boolean>(false);
     
     useEffect(() => {
         var isError = false;
@@ -89,6 +94,11 @@ function DashboardBody() {
                     <DashboardSection title="Enrolled Classes" classes={enrolledClasses}/>
                     <DashboardSection title="Active Classes" classes={activeClasses} />
                     <DashboardSection title="Expired Classes" classes={expiredClasses} />
+                    
+                    { <BlueButton onClick={() => setIsPopup(true)} >Create New Classroom</BlueButton> }
+                    {isPopup && <Popup onClose={() => setIsPopup(false)}>
+                        <DetailsSubpage classroomInfo={createBlankClassroom()}></DetailsSubpage>
+                </Popup>}   
                 </>
                 :
                 <div className="errorParent">
