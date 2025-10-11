@@ -7,10 +7,11 @@ import "../css/AssignmentEditor.css"
 import QuestionEditor from "./QuestionEditor";
 import clsx from "clsx";
 import { Assignment, Question, Visibility } from "../../models/classroom";
-import { assignmentStore, deleteQuestionFromDatabase, saveAssignments, saveQuestions } from "../subpages/AssignmentsSubpage";
+import { assignmentStore, saveAssignments, saveQuestions } from "../subpages/AssignmentsSubpage";
 import { createBlankQuestion, dateToString, parseDateString } from "../../utils/classroom";
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import DeletePopup from "../../components/popup/DeletePopup";
+import { deleteQuestionFromDatabase } from "../../utils/db";
 
 const visibilityToText = {
     "draft": "Draft",

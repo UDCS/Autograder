@@ -3,6 +3,7 @@ import "./NewFilePopup.css";
 import GreyButton from "../buttons/GreyButton";
 import RedButton from "../buttons/RedButton";
 import { Question } from "../../models/classroom";
+import { deleteTestcaseFromDatabase } from "../../utils/db";
 
 type DeleteTestcasePopup = Omit<PopupProps, 'children'> & {
     testcaseToDelete: string;
@@ -12,12 +13,18 @@ type DeleteTestcasePopup = Omit<PopupProps, 'children'> & {
 
 function DeleteTestcasePopup({onClose, question, changeSelected, testcaseToDelete}: DeleteTestcasePopup) {
     const testCase = question.test_cases?.find((tc) => tc.id === testcaseToDelete);
+    
     const deleteTestcase = () => {
         question.test_cases = question.test_cases?.filter((tc) => {
             return tc.id !== testcaseToDelete
         });
         if (question.test_cases) {
             changeSelected(question.test_cases[0].id)
+        }
+        try {
+            deleteTestcaseFromDatabase(testcaseToDelete);
+        } catch (err) {
+            console.error("failed to delete testcase. ", err);
         }
         onClose();
     }

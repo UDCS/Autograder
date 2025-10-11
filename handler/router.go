@@ -36,6 +36,7 @@ type Handler interface {
 	SetVerboseQuestions(c echo.Context) error
 	DeleteAssignment(c echo.Context) error
 	DeleteQuestion(c echo.Context) error
+	DeleteTestcase(c echo.Context) error
 	GetAssignment(c context.Context) error
 	UpdateSubmissionCode(c context.Context) error
 	// Grader
@@ -103,6 +104,7 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.POST("/:room_id/verbose_assignments", router.SetVerboseAssignments)
 	classroom.DELETE("/assignment/:assignment_id", router.DeleteAssignment)
 	classroom.DELETE("/question/:question_id", router.DeleteQuestion)
+	classroom.DELETE("/testcase/:testcase_id", router.DeleteTestcase)
 	classroom.GET("/assignment/:assignment_id", router.GetAssignment)
 	classroom.POST("/question/:question_id/submission", router.UpdateSubmissionCode)
 	classroom.POST("/verbose_questions", router.SetVerboseQuestions)
