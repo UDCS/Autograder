@@ -147,6 +147,20 @@ func (store PostgresStore) GetQuestionInfo(questionId uuid.UUID) (models.Questio
 	return question, nil
 }
 
+func (store PostgresStore) GetTestcaseInfo(testcaseId uuid.UUID) (models.Testcase, error) {
+	var testcase models.Testcase
+	err := store.db.Get(
+		&testcase,
+		"SELECT id, question_id, name, type, points, timeout_seconds FROM testcases WHERE id = $1;",
+		testcaseId,
+	)
+	if err != nil {
+		return models.Testcase{}, err
+	}
+	return testcase, nil
+
+}
+
 func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error) {
 	var assignments []models.Assignment
 	err := store.db.Select(
@@ -313,6 +327,17 @@ func (store PostgresStore) DeleteQuestion(questionId uuid.UUID) error {
 	_, err := store.db.Exec(
 		"DELETE FROM questions WHERE id=$1",
 		questionId,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (store PostgresStore) DeleteTestcase(testcaseId uuid.UUID) error {
+	_, err := store.db.Exec(
+		"DELETE FROM testcases WHERE id=$1",
+		testcaseId,
 	)
 	if err != nil {
 		return err

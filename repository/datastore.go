@@ -27,10 +27,12 @@ type Datastore interface {
 	SetVerboseQuestion(question models.Question) error
 	DeleteAssignment(assignmentId uuid.UUID) error
 	DeleteQuestion(questionId uuid.UUID) error
+	DeleteTestcase(testcaseId uuid.UUID) error
 	GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error)
 	GetAssignmentInfo(assignmentId uuid.UUID) (models.Assignment, error)
 	GetQuestionInfo(questionId uuid.UUID) (models.Question, error)
 	GetQuestionTestcases(questionId uuid.UUID) ([]models.Testcase, error)
+	GetTestcaseInfo(testcaseId uuid.UUID) (models.Testcase, error)
 	UpdateSubmissionCode(request models.UpdateSubmissionRequest) error
 	GetSubmissionId(userId uuid.UUID, questionId uuid.UUID) (uuid.UUID, error)
 	// Auth

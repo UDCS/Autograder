@@ -5,6 +5,7 @@ import AssignmentEditor from "../components/AssignmentEditor";
 import "../css/AssignmentsSubpage.css"
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import DeletePopup from "../../components/popup/DeletePopup";
+import { deleteAssignmentFromDatabase } from "../../utils/db";
 
 interface AssignmentsSubpageProps {
     classroomInfo: Classroom;
@@ -37,30 +38,6 @@ export async function saveQuestions(questionList: Question[]) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({"questions": questionList})
-        }
-    )
-    if (!response.ok) {
-        var errorText = await response.text();
-        throw new Error(errorText);
-    }
-}
-
-export async function deleteQuestionFromDatabase(questionId: string) {
-    var response = await fetch(`/api/classroom/question/${questionId}`, 
-        {
-            method: "DELETE",
-        }
-    )
-    if (!response.ok) {
-        var errorText = await response.text();
-        throw new Error(errorText);
-    }
-}
-
-export async function deleteAssignmentFromDatabase(assignmentId: string) {
-    var response = await fetch(`/api/classroom/assignment/${assignmentId}`, 
-        {
-            method: "DELETE",
         }
     )
     if (!response.ok) {
