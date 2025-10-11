@@ -205,14 +205,32 @@ func (router *HttpRouter) DeleteQuestion(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
 	}
 
-	assignmentId, err := uuid.Parse(c.Param("question_id"))
+	questionId, err := uuid.Parse(c.Param("question_id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find parse assignment id"))
 	}
-	if err = router.app.DeleteQuestion(tokenString, assignmentId); err != nil {
+	if err = router.app.DeleteQuestion(tokenString, questionId); err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to delete question: "+err.Error()))
 	}
 	return c.JSON(http.StatusOK, json_response.NewMessage("successfully deleted question"))
+}
+
+func (router *HttpRouter) DeleteTestcase(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
+	}
+
+	testcaseId, err := uuid.Parse(c.Param("testcase_id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find parse testcase id"))
+	}
+	if err = router.app.DeleteTestcase(tokenString, testcaseId); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to delete testcase: "+err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("successfully deleted testcase"))
 }
 
 func (router *HttpRouter) SetVerboseQuestions(c echo.Context) error {
