@@ -16,7 +16,7 @@ interface DetailsSubpageProps {
 const courseCodeMaxLength = 16;
 const classroomNameMaxLength = 64;
 
-function DetailsSubpage({classroomInfo, changeClassroomTitle, newClassroom=false}: DetailsSubpageProps) {
+function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpageProps) {
     const updateClassroomDetails = async (id: string, classroom: Classroom) => {
         var response = await fetch(`/api/classroom/edit/${id}/`, 
             {
