@@ -68,16 +68,17 @@ export const createBlankClassroom = (): Classroom => {
     const createdDate = new Date();
     const updatedDate = createdDate;
     const startDate = new Date();
-    const endDate = startDate.getDate() + 120;
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 120);
 
     const classroomId = crypto.randomUUID();
     return {
         id: classroomId,
         name: "",
-        created_at: createdDate,
-        updated_at: updatedDate,
-        start_date: startDate.toString(),
-        end_date: endDate.toString(),
+        created_at: createdDate.toString(),
+        updated_at: updatedDate.toString(),
+        start_date: dateToString(startDate),
+        end_date: dateToString(endDate),
         course_code: "",
         course_description: "",
         banner_image_index: 0

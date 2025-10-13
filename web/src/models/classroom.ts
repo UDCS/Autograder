@@ -3,8 +3,8 @@ import { TestCase } from "./testcases";
 export interface Classroom {
     id?: string;
     name?: string;
-    created_at?: Date;
-    updated_at?: Date;
+    created_at?: string;
+    updated_at?: string;
     start_date?: string;
     end_date?: string;
     course_code?: string;
