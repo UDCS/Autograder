@@ -31,10 +31,13 @@ func (router *HttpRouter) CreateClassroom(c echo.Context) error {
 	if request.Name == "" {
 		return c.JSON(http.StatusBadRequest, json_response.NewError("cannot create a classroom without a `name`"))
 	}
-
+	classroomId := request.Id
+	if classroomId == uuid.Nil {
+		classroomId = uuid.New()
+	}
 	newClassroom := models.Classroom{
 		Name:              request.Name,
-		Id:                uuid.New(),
+		Id:                classroomId,
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
 		StartDate:         request.StartDate,
@@ -356,6 +359,7 @@ func (router *HttpRouter) GetUserRole(c echo.Context) error {
 }
 
 type CreateClassroomRequest struct {
+	Id                uuid.UUID       `json:"id"`
 	Name              string          `json:"name"`
 	StartDate         models.DateOnly `json:"start_date"`
 	EndDate           models.DateOnly `json:"end_date"`

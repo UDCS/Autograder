@@ -95,10 +95,14 @@ function DashboardBody() {
                     <DashboardSection title="Active Classes" classes={activeClasses} />
                     <DashboardSection title="Expired Classes" classes={expiredClasses} />
                     
-                    { <BlueButton onClick={() => setIsPopup(true)} >Create New Classroom</BlueButton> }
-                    {isPopup && <Popup onClose={() => setIsPopup(false)}>
-                        <DetailsSubpage classroomInfo={createBlankClassroom()}></DetailsSubpage>
-                </Popup>}   
+                    <div className="create-classroom-parent">
+                        <BlueButton className="create-classroom-button" onClick={() => setIsPopup(true)}>+ Create New Classroom</BlueButton>
+                    </div>
+                    {isPopup && 
+                        <Popup onClose={() => setIsPopup(false)}>
+                            <DetailsSubpage classroomInfo={createBlankClassroom()} newClassroom={true}></DetailsSubpage>
+                        </Popup>
+                    }   
                 </>
                 :
                 <div className="errorParent">

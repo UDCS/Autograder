@@ -26,9 +26,16 @@ func (app *GraderApp) CreateClassroom(jwksToken string, classroom models.Classro
 		return nil, fmt.Errorf("unauthorized: only an admin or an instructor can create a classroom")
 	}
 	createdClassroom, err := app.store.CreateClassroom(classroom)
-	e := app.store.MatchUserToClassroom(userInfo.Email, string(userInfo.UserRole), createdClassroom.Id)
-	if e != nil {
-		return createdClassroom, e
+	if err != nil {
+		return &classroom, err
+	}
+	err = app.store.MatchUserToClassroom(userInfo.Email, string(userInfo.UserRole), createdClassroom.Id)
+	if err != nil {
+		return createdClassroom, err
+	}
+	blankAssignment := models.CreateBlankAssignment(classroom.Id)
+	if err = app.store.SetVerboseAssignment(blankAssignment); err != nil {
+		return createdClassroom, err
 	}
 	return createdClassroom, err
 }

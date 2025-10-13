@@ -105,6 +105,27 @@ type Testcase struct {
 	TestcaseBodyWrapper
 }
 
+func createBlankTestcase(questionId uuid.UUID) Testcase {
+	testcaseId := uuid.New()
+
+	return Testcase{
+		Id:             testcaseId,
+		Name:           "Testcase 1",
+		QuestionId:     questionId,
+		Type:           Text,
+		TimeoutSeconds: 5,
+		Points:         10,
+		TestcaseBodyWrapper: TestcaseBodyWrapper{
+			TestcaseBody: TextTestcaseBody{
+				TestcaseId: testcaseId,
+				Inputs:     "",
+				Outputs:    "",
+				Hidden:     true,
+			},
+		},
+	}
+}
+
 func (testcase *Testcase) Rectify(properQuestionId uuid.UUID) {
 	testcase.QuestionId = properQuestionId
 

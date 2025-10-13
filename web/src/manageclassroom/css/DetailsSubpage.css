@@ -54,8 +54,8 @@
 }
 
 .change-banner-button {
-    font-size: 100%;
-    padding: 10px;
+    font-size: 100% !important;
+    padding: 10px !important;
     width: 40%;
     border-radius: 10px;
     flex: 4;

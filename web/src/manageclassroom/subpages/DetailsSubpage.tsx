@@ -16,7 +16,10 @@ interface DetailsSubpageProps {
 const courseCodeMaxLength = 16;
 const classroomNameMaxLength = 64;
 
-function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpageProps) {
+function DetailsSubpage({classroomInfo, changeClassroomTitle, newClassroom=false}: DetailsSubpageProps) {
+    const directToClassroomManagement = (classroomId: string) => {
+        window.location.href = `/classroom/manage/?id=${classroomId}`
+    }
     const updateClassroomDetails = async (id: string, classroom: Classroom) => {
         var response = await fetch(`/api/classroom/edit/${id}/`, 
             {
@@ -34,6 +37,29 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
             changeClassroomTitle?.(classroom.name!);
         }
     }
+
+    const createNewClassroom = async () => {
+        var response = await fetch(`/api/classroom`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(
+                {
+                    id: classroomInfo?.id!,
+                    name: classroomName,
+                    start_date: startDate,
+                    end_date: endDate,
+                    course_code: courseCode,
+                    course_description: courseDescription
+                }
+            )
+        });
+        if (!response.ok) {
+            var text = await response.text();
+            console.error(text);
+        }
+    }
     const [isPopup, setIsPopup] = useState<boolean>(false);
     const [classroomName, setClassroomName] = useState<string>("");
     const [courseCode, setCourseCode] = useState<string>("");
@@ -46,6 +72,7 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
         setClassroomName(classroomInfo?.name!)
         setCourseCode(classroomInfo?.course_code!)
         // setBannerImage(classroomInfo.banner_image_index!)
+        classroomInfo?.start_date!
         setStartDate(classroomInfo?.start_date!)
         setEndDate(classroomInfo?.end_date!)
         setCourseDescription(classroomInfo?.course_description!)
@@ -76,17 +103,21 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
     }
 
     const handleServerSubmit = () => {
-        updateClassroomDetails(
-            classroomInfo?.id!,
-            {
-                name: classroomName,
-                course_code: courseCode,
-                // banner_image_index: bannerImage, //Non-functional at the moment
-                start_date: startDate,
-                end_date: endDate,
-                course_description: courseDescription
-            }
-        );
+        if (!newClassroom) {
+            updateClassroomDetails(
+                classroomInfo?.id!,
+                {
+                    name: classroomName,
+                    course_code: courseCode,
+                    // banner_image_index: bannerImage, //Non-functional at the moment
+                    start_date: startDate,
+                    end_date: endDate,
+                    course_description: courseDescription
+                }
+            );
+        } else {
+            createNewClassroom().then(() => directToClassroomManagement(classroomInfo!.id!));
+        }
     }
 
     return (
