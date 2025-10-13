@@ -15,6 +15,4 @@ auth:
     access_token_duration: 15m
     refresh_token_duration: 48h
   admins:
-  - acm@udallas.edu
-  - test@udallas.edu
   - mharold@udallas.edu

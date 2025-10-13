@@ -115,7 +115,7 @@ func (store PostgresStore) UserOwnsSubmission(userId uuid.UUID, submissionId uui
 	var owns bool
 	store.db.Get(
 		&owns,
-		"SELECT EXISTS (SELECT 1 FROM student_submissions WHERE user_id=$1 AND submission_id=$2)",
+		"SELECT EXISTS (SELECT 1 FROM student_submissions WHERE user_id=$1 AND id=$2)",
 		userId, submissionId,
 	)
 	return owns
