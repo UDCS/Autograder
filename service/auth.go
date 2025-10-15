@@ -367,3 +367,15 @@ func (app *GraderApp) IsValidLogin(jwksToken string) bool {
 	_, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	return err == nil
 }
+
+func (app *GraderApp) GetRole(jwksToken string) (models.UserRole, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return "", fmt.Errorf("invalid authorization credentials")
+	}
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return "", err
+	}
+	return app.store.GetRole(userInfo.Id)
+}

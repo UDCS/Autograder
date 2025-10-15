@@ -14,6 +14,8 @@ function DashboardBody() {
     const [activeClasses, setActiveClasses] = useState<any[]>([]);
     const [expiredClasses, setExpiredClasses] = useState<any[]>([]);
     const [noClasses, setNoClasses] = useState(false);
+
+    const [canAddClassroom, setCanAddClassroom] = useState(false);
     
     const [isPopup, setIsPopup] = useState<boolean>(false);
     
@@ -72,6 +74,15 @@ function DashboardBody() {
                 setErrorMessage("Error retrieving the classrooms")
             }
         }
+        const getUserRole = async () => {
+            var request = await fetch("/api/auth/role");
+            if (request.ok) {
+                var role = await request.json();
+                if (role == "admin" || role == "instructor") {
+                    setCanAddClassroom(true);
+                }
+            }
+        }
         const stopLoading = () => {
             setLoading(false);
         }
@@ -80,6 +91,8 @@ function DashboardBody() {
                 await verifyLogin();
                 if (isError) return;
                 await getClassrooms();
+                if (isError) return;
+                await getUserRole();
                 stopLoading();
             })();
         }
@@ -94,10 +107,11 @@ function DashboardBody() {
                     <DashboardSection title="Enrolled Classes" classes={enrolledClasses}/>
                     <DashboardSection title="Active Classes" classes={activeClasses} />
                     <DashboardSection title="Expired Classes" classes={expiredClasses} />
-                    
-                    <div className="create-classroom-parent">
-                        <BlueButton className="create-classroom-button" onClick={() => setIsPopup(true)}>+ Create New Classroom</BlueButton>
-                    </div>
+                    {canAddClassroom &&
+                        <div className="create-classroom-parent">
+                            <BlueButton className="create-classroom-button" onClick={() => setIsPopup(true)}>+ Create New Classroom</BlueButton>
+                        </div>
+                    }   
                     {isPopup && 
                         <Popup onClose={() => setIsPopup(false)}>
                             <DetailsSubpage classroomInfo={createBlankClassroom()} newClassroom={true}></DetailsSubpage>

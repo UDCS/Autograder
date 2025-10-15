@@ -181,3 +181,18 @@ func (store PostgresStore) ChangeUserInfo(request models.ChangeUserInfoRequest) 
 	)
 	return err
 }
+
+func (store PostgresStore) GetRole(userId uuid.UUID) (models.UserRole, error) {
+
+	var role models.UserRole
+	err := store.db.Get(
+		&role,
+		"SELECT user_role FROM users WHERE id=$1",
+		userId,
+	)
+	if err != nil {
+		return "", err
+	}
+	return role, nil
+
+}
