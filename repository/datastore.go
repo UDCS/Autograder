@@ -38,6 +38,7 @@ type Datastore interface {
 	// Auth
 	UserOwnsSubmission(userId uuid.UUID, submissionId uuid.UUID) bool
 	ValidInvite(inviteId uuid.UUID, tokenHash string) bool
+	GetRole(userId uuid.UUID) (models.UserRole, error)
 	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
 	CompleteInvitation(invitationId uuid.UUID, completed bool, updatedAt time.Time) error

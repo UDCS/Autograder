@@ -22,6 +22,7 @@ type Handler interface {
 	IsValidLogin(c context.Context) error
 	GetUserName(c context.Context) error
 	ValidInvite(c context.Context) error
+	GetRole(c context.Context) error
 	// Classroom
 	CreateClassroom(c context.Context) error
 	EditClassroom(c context.Context) error
@@ -65,7 +66,7 @@ func New(app service.App) *HttpRouter {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 	}))
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(50))))
 	e.Use(middleware.Gzip())
 
 	router := &HttpRouter{
@@ -92,6 +93,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.GET("/valid_login", router.IsValidLogin)
 	auth.GET("/invite/:invite_id/valid", router.ValidInvite)
 	auth.GET("/user_name", router.GetUserName)
+	auth.GET("/role", router.GetRole)
 
 	classroom := api.Group("/classroom")
 	classroom.GET("/all", router.GetClassroomsOfUser)

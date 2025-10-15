@@ -20,6 +20,7 @@ type App interface {
 	IsValidLogin(jwksToken string) bool
 	ValidInvite(inviteId uuid.UUID, token string) bool
 	GetUserName(jwksToken string) (*models.UserName, error)
+	GetRole(jwksToken string) (models.UserRole, error)
 	// Classroom
 	CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error)
 	MatchUserToClassroom(jwksToken string, userId string, role string, classroomId uuid.UUID) error

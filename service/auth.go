@@ -376,3 +376,15 @@ func (app *GraderApp) ValidInvite(inviteId uuid.UUID, tokenString string) bool {
 	tokenHash := token.HashToken(tokenString)
 	return app.store.ValidInvite(inviteId, tokenHash)
 }
+
+func (app *GraderApp) GetRole(jwksToken string) (models.UserRole, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return "", fmt.Errorf("invalid authorization credentials")
+	}
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return "", err
+	}
+	return app.store.GetRole(userInfo.Id)
+}

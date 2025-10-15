@@ -189,3 +189,18 @@ func (store PostgresStore) ValidInvite(inviteId uuid.UUID, tokenHash string) boo
 	invite, err := store.GetInvitation(inviteId, tokenHash)
 	return err == nil && (!invite.ExpiresAt.Before(time.Now()))
 }
+
+func (store PostgresStore) GetRole(userId uuid.UUID) (models.UserRole, error) {
+
+	var role models.UserRole
+	err := store.db.Get(
+		&role,
+		"SELECT user_role FROM users WHERE id=$1",
+		userId,
+	)
+	if err != nil {
+		return "", err
+	}
+	return role, nil
+
+}
