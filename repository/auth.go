@@ -184,3 +184,11 @@ func (store PostgresStore) ChangeUserInfo(request models.ChangeUserInfoRequest) 
 	)
 	return err
 }
+
+func (store PostgresStore) ValidInvite(inviteId uuid.UUID, tokenHash string) bool {
+	_, err := store.GetInvitation(inviteId, tokenHash)
+	if err != nil {
+		return false
+	}
+	return true
+}

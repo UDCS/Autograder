@@ -367,3 +367,8 @@ func (app *GraderApp) IsValidLogin(jwksToken string) bool {
 	_, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	return err == nil
 }
+
+func (app *GraderApp) ValidInvite(inviteId uuid.UUID, tokenString string) bool {
+	tokenHash := token.HashToken(tokenString)
+	return app.store.ValidInvite(inviteId, tokenHash)
+}
