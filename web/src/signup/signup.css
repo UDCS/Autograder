@@ -84,3 +84,25 @@
 .submit-button:focus {
     background-color: #1E212B;
 }
+
+.errorParent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+.error {
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Azeret Mono';
+    font-size: 150%;
+    margin-top: 2%;
+    padding: 2%;
+    border: 2px solid black;
+    border-radius: 25px;
+    box-shadow: 25px 25px 13.9px -6px rgba(0, 0, 0, 0.25);
+    color: red;
+    min-height: 30vh;
+}

@@ -186,9 +186,6 @@ func (store PostgresStore) ChangeUserInfo(request models.ChangeUserInfoRequest) 
 }
 
 func (store PostgresStore) ValidInvite(inviteId uuid.UUID, tokenHash string) bool {
-	_, err := store.GetInvitation(inviteId, tokenHash)
-	if err != nil {
-		return false
-	}
-	return true
+	invite, err := store.GetInvitation(inviteId, tokenHash)
+	return err == nil && (!invite.ExpiresAt.Before(time.Now()))
 }

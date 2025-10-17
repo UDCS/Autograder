@@ -493,18 +493,13 @@ func (router *HttpRouter) IsValidLogin(c echo.Context) error {
 }
 
 func (router *HttpRouter) ValidInvite(c echo.Context) error {
-	var req ValidateInviteRequest
-	err := c.Bind(&req)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to bind request"))
-	}
 	invite_id, err := uuid.Parse(c.Param("invite_id"))
+	token := c.QueryParam("token")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse invite id"))
 	}
-	req.InvitationID = invite_id
 
-	if router.app.ValidInvite(req.InvitationID, req.Token) {
+	if router.app.ValidInvite(invite_id, token) {
 		return c.JSON(http.StatusOK, json_response.NewMessage("true"))
 	}
 
@@ -535,10 +530,5 @@ type (
 
 	NewPasswordRequest struct {
 		NewPassword string `json:"password"`
-	}
-
-	ValidateInviteRequest struct {
-		InvitationID uuid.UUID `json:"invite_id"`
-		Token        string    `json:"token"`
 	}
 )
