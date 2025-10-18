@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/config"
 	"github.com/UDCS/Autograder/utils/email"
 	"github.com/UDCS/Autograder/utils/jwt_token"
 	"github.com/UDCS/Autograder/utils/logger"
@@ -38,10 +39,12 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 		return nil, err
 	}
 
+	baseUrl := config.GetBaseURL()
+
 	// TODO: email the invitation with the link containg both token and invitation I
 	//email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
 	//msg := "Subject: Create an Autograder Account\n\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visitting auth/regiser/" + invitation.Id.String() + "?token=" + token + "\n\nThis email cannot be replied to. If you have any questions, please contact your professor."
-	msg := fmt.Sprintf("Subject: Create an Autograder Account\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visitting https://udcs-autograder.web.app/auth/regiser/%s?token=%s\n\nThis email cannot be replied to. If you have any questions, please contact your professor.", invitation.Id.String(), token)
+	msg := fmt.Sprintf("Subject: Create an Autograder Account\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visiting %s/signup?id=%s&token=%s\n\nThis email cannot be replied to. If you have any questions, please contact your professor.", baseUrl, invitation.Id.String(), token)
 	err = email.Send(invitation.Email, msg)
 	if err != nil {
 		fmt.Print(err.Error())
@@ -77,7 +80,8 @@ func (app *GraderApp) InviteAdmin(invitation models.Invitation) (*models.Invitat
 	"Subject: Create an Admin Autograder Account\n\nAn Autograder admin has invited you to create an admin Autograder account.\n\nYou may create the account be visitting auth/regiser/"
 	+ invitation.Id.String() + "?token=" + token +
 	"\n\nThis email cannot be replied to. If you have any questions, please contact the admin."*/
-	msg := fmt.Sprintf("Subject: Create an Admin Autograder Account\nAn Autograder admin has invited you to create an Autograder account.\n\nYou may create the account be visitting https://udcs-autograder.web.app/auth/regiser/%s?token=%s\n\nThis email cannot be replied to. If you have any questions, please contact the admin.", invitation.Id.String(), token)
+	baseUrl := config.GetBaseURL()
+	msg := fmt.Sprintf("Subject: Create an Admin Autograder Account\nAn Autograder admin has invited you to create an Autograder account.\n\nYou may create the account be visiting %s/signup?id=%s&token=%s\n\nThis email cannot be replied to. If you have any questions, please contact the admin.", baseUrl, invitation.Id.String(), token)
 	err = email.Send(invitation.Email, msg)
 
 	if err != nil {
