@@ -492,6 +492,20 @@ func (router *HttpRouter) IsValidLogin(c echo.Context) error {
 	return c.JSON(http.StatusOK, json_response.NewMessage("false"))
 }
 
+func (router *HttpRouter) ValidInvite(c echo.Context) error {
+	invite_id, err := uuid.Parse(c.Param("invite_id"))
+	token := c.QueryParam("token")
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse invite id"))
+	}
+
+	if router.app.ValidInvite(invite_id, token) {
+		return c.JSON(http.StatusOK, json_response.NewMessage("true"))
+	}
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("false"))
+}
+
 type (
 	CreateInvitationRequest struct {
 		Email       string          `json:"email"`

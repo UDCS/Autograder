@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -63,4 +64,12 @@ func GetConfig() *Config {
 	})
 
 	return configInstance
+}
+
+func GetBaseURL() string {
+	url := os.Getenv("BASE_URL")
+	if url == "" {
+		return "http://localhost:8080"
+	}
+	return url
 }

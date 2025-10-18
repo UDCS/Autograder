@@ -24,6 +24,9 @@ func (store PostgresStore) CreateInvitation(invitation models.Invitation) (*mode
 			invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt, nil,
 		).StructScan(&createdInvitation)
 	}
+	if err != nil {
+		return &models.Invitation{}, err
+	}
 	return &createdInvitation, err
 }
 
@@ -180,4 +183,9 @@ func (store PostgresStore) ChangeUserInfo(request models.ChangeUserInfoRequest) 
 		request.FirstName, request.LastName, time.Now(), request.Email,
 	)
 	return err
+}
+
+func (store PostgresStore) ValidInvite(inviteId uuid.UUID, tokenHash string) bool {
+	invite, err := store.GetInvitation(inviteId, tokenHash)
+	return err == nil && (!invite.ExpiresAt.Before(time.Now()))
 }
