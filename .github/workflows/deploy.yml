@@ -96,3 +96,4 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             EMAIL=${{ secrets.AUTOGRADER_EMAIL_ADDRESS }}
             PASS=${{secrets.AUTOGRADER_EMAIL_APP_PW}}
+            BASE_URL=${{secrets.BASE_URL}}
