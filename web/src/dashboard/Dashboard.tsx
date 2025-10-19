@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/navbar/NavBar";
+import Navbar from "../components/navbar/Navbar";
 import DashboardSection from "./DashboardSection";
 import "./Dashboard.css";
 

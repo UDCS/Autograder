@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import AssignmentPanel from "../components/assignment/AssignmentPanel";
-import Navbar from "../components/navbar/NavBar";
+import Navbar from "../components/navbar/Navbar";
 import "./Assignment.css";
 
 function Assignment() {
