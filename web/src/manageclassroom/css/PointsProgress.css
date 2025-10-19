@@ -5,7 +5,7 @@
     width: 100%;
     padding: 1%;
     gap: 1rem;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
 }
 .points-progress-bar {
     width: 100%;
@@ -24,7 +24,7 @@
   background-color: var(--color-success);
 }
 .progress-text {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-size: 100%;
 }
 .progress-text-parent {

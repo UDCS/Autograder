@@ -48,18 +48,18 @@ tr {
 }
 
 .input {
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
     font-size: 125%;
     width: 95%;
 }
 
 .label {
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
     font-size: 150%;
 }
 
 .lastUpdated {
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
     font-weight: lighter;
     font-size: 150%;
 }
@@ -96,7 +96,7 @@ tr {
 }
 
 #linkSent {
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
     font-size: 90%;
     width: 100%;
     color: var(--color-red);

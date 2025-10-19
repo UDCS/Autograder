@@ -40,7 +40,7 @@
   width: 90%;
   color: var(--color-white);
   line-height: 1.25;
-  font-family: 'Azeret Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-weight: 700;
 }
 
@@ -59,7 +59,7 @@
 .course-card-date {
   width: 100%;
   color: var(--color-white);
-  font-family: 'Azeret Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-weight: 700;
   font-size: clamp(0.4rem, 0.8vw, 0.875rem);
   text-align: right;

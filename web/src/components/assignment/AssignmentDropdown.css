@@ -14,7 +14,7 @@
     color: var(--color-white);
     font-weight: bold;
     user-select: none;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     text-align: left;
     font-size: 150%;
     padding: 1%;
@@ -23,7 +23,7 @@
 .openAssignment {
     background: var(--color-bg-dropdown);
     color: var(--color-black);
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     padding: .5%;
     font-size: 85%;
     border-radius: 15px;

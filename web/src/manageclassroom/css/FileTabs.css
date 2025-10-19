@@ -9,7 +9,7 @@
 
 .file-tab {
   display: inline-block;
-  font-family: "Azeret Mono";
+  font-family: "Roboto";
   align-items: center;
   padding: .5%;
   color: var(--color-gray-text);

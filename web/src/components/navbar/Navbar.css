@@ -16,7 +16,7 @@
 }
 
 .nav-item {
-    font-family: 'Azeret Mono', monospace;
+    font-family: 'Roboto', sans-serif;
     text-transform: uppercase;
     text-decoration: none;
     color: var(--color-NCS-blue);

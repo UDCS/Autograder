@@ -7,15 +7,15 @@
 }
 .popup-title {
     font-size: 150%;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
 }
 .popup-textfield {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-size: 100%;
     margin: 0;
 }
 .create-button {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     color: white;
     padding: 1%;
     font-size: 125%;
@@ -26,7 +26,7 @@
     flex-direction: column;
 }
 .test-type-label {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     margin-bottom: 0.5rem;
     font-size: 1rem;
     font-weight: 500;

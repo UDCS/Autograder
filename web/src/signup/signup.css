@@ -7,7 +7,7 @@
 }
 
 .signup-page {
-    font-family: 'Azeret Mono', monospace;
+    font-family: 'Roboto', sans-serif;
     width: 100vw;
     height: 94.5vh;
     background: var(--color-bg-primary);
@@ -95,7 +95,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
     font-size: 150%;
     margin-top: 2%;
     padding: 2%;

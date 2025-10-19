@@ -6,13 +6,13 @@
     box-sizing: border-box;
 }
 .questionTitle {
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
     font-size: 150%;   
     margin-bottom: 4%;
 }
 .questionDescription {
     font-size: 100%;
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
 }
 .resetStarterCodeParent {
     display: flex;
@@ -22,7 +22,7 @@
     width: 100%;
 }
 .resetStarterCode {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-size: 100%;
     padding: .75%;
     background: var(--color-NCS-blue);

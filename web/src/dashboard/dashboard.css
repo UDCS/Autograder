@@ -9,7 +9,7 @@ body {
     align-items: stretch;     /* Makes all cards equal height */
 }
 .section-title {
-    font-family: 'Azeret Mono', monospace;
+    font-family: 'Roboto', sans-serif;
     font-size: 200%;
     margin-bottom: 1%;
     margin-left: 2%;
@@ -35,7 +35,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
     font-size: 150%;
     margin-top: 2%;
     padding: 2%;

@@ -36,7 +36,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
     font-size: 150%;
     margin-top: 2%;
     padding: 2%;
@@ -61,7 +61,7 @@
 }
 .edit-button {
     width: 50%;
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto';
     color: var(--color-white);
     border-radius: 20px;
     padding: 1.5%;

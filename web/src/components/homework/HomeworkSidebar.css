@@ -10,7 +10,7 @@
     color: var(--color-white);
     border-bottom: 2px solid var(--color-black);
     padding: 5%;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-size: 175%;
     word-break: break-all;
 }

@@ -5,13 +5,13 @@
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-size: 80%;
 }
 .fontsize-number {
     width: 50%;
     text-align: center;
     font-size: 120%;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-weight: bold;
 }
