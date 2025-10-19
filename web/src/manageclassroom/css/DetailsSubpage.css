@@ -1,5 +1,5 @@
 #classroom-name-text {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-weight: 700;
     font-size: 125%;
     word-wrap: none;
@@ -43,13 +43,13 @@
 }
 
 .details-title-fonts {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-weight: 700;
     font-size: 125%;
 }
 
 .popup-style {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     text-align: center;
 }
 
@@ -62,7 +62,7 @@
 }
 
 .classroom-name-field {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     flex: 8;
 }
 
@@ -74,7 +74,7 @@
 
 .classroom-code-field {
     flex: 4;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
 }
 
 .classroom-code-sub-parent{
@@ -91,7 +91,7 @@
 }
 
 .date-set-parent {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     display: flex;
     padding-top: 2%;
     width: 100%;
@@ -99,7 +99,7 @@
 }
 
 .course-description-parent {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     display: flex;
     padding-top: 2%;
     width: 100;

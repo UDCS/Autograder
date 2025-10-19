@@ -5,9 +5,8 @@
 }
 
 body {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     margin: 0;
-    overflow: hidden;
 }
 
 #welcome-text {

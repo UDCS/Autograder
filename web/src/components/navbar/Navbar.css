@@ -1,12 +1,10 @@
-@import url(../../colors.css);
-
 .navbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding-top: 1vh;
     padding-bottom: 1vh;
-    background: #fff;
+    background: var(--color-bg-navbar);
 }
 
 .nav-left {
@@ -18,7 +16,7 @@
 }
 
 .nav-item {
-    font-family: 'Azeret Mono';
+    font-family: 'Roboto', sans-serif;
     text-transform: uppercase;
     text-decoration: none;
     color: var(--color-NCS-blue);
@@ -29,9 +27,6 @@
     font-family: 'Monomaniac One';
     font-size: 2em;
     text-transform: uppercase;
-	background: linear-gradient(to right, var(--color-raisin-black) 0%, var(--color-process-cyan) 100%);
+	color: var(--color-raisin-black);
 	text-decoration: none;
-    background-clip: text;
-    -webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
 }

@@ -1,5 +1,5 @@
 .color-button {
-    background-color: var(--bg-color, #333);
+    background-color: var(--bg-color, var(--color-gray-darkest));
     border: none;
     cursor: pointer;
     transition: background-color 0.2s ease;
