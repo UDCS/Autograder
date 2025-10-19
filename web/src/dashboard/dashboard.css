@@ -1,9 +1,4 @@
-@import url(..//reset.css);
-@import "tailwindcss";
-
 body {
-    font-family: "Azeret Mono";
-    margin: 0;
     background: linear-gradient(90deg, #0CAADC -20%, #ffffff 120%);
 }
 

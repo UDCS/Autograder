@@ -1,16 +1,3 @@
-@import url(..//reset.css);
-@import "tailwindcss";
-
-* {
-    overscroll-behavior: none;
-}
-
-body {
-    font-family: "Azeret Mono";
-    margin: 0;
-    overflow: hidden;
-}
-
 #notication-text {
     font-family: "Monomaniac One";
     font-size: 96px;

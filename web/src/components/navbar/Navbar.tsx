@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import AnimatedLogo from "./AnimatedLogo";
 import { Link } from "react-router";
-import "./NavBar.css";
-// import "../global.css";
+import "./Navbar.css";
 
 // TODO: The text within the navbar is somehow not centered vertically. This is a problem to fix later
 function Navbar() {
