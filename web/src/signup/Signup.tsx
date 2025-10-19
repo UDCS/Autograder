@@ -1,18 +1,7 @@
 import TextField from "../components/textfield/Textfield";
+import PasswordField from "../components/textfield/PasswordField";
 import "./Signup.css";
 import { Link } from "react-router";
-
-interface FormData {
-  value: string;
-  isValid: boolean;
-  error: string;
-}
-
-const handleTextChange = (data: FormData) => {
-  console.log("Value:", data.value);
-  console.log("Is Valid:", data.isValid);
-  console.log("Error:", data.error);
-};
 
 function Signup() {
   return (
@@ -20,28 +9,10 @@ function Signup() {
       <div className="signup-card">
         <h1 className="signup-title">Sign Up</h1>
         <div className="input-container">
-          <TextField
-            initialValue="First Name"
-            label=""
-            onChange={handleTextChange}
-          />
-          <TextField
-            initialValue="Last Name"
-            label=""
-            onChange={handleTextChange}
-          />
-          <TextField
-            initialValue="Create Password"
-            label=""
-            type="password"
-            onChange={handleTextChange}
-          />
-          <TextField
-            initialValue="Re-Type Password"
-            label=""
-            type="password"
-            onChange={handleTextChange}
-          />
+          <TextField initialValue="First Name" />
+          <TextField initialValue="Last Name" />
+          <PasswordField initialValue="Create Password" />
+          <PasswordField initialValue="Re-Type Password" />
         </div>
         <Link to="/i/faq" className="why-am-i-here">
           Why am I here?

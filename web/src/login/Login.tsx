@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import TextField from "../components/textfield/Textfield";
+import EmailField from "../components/textfield/EmailField";
+import PasswordField from "../components/textfield/PasswordField";
 import "./Login.css";
 import { Link } from "react-router";
 
@@ -49,18 +50,12 @@ function Login() {
       <div className="signin-card">
         <h1 className="signin-title">Sign In</h1>
         <div className="input-container">
-          <TextField
-            initialValue=""
-            label=""
-            type="email"
+          <EmailField
             onChange={(data: FormData): void => {
               setUsername(data.value);
             }}
           />
-          <TextField
-            initialValue=""
-            label=""
-            type="password"
+          <PasswordField
             onChange={(data: FormData) => {
               setPassword(data.value);
             }}

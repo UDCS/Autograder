@@ -16,7 +16,7 @@
     background: white;
     box-shadow: 33px 35px 13.9px -6px rgba(0, 0, 0, 0.25);
     border-radius: 25px;
-    overflow: visible;
+    overflow: hidden;
     border: 4px solid #1E212B;
 }
 
@@ -39,11 +39,33 @@
     margin-top: 2.5%;
 }
 
-.input-container input{
+.input-container .textfield-container {
+    margin: 0;
+    margin-top: 5%;
+}
+
+.input-container .textfield-input {
     font-size: 24px;
     border-color: #000000;
     border-width: 1.5px;
-    margin-top: 5%;
+    border-style: solid;
+    border-radius: 5px;
+    padding: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.input-container .textfield-input::placeholder {
+    color: #999;
+    opacity: 1;
+}
+
+.input-container .textfield-input.error {
+    border-color: #000000;  /* Keep black border even on error */
+}
+
+.input-container .error-message {
+    display: none;  /* Hide validation errors on login page */
 }
 
 .forgot-pw {
