@@ -2,7 +2,7 @@
     font-family: 'Azeret Mono', monospace;
     width: 100vw;
     height: 94.5vh;
-    background: var(--color-process-cyan);
+    background: var(--color-bg-primary);
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;

@@ -4,7 +4,7 @@
     align-items: center;
     padding-top: 1vh;
     padding-bottom: 1vh;
-    background: var(--color-white);
+    background: var(--color-bg-navbar);
 }
 
 .nav-left {
@@ -16,7 +16,7 @@
 }
 
 .nav-item {
-    font-family: 'Azeret Mono';
+    font-family: 'Azeret Mono', monospace;
     text-transform: uppercase;
     text-decoration: none;
     color: var(--color-NCS-blue);
