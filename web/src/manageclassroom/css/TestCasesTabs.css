@@ -1,12 +1,12 @@
 .testcases-tabs {
     width: 100%;
     box-sizing: border-box;
-    background: #eee;
+    background: var(--color-gray-light);
 }
 .tabs {
     display: flex;
     align-items: center;
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid var(--color-black);
     width: 100%;
     box-sizing: border-box;
 }

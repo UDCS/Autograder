@@ -4,7 +4,7 @@
     align-items: center;
     padding-top: 1vh;
     padding-bottom: 1vh;
-    background: #fff;
+    background: var(--color-white);
 }
 
 .nav-left {
@@ -27,9 +27,6 @@
     font-family: 'Monomaniac One';
     font-size: 2em;
     text-transform: uppercase;
-	background: linear-gradient(to right, var(--color-raisin-black) 0%, var(--color-process-cyan) 100%);
+	color: var(--color-raisin-black);
 	text-decoration: none;
-    background-clip: text;
-    -webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
 }

@@ -7,10 +7,10 @@
   max-height: 400px;
   min-height: 250px;
   margin: 0 auto;
-  background: white;
+  background: var(--color-white);
   border-radius: 0.625rem;
   overflow: hidden;
-  outline: 0.15625rem solid black;
+  outline: 0.15625rem solid var(--color-black);
 }
 
 .course-card-image {
@@ -38,7 +38,7 @@
   bottom: 7%;
   left: 5%;
   width: 90%;
-  color: white;
+  color: var(--color-white);
   line-height: 1.25;
   font-family: 'Azeret Mono', monospace;
   font-weight: 700;
@@ -58,7 +58,7 @@
 
 .course-card-date {
   width: 100%;
-  color: white;
+  color: var(--color-white);
   font-family: 'Azeret Mono', monospace;
   font-weight: 700;
   font-size: clamp(0.4rem, 0.8vw, 0.875rem);

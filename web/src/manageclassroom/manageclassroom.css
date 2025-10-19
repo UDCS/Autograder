@@ -32,7 +32,7 @@
     width: 100%;
 }
 .error {
-    background: white;
+    background: var(--color-white);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -40,9 +40,9 @@
     font-size: 150%;
     margin-top: 2%;
     padding: 2%;
-    border: 2px solid black;
+    border: 2px solid var(--color-black);
     border-radius: 25px;
-    color: red;
+    color: var(--color-red);
     min-height: 30vh;
 }
 .edit-buttons {
@@ -62,7 +62,7 @@
 .edit-button {
     width: 50%;
     font-family: 'Azeret Mono';
-    color: white;
+    color: var(--color-white);
     border-radius: 20px;
     padding: 1.5%;
     font-size: 150%;
@@ -82,15 +82,15 @@ button.save-button:active {
 }
 
 .delete-button {
-    background-color: red;
+    background-color: var(--color-red);
 }
 
 .delete-button:hover {
-    background-color: #e00;
+    background-color: var(--color-danger);
 }
 
 button.delete-button:active {
-    background-color: darkred;
+    background-color: var(--color-error);
 }
 
 .edit-button:disabled {

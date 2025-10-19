@@ -10,18 +10,18 @@
 .points-progress-bar {
     width: 100%;
     height: 10px;
-    background: red;
+    background: var(--color-red);
 }
 .points-progress-bar::-webkit-progress-bar {
-  background-color: red;
+  background-color: var(--color-red);
 }
 
 .points-progress-bar::-webkit-progress-value {
-  background-color: #0f0;
+  background-color: var(--color-success);
 }
 
 .points-progress-bar::-moz-progress-bar {
-  background-color: #0f0;
+  background-color: var(--color-success);
 }
 .progress-text {
     font-family: "Azeret Mono";
@@ -33,10 +33,10 @@
     gap: 1rem;
 }
 .redtext {
-    color: red;
+    color: var(--color-red);
 }
 .greentext {
-    color: lime;
+    color: var(--color-success);
 }
 .total-points {
     flex: 1;

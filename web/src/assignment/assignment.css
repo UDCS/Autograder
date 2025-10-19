@@ -1,5 +1,5 @@
 body {
-    background: linear-gradient(90deg, #0CAADC -40%, #ffffff 120%);
+    background: var(--color-process-cyan);
 }
 .panelParent {
     display: flex;
@@ -12,14 +12,14 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: red;
+    color: var(--color-red);
     font-family: "Azeret Mono";
     font-size: 150%;
     padding: 2%;
     width: 50%;
-    border: 2px solid black;
+    border: 2px solid var(--color-black);
     border-radius: 25px;
-    background: white;
+    background: var(--color-white);
     line-height: 1.5;
     min-height: 20vh;
 }

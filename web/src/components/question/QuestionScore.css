@@ -10,13 +10,13 @@
     font-size: 125%;
 }
 .green {
-    color: #1DFF38;
+    color: var(--color-success);
 }
 .yellow {
-    color: #FFD902;
+    color: var(--color-warning);
 }
 .red {
-    color: #FF1D21;
+    color: var(--color-error);
 }
 .completionIndicator {
     width: 40px;

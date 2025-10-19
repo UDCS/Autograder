@@ -1,6 +1,6 @@
 .assignmentDropdown {
     width: 100%;
-    border: 1.5px solid black;
+    border: 1.5px solid var(--color-black);
     box-sizing: border-box;
 }
 
@@ -10,8 +10,8 @@
     align-items: center;
     box-sizing: border-box;
     width: 100%;
-    background-color: #9a9a9a;
-    color: white;
+    background-color: var(--color-bg-dropdown-dark);
+    color: var(--color-white);
     font-weight: bold;
     user-select: none;
     font-family: "Azeret Mono";
@@ -21,8 +21,8 @@
 }
 
 .openAssignment {
-    background: #d9d9d9;
-    color: black;
+    background: var(--color-bg-dropdown);
+    color: var(--color-black);
     font-family: "Azeret Mono";
     padding: .5%;
     font-size: 85%;
@@ -33,7 +33,7 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    background-color: #595959;
-    color: black;
+    background-color: var(--color-gray-darker);
+    color: var(--color-black);
     padding: 2.5%;
 }

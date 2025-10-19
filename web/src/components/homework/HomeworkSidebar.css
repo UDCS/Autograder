@@ -1,14 +1,14 @@
 .homeworkSidebar {
     border-radius: 15px;
-    border: 1.5px solid black;
-    background: #cacaca;
-    color: white;
+    border: 1.5px solid var(--color-black);
+    background: var(--color-bg-sidebar);
+    color: var(--color-white);
     min-height: 50vh;
 }
 
 .homeworkHeader {
-    color: white;
-    border-bottom: 2px solid black;
+    color: var(--color-white);
+    border-bottom: 2px solid var(--color-black);
     padding: 5%;
     font-family: "Azeret Mono";
     font-size: 175%;

@@ -32,6 +32,6 @@
     font-weight: 500;
 }
 .test-type {
-    border: 1px solid #ccc;
+    border: 1px solid var(--color-gray-medium);
     border-radius: 5px;
 }
