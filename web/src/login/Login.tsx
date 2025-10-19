@@ -52,7 +52,7 @@ function Login() {
           <TextField
             initialValue=""
             label=""
-            email
+            type="email"
             onChange={(data: FormData): void => {
               setUsername(data.value);
             }}
@@ -60,7 +60,7 @@ function Login() {
           <TextField
             initialValue=""
             label=""
-            password
+            type="password"
             onChange={(data: FormData) => {
               setPassword(data.value);
             }}

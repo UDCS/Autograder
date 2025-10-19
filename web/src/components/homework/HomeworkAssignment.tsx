@@ -23,7 +23,7 @@ function HomeworkAssignment({
   return (
     <Link
       className={`homeworkAssignment${isLate ? " late" : ""}`}
-      to={`/assignment?id=${assignmentId}`}
+      to={`/i/assignment?id=${assignmentId}`}
     >
       {name}
       <br />

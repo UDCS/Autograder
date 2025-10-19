@@ -17,7 +17,7 @@ function AssignmentDropdown({ name, children, id }: AssignmentDropdownProps) {
     <div className="assignmentDropdown">
       <div className="revealButton" onClick={() => setSelected(!selected)}>
         {name} {triangle()}
-        <Link to={`/assignment?id=${id}`}>
+        <Link to={`/i/assignment?id=${id}`}>
           <button
             onClick={(e: React.MouseEvent) => {
               e.stopPropagation();

@@ -23,7 +23,7 @@ function QuestionBulletPoint({
   };
   return (
     <Link
-      to={`/assignment?id=${assignmentId}#${questionId}`}
+      to={`/i/assignment?id=${assignmentId}#${questionId}`}
       className="assignmentQuestion"
     >
       <img className="completionIndicator" src={stateImage[completionState]} />

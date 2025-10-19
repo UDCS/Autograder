@@ -7,6 +7,7 @@ import HomeworkAssignment from "../components/homework/HomeworkAssignment";
 import HomeworkSidebar from "../components/homework/HomeworkSidebar";
 import Navbar from "../components/navbar/NavBar";
 import TitleBanner from "../components/titlebanner/TitleBanner";
+import BlueButton from "../components/buttons/BlueButton";
 import "./Classroom.css";
 
 function Classroom() {
@@ -27,7 +28,9 @@ function Classroom() {
         const score = q["score"];
         const name = q["header"];
         const questionId = q["id"];
+
         let state: CompletionState = "none";
+
         if (score >= points) {
           state = "full";
         } else if (score > 0) {
@@ -74,6 +77,10 @@ function Classroom() {
           assignmentId={a["id"]}
         />
       ));
+  };
+
+  const reRoute = () => {
+    window.location.href = `/classroom/manage/?id=${classroomId}`;
   };
 
   useEffect(() => {
@@ -124,6 +131,10 @@ function Classroom() {
     const stopLoading = () => {
       setLoading(false);
     };
+    // const getUserRole = async () => {
+    //     var response = await fetch(`api/classroom/${classroomId}/`)
+    // }
+
     if (loading) {
       verifyLogin().then(() => {
         if (!isError) {
@@ -136,6 +147,7 @@ function Classroom() {
       });
     }
   });
+
   return (
     <>
       {!loading ? (
@@ -146,8 +158,15 @@ function Classroom() {
               <TitleBanner>{classroomName}</TitleBanner>
               <div id="classroomBody">
                 <div id="assignments">{...assignmentsJSONToReact()}</div>
-                <div id="homework">
-                  <HomeworkSidebar>{...homeworkFromJSON()}</HomeworkSidebar>
+                <div id="sidebar">
+                  {/* {role == ("admin" || "teacher") ?  */}
+                  <div id="manage_button">
+                    <BlueButton onClick={reRoute}>Manage Classroom</BlueButton>
+                  </div>
+                  {/* } */}
+                  <div id="homework">
+                    <HomeworkSidebar>{...homeworkFromJSON()}</HomeworkSidebar>
+                  </div>
                 </div>
               </div>
             </>

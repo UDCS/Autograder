@@ -18,7 +18,7 @@ const ClassroomWidget = ({
   id,
 }: ClassroomWidgetProps) => {
   return (
-    <Link className="course-card" to={`/classroom?id=${id}`}>
+    <Link className="course-card" to={`/i/classroom?id=${id}`}>
       <img
         src={Classroompic}
         alt="Course background"
