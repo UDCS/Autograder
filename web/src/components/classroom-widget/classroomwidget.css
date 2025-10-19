@@ -9,7 +9,6 @@
   margin: 0 auto;
   background: white;
   border-radius: 0.625rem;
-  box-shadow: 0 0.3125rem 0.625rem 0.3125rem rgba(0, 0, 0, 0.25);
   overflow: hidden;
   outline: 0.15625rem solid black;
 }
@@ -23,7 +22,6 @@
   object-fit: cover;
   left: -27.16%;
   top: -3.5%;
-  box-shadow: 0 0.25rem 0.25rem rgba(0, 0, 0, 0.25);
 }
 
 .course-card-overlay {
