@@ -1,4 +1,4 @@
-import { Student } from "../../models/classroom";
+// import { Student } from "../../models/classroom";
 import "../css/StudentPanel.css";
 import SelectDropdown from "../../components/select-dropdown/SelectDropdown";
 import RedButton from "../../components/buttons/RedButton.tsx";

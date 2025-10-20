@@ -1,12 +1,12 @@
-import { Classroom } from "../../models/classroom";
+// import { Classroom } from "../../models/classroom";
 import StudentPanel from "../components/StudentPanel"
 import "../css/StudentsSubpage.css";
 
-interface StudentsSubpageProps {
-    classroomInfo: Classroom
-}
+// interface StudentsSubpageProps {
+//     classroomInfo: Classroom
+// }
 
-function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
+function StudentsSubpage(/*{classroomInfo}: StudentsSubpageProps*/) {
     return (
         <>
             <div className="info-section">
