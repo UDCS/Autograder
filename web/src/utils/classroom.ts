@@ -1,4 +1,4 @@
-import { Assignment, Classroom, Question } from "../models/classroom";
+import { Assignment, Classroom, Question, Student } from "../models/classroom";
 
 export const parseDateString = (dateString: string) => {
     let parts = dateString.split("-").map((p, i) => Number(p) - Number(i == 1));
@@ -10,6 +10,7 @@ export const dateToString = (date: Date) => {
     let month = date.getMonth() + 1;
     return `${date.getFullYear()}-${month <= 9 ? "0" : ""}${month}-${day <= 9 ? "0" : ""}${day}`;
 }
+
 export const createBlankQuestion = (assignmentId: string): Question => {
     const questionId = crypto.randomUUID();
     const questionPoints = 10;
@@ -42,6 +43,7 @@ export const createBlankQuestion = (assignmentId: string): Question => {
         ]
     }
 }
+
 export const createBlankAssignment = (classroomId: string): Assignment => {
     const today = new Date();
     const nextWeek = new Date(today);

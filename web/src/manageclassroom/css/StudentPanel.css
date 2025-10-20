@@ -1,0 +1,51 @@
+.student-container {
+    font-family: "Azeret Mono";
+    display: flex;
+    flex-direction: row;
+    gap: 2.5rem;
+    border-top: thin solid #000000;
+    padding-top: 1%;
+}
+
+.name {
+    display: flex;
+    flex-direction: row;
+    padding-right: 5%;
+    border-right: thin solid #000000;
+}
+
+.email {
+    padding-left: 2.5%;
+    padding-right: 5%;
+    border-right: thin solid #000000;
+}
+
+.role {
+    padding-left: 2.5%;
+    padding-right: 5%;
+}
+
+#first-name {
+    align-items: left;
+    white-space: nowrap;
+    padding-right: 2.5rem;
+}
+
+#last-name{
+    align-items: right;
+    white-space: nowrap;
+}
+
+#email {
+    white-space: nowrap;
+}
+
+#dropdown {
+
+}
+
+#remove-button {
+    border-radius: 10px;
+    color: #ffffff;
+    font-family: "Azeret Mono";
+}

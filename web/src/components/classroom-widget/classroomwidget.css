@@ -2,10 +2,10 @@
 
 .course-card {
   position: relative;
-  width: 15%;
+  width: 20%;
   max-width: 324px;
   min-width: 200px;
-  height: 20%;
+  height: 25%;
   max-height: 400px;
   min-height: 250px;
   margin: 0 auto;
@@ -39,9 +39,9 @@
 
 .course-card-text {
   position: absolute;
-  bottom: 7%;
+  bottom: 2%;
   left: 5%;
-  width: 90%;
+  width:95%;
   color: white;
   line-height: 1.25;
   font-family: 'Azeret Mono', monospace;
@@ -67,5 +67,5 @@
   font-weight: 700;
   font-size: clamp(0.4rem, 0.8vw, 0.875rem);
   text-align: right;
-  padding-right: 5%;
+  padding-right: 2.5%;
 }
