@@ -21,6 +21,7 @@ type Handler interface {
 	RefreshToken(c context.Context) error
 	IsValidLogin(c context.Context) error
 	GetUserName(c context.Context) error
+	ValidInvite(c context.Context) error
 	GetRole(c context.Context) error
 	// Classroom
 	CreateClassroom(c context.Context) error
@@ -90,6 +91,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.PUT("/:room_id/user", router.MatchUsersToClassroom)
 	auth.PUT("/user_info", router.ChangeUserInfo)
 	auth.GET("/valid_login", router.IsValidLogin)
+	auth.GET("/invite/:invite_id/valid", router.ValidInvite)
 	auth.GET("/user_name", router.GetUserName)
 	auth.GET("/role", router.GetRole)
 

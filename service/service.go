@@ -18,6 +18,7 @@ type App interface {
 	PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error)
 	RefreshToken(tokenString string) (*models.AccessToken, error)
 	IsValidLogin(jwksToken string) bool
+	ValidInvite(inviteId uuid.UUID, token string) bool
 	GetUserName(jwksToken string) (*models.UserName, error)
 	GetRole(jwksToken string) (models.UserRole, error)
 	// Classroom
