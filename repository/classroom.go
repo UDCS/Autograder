@@ -62,6 +62,28 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 	return nil
 }
 
+func (store PostgresStore) MatchFutureUserToClassroom(email string, classroomId uuid.UUID, role models.UserRole) error {
+	_, err := store.db.Exec(
+		"INSERT INTO future_student_classroom_matching (email, classroom_id, role) VALUES ($1, $2, $3)",
+		email, classroomId, role,
+	)
+	return err
+}
+
+func (store PostgresStore) GetInviteClassrooms(email string) (*[]models.FutureStudentClassroomMatching, error) {
+	var classrooms []models.FutureStudentClassroomMatching
+	fmt.Printf("Email: %s\n", email)
+	err := store.db.Select(
+		&classrooms,
+		"SELECT classroom_id, role FROM future_student_classroom_matching WHERE email=$1",
+		email,
+	)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return &classrooms, err
+}
+
 func (store PostgresStore) GetUserClassroomInfo(userId uuid.UUID, classroomId uuid.UUID) (models.UserInClassroom, error) {
 
 	var user models.UserInClassroom

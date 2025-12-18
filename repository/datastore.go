@@ -37,12 +37,15 @@ type Datastore interface {
 	GetSubmissionId(userId uuid.UUID, questionId uuid.UUID) (uuid.UUID, error)
 	// Auth
 	UserOwnsSubmission(userId uuid.UUID, submissionId uuid.UUID) bool
-	ValidInvite(inviteId uuid.UUID, tokenHash string) bool
 	GetRole(userId uuid.UUID) (models.UserRole, error)
 	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
 	CompleteInvitation(invitationId uuid.UUID, completed bool, updatedAt time.Time) error
 	GetInvitation(invitationId uuid.UUID, tokenHash string) (*models.Invitation, error)
+	GetInvitationFromEmail(email string) (*models.Invitation, error)
+	MatchFutureUserToClassroom(email string, classroomId uuid.UUID, role models.UserRole) error
+	GetInviteClassrooms(email string) (*[]models.FutureStudentClassroomMatching, error)
+	InvitationAlreadyExists(email string) bool
 	// User
 	CreateUser(user models.User) (*models.User, error)
 	GetUserInfo(email string) (*models.User, error)

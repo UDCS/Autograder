@@ -53,11 +53,24 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7)
-	createdInvitation, err := app.store.CreateInvitation(invitation)
+	var createdInvitation *models.Invitation
+	if !app.store.InvitationAlreadyExists(invitation.Email) {
+		createdInvitation, err = app.store.CreateInvitation(invitation)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		createdInvitation, err = app.store.GetInvitationFromEmail(invitation.Email)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	if err != nil {
-		logger.Error("failed to update the database", zap.Error(err))
-		return nil, err
+	if invitation.ClassroomId != uuid.Nil {
+		err = app.store.MatchFutureUserToClassroom(invitation.Email, invitation.ClassroomId, invitation.UserRole)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return createdInvitation, nil
@@ -155,13 +168,22 @@ func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation, sessi
 		logger.Error("failed to set up a session", zap.Error(err))
 	}
 
-	classroomInfo, err := app.store.GetClassroomInfo(retrievedInvitation.ClassroomId)
-	if err == nil {
-		err = app.store.MatchUserToClassroom(createdUser.Email, string(createdUser.UserRole), classroomInfo.Id)
-		if err != nil {
-			return nil, err
+	classrooms, err := app.store.GetInviteClassrooms(createdUser.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch classroom IDs")
+	}
+	for _, classroom := range *classrooms {
+		if err = app.store.MatchUserToClassroom(createdUser.Email, string(classroom.UserRole), classroom.ClassroomId); err != nil {
+			return nil, fmt.Errorf("failed to add user to classroom")
 		}
 	}
+	// classroomInfo, err := app.store.GetClassroomInfo(retrievedInvitation.ClassroomId)
+	// if err == nil {
+	// 	err = app.store.MatchUserToClassroom(createdUser.Email, string(createdUser.UserRole), classroomInfo.Id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	return tokenDetails, nil
 }
@@ -374,7 +396,8 @@ func (app *GraderApp) IsValidLogin(jwksToken string) bool {
 
 func (app *GraderApp) ValidInvite(inviteId uuid.UUID, tokenString string) bool {
 	tokenHash := token.HashToken(tokenString)
-	return app.store.ValidInvite(inviteId, tokenHash)
+	invite, err := app.store.GetInvitation(inviteId, tokenHash)
+	return err == nil && invite.ExpiresAt.After(time.Now()) && !invite.Completed
 }
 
 func (app *GraderApp) GetRole(jwksToken string) (models.UserRole, error) {

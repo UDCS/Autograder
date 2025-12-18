@@ -93,6 +93,12 @@ type UserInClassroom struct {
 	ClassroomId uuid.UUID `json:"classroom_id" db:"classroom_id"`
 }
 
+type FutureStudentClassroomMatching struct {
+	UserEmail   string    `json:"email" db:"email"`
+	ClassroomId uuid.UUID `json:"classroom_id" db:"classroom_id"`
+	UserRole    UserRole  `json:"role" db:"role"`
+}
+
 type AddToClassRequest struct {
 	User_email string `json:"email" db:"user_email"`
 	User_role  string `json:"role" db:"user_role"`
