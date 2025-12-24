@@ -43,3 +43,15 @@ export interface Question {
     prog_lang?: ProgLang;
     test_cases?: TestCase[];
 }
+
+// Yet to be integrated into the students sub-page
+// export interface Student {
+//     id?: string;
+//     first_name?: string;
+//     last_name?: string;
+//     email?: string;
+//     password_hash?: string;
+//     user_role?: string;
+//     created_at?: Date;
+//     updated_at?: Date;
+// }
