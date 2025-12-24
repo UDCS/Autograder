@@ -94,7 +94,7 @@ Such an architecture allows one layer to be modified and tested independently of
 
 ## APIs
 
-You can use Postman to test the APIs.
+You can use Postman/Bruno or a similar tool to test the APIs.
 
 Register:
 ```
