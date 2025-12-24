@@ -7,7 +7,7 @@
    
 ## How to setup the development environment 
 
-### On Linux/Mac
+### On Linux/Mac/Windows w/WSL
 
 1. Make sure you have [`go`](https://go.dev/dl/) (v1.23 preferably). (Mac) `brew` seems to have issues on Mac with installing go for this project. Downloading it from the official [website](https://go.dev/dl/) seems to work. Just download and run the installer.
 2. Install `yarn` installed on your computer using `npm install --global yarn`. Note that you will need to install `npm` first if you haven't already.
