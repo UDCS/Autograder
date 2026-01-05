@@ -30,6 +30,7 @@ type Handler interface {
 	ChangeUserInfo(c context.Context) error
 	GetClassroom(c context.Context) error
 	GetUserRole(c context.Context) error
+	GetClassroomStudents(c context.Context) error
 	// Assignments
 	GetViewAssignments(c context.Context) error
 	GetVerboseAssignments(c echo.Context) error
@@ -104,6 +105,7 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.GET("/:room_id/view_assignments", router.GetViewAssignments)
 	classroom.GET("/:room_id/verbose_assignments", router.GetVerboseAssignments)
 	classroom.POST("/:room_id/verbose_assignments", router.SetVerboseAssignments)
+	classroom.GET("/:room_id/students", router.GetClassroomStudents)
 	classroom.DELETE("/assignment/:assignment_id", router.DeleteAssignment)
 	classroom.DELETE("/question/:question_id", router.DeleteQuestion)
 	classroom.DELETE("/testcase/:testcase_id", router.DeleteTestcase)

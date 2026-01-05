@@ -16,7 +16,7 @@ function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
     const [deletePopup, setDeletePopup] = useState(false);
     const [studentIndexToDelete, setStudentIndexToDelete] = useState(-1);
 
-    const [allUsers, setAllUsers] = useState<UserInClassroom[]>([{firstName: "Skibidi", lastName: "Toilet", email: "skibidi@toilet.gov", role: "student", dummyId: crypto.randomUUID(), state: "registered"}, {firstName: "Adrain", lastName: "Panezic", email: "adrian@panezic.com", role: "assistant", state: "registered", dummyId: crypto.randomUUID()}, {email: "bruh@rizz.gov", role: "student", dummyId: crypto.randomUUID(), state: "unregistered"}]);
+    const [allUsers, setAllUsers] = useState<UserInClassroom[]>([{first_name: "Skibidi", last_name: "Toilet", email: "skibidi@toilet.gov", user_role: "student", user_id: crypto.randomUUID(), state: "registered"}, {first_name: "Adrain", last_name: "Panezic", email: "adrian@panezic.com", user_role: "assistant", state: "registered", user_id: crypto.randomUUID()}, {email: "bruh@rizz.gov", user_role: "student", user_id: crypto.randomUUID(), state: "unregistered"}]);
 
     const [wasChange, setWasChange] = useState<boolean>(false);
 
@@ -36,12 +36,12 @@ function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
     }
 
     const userToStudentPanels = (userList: UserInClassroom[]) => {
-        return userList.map((user: UserInClassroom, index: number) => <StudentPanel user={user} onChange={checkWasChange} key={user.dummyId} listIndex={index} setStudentList={setAllUsers} studentList={allUsers}  onDelete={() => {setDeletePopup(true); setStudentIndexToDelete(index);} } {...user}/>)
+        return userList.map((user: UserInClassroom, index: number) => <StudentPanel user={user} onChange={checkWasChange} key={user.user_id} listIndex={index} setStudentList={setAllUsers} studentList={allUsers}  onDelete={() => {setDeletePopup(true); setStudentIndexToDelete(index);} } {...user}/>)
     } 
 
     const addNewUser = () => {
         setWasChange(true);
-        setAllUsers([...allUsers, {email: "", role: "student", dummyId: crypto.randomUUID(), wasChange: true, state: "uninvited"}]);
+        setAllUsers([...allUsers, {email: "", user_role: "student", user_id: crypto.randomUUID(), wasChange: true, state: "uninvited"}]);
     }
 
     const inviteUser = (user: UserInClassroom) => {

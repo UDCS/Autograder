@@ -28,6 +28,7 @@ type App interface {
 	DeleteClassroom(jwksToken string, request models.DeleteClassroomRequest) error
 	GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error)
 	GetClassroom(jwksToken string, classroomId uuid.UUID) (models.Classroom, error)
+	GetClassroomStudents(jwksToken string, classroomId uuid.UUID) ([]models.UserInClassroom, error)
 	ChangeUserInfo(jwksToken string, request models.ChangeUserInfoRequest) error
 	GetUserRole(jwksToken string, roomId uuid.UUID) (models.UserRole, error)
 	// Assignments

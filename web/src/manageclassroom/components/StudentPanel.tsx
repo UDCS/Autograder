@@ -12,13 +12,13 @@ import { isValidEmail } from "../../utils/util.ts";
 type UserState = "uninvited" | "unregistered" | "registered";
 
 export type UserInClassroom = {
-    firstName?: string;
-    lastName?: string;
+    first_name?: string;
+    last_name?: string;
     email: string;
-    role?: Role;
+    user_role?: Role;
     state: UserState;
     wasChange?: boolean;
-    dummyId?: string;
+    user_id?: string;
     accountError?: string;
 }
 
@@ -43,7 +43,7 @@ export const isValidNewUser = (user: UserInClassroom, userList: UserInClassroom[
 
 function StudentPanel({user, onDelete, listIndex, setStudentList, onChange, studentList}: StudentPanelProps) {
 
-    const {firstName, lastName, email, role, state, accountError, wasChange} = user;
+    const {first_name, last_name, email, user_role: role, state, accountError, wasChange} = user;
 
     const uninvited = state === "uninvited";
     const unregistered = state === "unregistered";
@@ -121,7 +121,7 @@ function StudentPanel({user, onDelete, listIndex, setStudentList, onChange, stud
             <div className="student-container">
                 {/* First and Last Name Element */}
                 <div className="name row-cell">
-                    {registered && firstName} {registered && lastName} {unregistered && <span style={{fontStyle: "italic"}}>Waiting for student to accept invitation...</span>}
+                    {registered && first_name} {registered && last_name} {unregistered && <span style={{fontStyle: "italic"}}>Waiting for student to accept invitation...</span>}
                     {error !== "" && <span style={{color: "red"}}>{error}</span>}
                 </div>
                 {/* Email Element */}
@@ -144,8 +144,8 @@ function StudentPanel({user, onDelete, listIndex, setStudentList, onChange, stud
                         }
                         let newStudentList = studentList.map((student, index) => {
                             if (index == listIndex) {
-                                const {role, wasChange, ...rest} = student;
-                                return {role: asRole, wasChange: newWasChange, ...rest};
+                                const {user_role: role, wasChange, ...rest} = student;
+                                return {user_role: asRole, wasChange: newWasChange, ...rest};
                             }
                             return student;
                         });

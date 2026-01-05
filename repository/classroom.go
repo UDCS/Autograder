@@ -279,6 +279,65 @@ func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId u
 	return assignments, nil
 }
 
+func (store PostgresStore) GetClassroomStudents(classroomId uuid.UUID) ([]models.UserInClassroom, error) {
+	var students []models.UserInClassroom
+
+	err := store.db.Select(
+		&students,
+		"SELECT email, role AS user_role FROM future_student_classroom_matching WHERE classroom_id = $1",
+		classroomId,
+	)
+	if err != nil {
+		return []models.UserInClassroom{}, err
+	}
+
+	for i := range students {
+		students[i].State = models.Unregistered
+		students[i].UserId = uuid.New()
+		students[i].ClassroomId = classroomId
+	}
+
+	var studentsInClassroom []struct {
+		UserId   uuid.UUID       `db:"user_id"`
+		UserRole models.UserRole `db:"user_role"`
+	}
+
+	err = store.db.Select(
+		&studentsInClassroom,
+		"SELECT user_id, user_role FROM user_classroom_matching WHERE classroom_id = $1",
+		classroomId,
+	)
+
+	if err != nil {
+		return []models.UserInClassroom{}, err
+	}
+
+	for _, studentId := range studentsInClassroom {
+		var user models.UserInClassroom
+		user.ClassroomId = classroomId
+		user.UserRole = studentId.UserRole
+		_ = store.db.Get(
+			&user,
+			"SELECT first_name, last_name, email, id AS user_id FROM users WHERE id = $1",
+			studentId.UserId,
+		)
+		user.State = models.Registered
+		addTo := true
+		for index, alreadyStudent := range students {
+			if alreadyStudent.Email == user.Email {
+				students[index] = user
+				addTo = false
+				break
+			}
+		}
+		if addTo {
+			students = append(students, user)
+		}
+	}
+
+	return students, nil
+}
+
 func (store PostgresStore) SetVerboseAssignment(assignment models.Assignment) error {
 	_, err := store.db.Exec(
 		"INSERT INTO assignments (id, classroom_id, name, description, assignment_mode, due_at,  updated_at, sort_index) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO UPDATE SET name = $3, description=$4, assignment_mode=$5, due_at = $6, updated_at=$7, sort_index=$8;",

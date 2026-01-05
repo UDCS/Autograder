@@ -42,6 +42,8 @@ type (
 	}
 
 	UserRole string
+
+	UserState string
 )
 
 const (
@@ -49,4 +51,8 @@ const (
 	Instructor UserRole = "instructor"
 	Assistant  UserRole = "assistant"
 	Student    UserRole = "student"
+
+	Uninvited    UserState = "uninvited"
+	Unregistered UserState = "unregistered"
+	Registered   UserState = "registered"
 )

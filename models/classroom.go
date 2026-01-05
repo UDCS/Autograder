@@ -88,6 +88,11 @@ type Classroom struct {
 }
 
 type UserInClassroom struct {
+	FirstName string    `json:"first_name" db:"first_name"`
+	LastName  string    `json:"last_name" db:"last_name"`
+	Email     string    `json:"email" db:"email"`
+	State     UserState `json:"state" db:"state"`
+
 	UserId      uuid.UUID `json:"user_id" db:"user_id"`
 	UserRole    UserRole  `json:"user_role" db:"user_role"`
 	ClassroomId uuid.UUID `json:"classroom_id" db:"classroom_id"`
