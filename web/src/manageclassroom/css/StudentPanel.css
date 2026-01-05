@@ -1,51 +1,67 @@
 .student-container {
     font-family: "Azeret Mono";
-    display: flex;
-    flex-direction: row;
-    gap: 2.5rem;
-    border-top: thin solid #000000;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    /* flex-direction: row; */
+    /* border-top: thin solid #000000; */
+    /* padding-top: 1%; */
+    border-top: thin solid black;
+    border-bottom: thin solid black;
+    width: 100%;
     padding-top: 1%;
+    padding-bottom: 1%;
 }
 
 .name {
     display: flex;
     flex-direction: row;
-    padding-right: 5%;
+    /* padding-right: 5%; */
     border-right: thin solid #000000;
+    /* flex: 1; */
 }
 
 .email {
-    padding-left: 2.5%;
-    padding-right: 5%;
+    display: flex;
     border-right: thin solid #000000;
+    /* flex: 1; */
+}
+
+.row-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .role {
-    padding-left: 2.5%;
-    padding-right: 5%;
+    /* padding-left: 2.5%;
+    padding-right: 5%; */
+    /* flex: 1 */
+    border-right: thin solid black;
 }
 
 #first-name {
     align-items: left;
-    white-space: nowrap;
-    padding-right: 2.5rem;
+    /* padding-right
+    
+    : 2.5rem; */
 }
 
-#last-name{
-    align-items: right;
-    white-space: nowrap;
+#buttons-parent {
+    gap: 1rem;
+    justify-content: flex-end;
+    border: none;
 }
 
-#email {
-    white-space: nowrap;
-}
-
-#dropdown {
-
-}
-
-#remove-button {
+.panel-button {
+    font-size: 100%;
+    padding: 2%;
     border-radius: 10px;
     color: #ffffff;
     font-family: "Azeret Mono";
+}
+
+.hidden {
+    display: none;
 }

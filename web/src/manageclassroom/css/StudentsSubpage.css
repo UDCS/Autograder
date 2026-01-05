@@ -9,6 +9,22 @@
     padding-bottom: 1%;
 }
 
+.students-list {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.add-student-button {
+    font-size: 130%;
+}
+
+.save-changes-button {
+    padding: 1%;
+    font-size: 100%;
+}
+
 .name-title {
     display: flex;
     flex-direction: row;
@@ -22,6 +38,9 @@
     border-right: thin solid #000000;
 }
 
+.role {
+    gap: 1rem;
+}
 .role-title {
     padding-left: 2.5%;
     padding-right: 5%;
