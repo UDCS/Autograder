@@ -177,6 +177,7 @@ func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation, sessi
 			return nil, fmt.Errorf("failed to add user to classroom")
 		}
 	}
+	app.store.RemoveFutureClassroomMatching(createdUser.Email)
 	// classroomInfo, err := app.store.GetClassroomInfo(retrievedInvitation.ClassroomId)
 	// if err == nil {
 	// 	err = app.store.MatchUserToClassroom(createdUser.Email, string(createdUser.UserRole), classroomInfo.Id)

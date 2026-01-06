@@ -359,6 +359,35 @@ func (router *HttpRouter) EditClassroomStudents(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, editedStudents)
 }
 
+func (router *HttpRouter) DeleteClassroomStudent(c echo.Context) error {
+	var student models.UserInClassroom
+
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
+	}
+
+	classroomId, err := uuid.Parse(c.Param("room_id"))
+
+	if err != nil {
+		logger.Error("could not parse classroom id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	if err = c.Bind(&student); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse request body"))
+	}
+
+	err = router.app.DeleteClassroomStudent(tokenString, classroomId, student)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusAccepted, json_response.NewMessage("successfully removed student from classroom"))
+}
+
 func (router *HttpRouter) UpdateSubmissionCode(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 

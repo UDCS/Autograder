@@ -71,6 +71,13 @@ func (store PostgresStore) MatchFutureUserToClassroom(email string, classroomId 
 	return err
 }
 
+func (store PostgresStore) RemoveFutureClassroomMatching(email string) {
+	_, _ = store.db.Exec(
+		"DELETE FROM future_student_classroom_matching WHERE email = $1",
+		email,
+	)
+}
+
 func (store PostgresStore) GetInviteClassrooms(email string) (*[]models.FutureStudentClassroomMatching, error) {
 	var classrooms []models.FutureStudentClassroomMatching
 	fmt.Printf("Email: %s\n", email)
@@ -304,11 +311,19 @@ func (store PostgresStore) GetClassroomStudents(classroomId uuid.UUID) ([]models
 		return []models.UserInClassroom{}, err
 	}
 
-	for i := range students {
-		students[i].State = models.Unregistered
-		students[i].UserId = uuid.New()
-		students[i].ClassroomId = classroomId
+	newListOfStudents := make([]models.UserInClassroom, 0)
+	for _, student := range students {
+		student.State = models.Unregistered
+		student.UserId = uuid.New()
+		student.ClassroomId = classroomId
+		_, err := store.GetUserInfo(student.Email)
+		userExists := err == nil
+		if userExists {
+			continue
+		}
+		newListOfStudents = append(newListOfStudents, student)
 	}
+	students = newListOfStudents
 
 	var studentsInClassroom []struct {
 		UserId   uuid.UUID       `db:"user_id"`
@@ -349,6 +364,26 @@ func (store PostgresStore) GetClassroomStudents(classroomId uuid.UUID) ([]models
 	}
 
 	return students, nil
+}
+
+func (store PostgresStore) DeleteClassroomStudent(classroomId uuid.UUID, user models.UserInClassroom) error {
+	userEmail := user.Email
+
+	userInfo, err := store.GetUserInfo(userEmail)
+	userRegistered := err == nil
+
+	if userRegistered {
+		_, _ = store.db.Exec(
+			"DELETE FROM user_classroom_matching WHERE user_id = $1 AND classroom_id = $2",
+			userInfo.Id, classroomId,
+		)
+	} else {
+		_, _ = store.db.Exec(
+			"DELETE FROM future_student_classroom_matching WHERE email = $1 AND classroom_id = $2",
+			userEmail, classroomId,
+		)
+	}
+	return nil
 }
 
 func (store PostgresStore) SetVerboseAssignment(assignment models.Assignment) error {

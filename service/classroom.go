@@ -206,7 +206,7 @@ func (app *GraderApp) GetClassroomStudents(jwksToken string, classroomId uuid.UU
 		if err != nil {
 			return []models.UserInClassroom{}, fmt.Errorf("user not in classroom")
 		} else if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
-			return []models.UserInClassroom{}, fmt.Errorf("user does not have the role get students of classroom")
+			return []models.UserInClassroom{}, fmt.Errorf("user does not have the role to get students of classroom")
 		}
 	}
 
@@ -291,6 +291,35 @@ func (app *GraderApp) EditClassroomStudents(jwksToken string, classroomId uuid.U
 		newStudentList = append(newStudentList, student)
 	}
 	return newStudentList, nil
+
+}
+
+func (app *GraderApp) DeleteClassroomStudent(jwksToken string, classroomId uuid.UUID, user models.UserInClassroom) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return fmt.Errorf("user not in classroom")
+		} else if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return fmt.Errorf("user does not have the role to remove students from classroom")
+		}
+	}
+
+	err = app.store.DeleteClassroomStudent(classroomId, user)
+	if err != nil {
+		return err
+	}
+
+	return nil
 
 }
 

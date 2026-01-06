@@ -17,6 +17,7 @@ type Datastore interface {
 	MatchUserToClassroom(email string, role string, classroomId uuid.UUID) error
 	GetUserClassroomInfo(userId uuid.UUID, classroomId uuid.UUID) (models.UserInClassroom, error)
 	GetClassroomStudents(classroomId uuid.UUID) ([]models.UserInClassroom, error)
+	DeleteClassroomStudent(classroomId uuid.UUID, user models.UserInClassroom) error
 	EditClassroom(request models.EditClassroomRequest) error
 	DeleteClassroom(request models.DeleteClassroomRequest) error
 	GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error)
@@ -45,6 +46,7 @@ type Datastore interface {
 	GetInvitation(invitationId uuid.UUID, tokenHash string) (*models.Invitation, error)
 	GetInvitationFromEmail(email string) (*models.Invitation, error)
 	MatchFutureUserToClassroom(email string, classroomId uuid.UUID, role models.UserRole) error
+	RemoveFutureClassroomMatching(email string)
 	GetInviteClassrooms(email string) (*[]models.FutureStudentClassroomMatching, error)
 	InvitationAlreadyExists(email string) bool
 	// User
