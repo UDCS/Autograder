@@ -328,6 +328,37 @@ func (router *HttpRouter) GetClassroomStudents(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, students)
 }
 
+func (router *HttpRouter) EditClassroomStudents(c echo.Context) error {
+	var newStudents struct {
+		Students []models.UserInClassroom `json:"students"`
+	}
+
+	tokenString, err := middlewares.GetAccessToken(c)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to find access token"))
+	}
+
+	classroomId, err := uuid.Parse(c.Param("room_id"))
+
+	if err != nil {
+		logger.Error("could not parse classroom id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	if err = c.Bind(&newStudents); err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	editedStudents, err := router.app.EditClassroomStudents(tokenString, classroomId, newStudents.Students)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusAccepted, editedStudents)
+}
+
 func (router *HttpRouter) UpdateSubmissionCode(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 

@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"net/mail"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
@@ -225,6 +226,71 @@ func (app *GraderApp) GetClassroomStudents(jwksToken string, classroomId uuid.UU
 	}
 
 	return newStudents, nil
+
+}
+
+func (app *GraderApp) EditClassroomStudents(jwksToken string, classroomId uuid.UUID, newUsers []models.UserInClassroom) ([]models.UserInClassroom, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return []models.UserInClassroom{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return []models.UserInClassroom{}, fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return []models.UserInClassroom{}, fmt.Errorf("user not in classroom")
+		} else if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return []models.UserInClassroom{}, fmt.Errorf("user does not have the role get students of classroom")
+		}
+	}
+
+	newStudentList := make([]models.UserInClassroom, 0)
+	for _, student := range newUsers {
+		studentEmail := student.Email
+		studentRole := student.UserRole
+		user, err := app.store.GetUserInfo(studentEmail)
+		userExists := err == nil
+		if userExists {
+			_ = app.store.MatchUserToClassroom(studentEmail, string(studentRole), classroomId)
+			student.FirstName = user.FirstName
+			student.LastName = user.LastName
+			student.ClassroomId = classroomId
+			student.State = models.Registered
+			student.UserId = user.Id
+		} else {
+			parsedEmail, err := mail.ParseAddress(studentEmail)
+			if err != nil {
+				continue
+			}
+			studentEmail = parsedEmail.Address
+			invitation, err := app.store.GetInvitationFromEmail(studentEmail)
+			invitationExists := err == nil
+			if !invitationExists {
+				invitation = &models.Invitation{
+					Id:          uuid.New(),
+					Email:       studentEmail,
+					UserRole:    studentRole,
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
+					ClassroomId: classroomId,
+				}
+				_, _ = app.CreateInvitation(jwksToken, *invitation)
+				student.UserId = invitation.Id
+			} else {
+				err = app.store.MatchFutureUserToClassroom(studentEmail, classroomId, student.UserRole)
+				student.UserId = invitation.Id
+			}
+			student.ClassroomId = classroomId
+			student.State = models.Unregistered
+		}
+		newStudentList = append(newStudentList, student)
+	}
+	return newStudentList, nil
 
 }
 

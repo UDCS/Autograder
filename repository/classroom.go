@@ -63,8 +63,9 @@ func (store PostgresStore) MatchUserToClassroom(email string, role string, class
 }
 
 func (store PostgresStore) MatchFutureUserToClassroom(email string, classroomId uuid.UUID, role models.UserRole) error {
+	// "INSERT INTO assignments (id, classroom_id, name, description, assignment_mode, due_at,  updated_at, sort_index) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO UPDATE SET name = $3, description=$4, assignment_mode=$5, due_at = $6, updated_at=$7, sort_index=$8;",
 	_, err := store.db.Exec(
-		"INSERT INTO future_student_classroom_matching (email, classroom_id, role) VALUES ($1, $2, $3)",
+		"INSERT INTO future_student_classroom_matching (email, classroom_id, role) VALUES ($1, $2, $3) ON CONFLICT (email, classroom_id) DO UPDATE SET role = $3",
 		email, classroomId, role,
 	)
 	return err
@@ -99,6 +100,18 @@ func (store PostgresStore) GetUserClassroomInfo(userId uuid.UUID, classroomId uu
 
 	return user, nil
 
+}
+
+func (store PostgresStore) GetFutureUserClassroomInfo(email string, classroomId uuid.UUID) (models.UserInClassroom, error) {
+	var user models.UserInClassroom
+
+	err := store.db.Get(
+		&user,
+		"SELECT email, classroom_id, role AS user_role FROM future_student_classroom_matching WHERE email = $1 AND classroom_id = $2",
+		email, classroomId,
+	)
+
+	return user, err
 }
 
 func (store PostgresStore) GetQuestionPoints(questionId uuid.UUID) (uint16, error) {

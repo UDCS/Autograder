@@ -77,7 +77,7 @@ func (store PostgresStore) GetInvitationFromEmail(email string) (*models.Invitat
 
 func (store PostgresStore) InvitationAlreadyExists(email string) bool {
 	var exists bool
-	_ = store.db.Get(&exists, "SELECT EXISTS (SELECT 1 FROM future_student_classroom_matching WHERE email = $1)", email)
+	_ = store.db.Get(&exists, "SELECT EXISTS (SELECT 1 FROM invitations WHERE email = $1)", email)
 	return exists
 }
 
