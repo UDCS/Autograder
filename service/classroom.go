@@ -282,7 +282,7 @@ func (app *GraderApp) EditClassroomStudents(jwksToken string, classroomId uuid.U
 				_, _ = app.CreateInvitation(jwksToken, *invitation)
 				student.UserId = invitation.Id
 			} else {
-				err = app.store.MatchFutureUserToClassroom(studentEmail, classroomId, student.UserRole)
+				_ = app.store.MatchFutureUserToClassroom(studentEmail, classroomId, student.UserRole)
 				student.UserId = invitation.Id
 			}
 			student.ClassroomId = classroomId
