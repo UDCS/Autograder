@@ -1,5 +1,4 @@
-// import { Classroom } from "../../models/classroom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import StudentPanel, { isValidNewUser, UserInClassroom } from "../components/StudentPanel"
 import "../css/StudentsSubpage.css";
 import DeletePopup from "../../components/popup/DeletePopup";
@@ -11,17 +10,59 @@ interface StudentsSubpageProps {
     classroomInfo: Classroom;
 }
 
-function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
+export const editStudentsInClassroom = (classroomId: string, usersToUpdate: UserInClassroom[], oldStudentList: UserInClassroom[], setStudentList: (newList: UserInClassroom[]) => void) => {
+    const requestBody = {students: usersToUpdate};
+    (async function () {
+        var response = await fetch(`/api/classroom/${classroomId}/students`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+        if (!response.ok) {
+            console.log(response);
+        } else {
+            var updatedStudents = await response.json();
+            const newStudentList = oldStudentList.map((student: UserInClassroom) => {
+                for (let updatedStudent of updatedStudents) {
+                    if (updatedStudent.email === student.email) return updatedStudent as UserInClassroom;
+                }
+                return student;
+            });
+            setStudentList(newStudentList);
+        }
+    })();
+}
 
+function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
+    
+    const classroomId = classroomInfo.id!;
+
+    const [loading, setLoading] = useState(true);
     const [deletePopup, setDeletePopup] = useState(false);
     const [studentIndexToDelete, setStudentIndexToDelete] = useState(-1);
 
-    const [allUsers, setAllUsers] = useState<UserInClassroom[]>([{first_name: "Skibidi", last_name: "Toilet", email: "skibidi@toilet.gov", user_role: "student", user_id: crypto.randomUUID(), state: "registered"}, {first_name: "Adrain", last_name: "Panezic", email: "adrian@panezic.com", user_role: "assistant", state: "registered", user_id: crypto.randomUUID()}, {email: "bruh@rizz.gov", user_role: "student", user_id: crypto.randomUUID(), state: "unregistered"}]);
+    const [allUsers, setAllUsers] = useState<UserInClassroom[]>([]);
 
     const [wasChange, setWasChange] = useState<boolean>(false);
 
     const deleteUser = (index: number) => {
+        const toDelete = allUsers[index];
         setAllUsers(allUsers.filter((_, i: number) => index != i));
+        (async function () {
+            const requestBody = {email: toDelete.email!};
+            var response = await fetch(`/api/classroom/${classroomId}/student`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(requestBody)
+            });
+            if (!response.ok) {
+                console.log(response);
+            }
+        })();
     }
 
     const checkWasChange = (newStudentList: UserInClassroom[]) => {
@@ -36,7 +77,7 @@ function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
     }
 
     const userToStudentPanels = (userList: UserInClassroom[]) => {
-        return userList.map((user: UserInClassroom, index: number) => <StudentPanel user={user} onChange={checkWasChange} key={user.user_id} listIndex={index} setStudentList={setAllUsers} studentList={allUsers}  onDelete={() => {setDeletePopup(true); setStudentIndexToDelete(index);} } {...user}/>)
+        return userList.map((user: UserInClassroom, index: number) => <StudentPanel classroomId={classroomId} user={user} onChange={checkWasChange} key={user.user_id} listIndex={index} setStudentList={setAllUsers} studentList={allUsers}  onDelete={() => {setDeletePopup(true); setStudentIndexToDelete(index);} } {...user}/>)
     } 
 
     const addNewUser = () => {
@@ -44,16 +85,12 @@ function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
         setAllUsers([...allUsers, {email: "", user_role: "student", user_id: crypto.randomUUID(), wasChange: true, state: "uninvited"}]);
     }
 
-    const inviteUser = (user: UserInClassroom) => {
-        console.log(`inviting ${user}`)
-    }
-
     const saveAllChanges = () => {
-        setAllUsers(allUsers.map((user: UserInClassroom) => {
+        let userChanges: UserInClassroom[] = allUsers.filter((user: UserInClassroom) => user.wasChange && isValidNewUser(user, allUsers) && isValidEmail(user.email));
+        let newUsers: UserInClassroom[] = allUsers.map((user: UserInClassroom) => {
             if (user.state === "uninvited") {
                 const {state, accountError, wasChange, ...rest} = user;
                 if (isValidNewUser(user, allUsers)) {
-                    inviteUser(user);
                     return {state: "unregistered", accountError: "", wasChange: false, ...rest};
                 } else {
                     if (!isValidEmail(user.email)) {
@@ -65,8 +102,29 @@ function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
             }
             const {wasChange, ...rest} = user;
             return {wasChange: false, ...rest};
-        }));
+        })
+        setAllUsers(newUsers);
+        editStudentsInClassroom(classroomId, userChanges, allUsers, setAllUsers);
     }
+
+    useEffect(() => {
+        const stopLoading = () => {
+            setLoading(false);
+        }
+        const getAllUsers = async () => {
+            var response = await fetch(`/api/classroom/${classroomId}/students`);   
+            if (response.ok) {
+                var json = await response.json();
+                setAllUsers(json);
+            }
+        }
+        (async function () {
+            if (loading) {
+                await getAllUsers();
+                stopLoading()
+            }
+        })();
+    });
 
     return (
         <div className="students-list">

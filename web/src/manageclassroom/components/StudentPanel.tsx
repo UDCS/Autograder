@@ -1,4 +1,3 @@
-// import { Student } from "../../models/classroom";
 import "../css/StudentPanel.css";
 import SelectDropdown from "../../components/select-dropdown/SelectDropdown";
 import RedButton from "../../components/buttons/RedButton.tsx";
@@ -8,6 +7,7 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import TitleInput from "../../components/title-input/TitleInput.tsx";
 import { isValidEmail } from "../../utils/util.ts";
+import { editStudentsInClassroom } from "../subpages/StudentsSubpage.tsx";
 
 type UserState = "uninvited" | "unregistered" | "registered";
 
@@ -19,11 +19,13 @@ export type UserInClassroom = {
     state: UserState;
     wasChange?: boolean;
     user_id?: string;
+    classroom_id?: string;
     accountError?: string;
 }
 
 interface StudentPanelProps {
     user: UserInClassroom;
+    classroomId: string;
     listIndex: number;
     setStudentList: (studentList: UserInClassroom[]) => void;
     studentList: UserInClassroom[];
@@ -41,7 +43,7 @@ export const isValidNewUser = (user: UserInClassroom, userList: UserInClassroom[
     return emailCount <= 1;
 }
 
-function StudentPanel({user, onDelete, listIndex, setStudentList, onChange, studentList}: StudentPanelProps) {
+function StudentPanel({user, classroomId, onDelete, listIndex, setStudentList, onChange, studentList}: StudentPanelProps) {
 
     const {first_name, last_name, email, user_role: role, state, accountError, wasChange} = user;
 
@@ -60,13 +62,16 @@ function StudentPanel({user, onDelete, listIndex, setStudentList, onChange, stud
     const [error, setError] = useState("");
 
     const setWasChange = (newOnChange: boolean) => {
-        setStudentList(studentList.map((student, index) => {
+        const newStudentList = studentList.map((student, index) => {
             if (index == listIndex) {
                 const {wasChange, ...rest} = student;
                 return {wasChange: newOnChange, ...rest};
             }
             return student;
-        }))
+        });
+        setStudentList(newStudentList);
+        onChange(newStudentList);
+        return newStudentList;
     }
 
     const alterEmailInList = (newEmail: string) => {
@@ -84,12 +89,13 @@ function StudentPanel({user, onDelete, listIndex, setStudentList, onChange, stud
         setInitialRole(currentRole);
         if (uninvited) {
             if (isValidNewUser(user, studentList)) {
+                const newStudent = {...user, email: currentEmail, state: "unregistered", wasChange: false} as UserInClassroom;
                 setStudentList(studentList.map((student: UserInClassroom, index: number) => {
-                    if (index == listIndex) return {...student, email: currentEmail, state: "unregistered", wasChange: false};
+                    if (index == listIndex) return newStudent;
                     return student;
                 }));
                 setConfirmHidden(true);
-                // .. update the database
+                editStudentsInClassroom(classroomId, [newStudent], studentList, setStudentList);
             } else {
                 if (!isValidEmail(user.email)) {
                     setError("Invalid email address")   
@@ -99,9 +105,9 @@ function StudentPanel({user, onDelete, listIndex, setStudentList, onChange, stud
             }
         } else {
             setConfirmHidden(true);
-            // ... update the database
+            setWasChange(false);
+            editStudentsInClassroom(classroomId, [user], studentList, setStudentList);
         }
-        
     }
 
     useEffect(() => {
