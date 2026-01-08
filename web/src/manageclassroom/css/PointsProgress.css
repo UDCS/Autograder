@@ -5,26 +5,26 @@
     width: 100%;
     padding: 1%;
     gap: 1rem;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
 }
 .points-progress-bar {
     width: 100%;
     height: 10px;
-    background: red;
+    background: var(--color-red);
 }
 .points-progress-bar::-webkit-progress-bar {
-  background-color: red;
+  background-color: var(--color-red);
 }
 
 .points-progress-bar::-webkit-progress-value {
-  background-color: #0f0;
+  background-color: var(--color-success);
 }
 
 .points-progress-bar::-moz-progress-bar {
-  background-color: #0f0;
+  background-color: var(--color-success);
 }
 .progress-text {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-size: 100%;
 }
 .progress-text-parent {
@@ -33,10 +33,10 @@
     gap: 1rem;
 }
 .redtext {
-    color: red;
+    color: var(--color-red);
 }
 .greentext {
-    color: lime;
+    color: var(--color-success);
 }
 .total-points {
     flex: 1;

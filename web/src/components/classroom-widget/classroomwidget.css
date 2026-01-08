@@ -1,5 +1,3 @@
-@import url(../../colors.css);
-
 .course-card {
   position: relative;
   width: 15%;
@@ -9,11 +7,10 @@
   max-height: 400px;
   min-height: 250px;
   margin: 0 auto;
-  background: white;
+  background: var(--color-white);
   border-radius: 0.625rem;
-  box-shadow: 0 0.3125rem 0.625rem 0.3125rem rgba(0, 0, 0, 0.25);
   overflow: hidden;
-  outline: 0.15625rem solid black;
+  outline: 0.15625rem solid var(--color-black);
 }
 
 .course-card-image {
@@ -25,7 +22,6 @@
   object-fit: cover;
   left: -27.16%;
   top: -3.5%;
-  box-shadow: 0 0.25rem 0.25rem rgba(0, 0, 0, 0.25);
 }
 
 .course-card-overlay {
@@ -42,9 +38,9 @@
   bottom: 7%;
   left: 5%;
   width: 90%;
-  color: white;
+  color: var(--color-white);
   line-height: 1.25;
-  font-family: 'Azeret Mono', monospace;
+  font-family: 'Roboto', sans-serif;
   font-weight: 700;
 }
 
@@ -62,8 +58,8 @@
 
 .course-card-date {
   width: 100%;
-  color: white;
-  font-family: 'Azeret Mono', monospace;
+  color: var(--color-white);
+  font-family: 'Roboto', sans-serif;
   font-weight: 700;
   font-size: clamp(0.4rem, 0.8vw, 0.875rem);
   text-align: right;

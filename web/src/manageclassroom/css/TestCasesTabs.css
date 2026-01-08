@@ -1,12 +1,12 @@
 .testcases-tabs {
     width: 100%;
     box-sizing: border-box;
-    background: #eee;
+    background: var(--color-gray-light);
 }
 .tabs {
     display: flex;
     align-items: center;
-    border-bottom: 1px solid black;
+    border-bottom: 1px solid var(--color-black);
     width: 100%;
     box-sizing: border-box;
 }
@@ -31,7 +31,7 @@
 .tab {
     padding: 1.5%;
     height: 100%;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     user-select: none;
     font-size: 100%;
 }

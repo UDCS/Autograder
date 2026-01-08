@@ -1,11 +1,12 @@
 # Autograder
 
-## Big Picture ##
+## Big Picture
+
 1. Front end is written in React, which is a Typescript framework. Vite is the front-end build tool.
 2. Database will be Postgres. Database migrations are managed using Goose.
 3. Backend is Go with the Echo framework.
-   
-## How to setup the development environment 
+
+## How to setup the development environment
 
 ### On Linux/Mac/Windows w/WSL
 
@@ -14,21 +15,25 @@
 3. On the terminal, run `chmod +x ./dev.sh` to modify permissions
 4. On the terminal, run `cd web && yarn && yarn run dev` to install the React dependencies. Once you see the `build in <time>ms` message, you can exit out of the command using `Ctrl+C`
 5. Add the following to `~/.bashrc` on Linux or `~/.zshrc` on Mac.
+
 ```
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
 export GOBIN=$GOPATH/bin
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 ```
+
 Then, run `source ~/.bashrc` on Linux or `source ~/.zshrc` on Mac.
 
 6. Install `air` (live-reload for go applications) and `goose` (database migration tool) by running
+
 ```
 go install github.com/air-verse/air@latest
 go install github.com/pressly/goose/v3/cmd/goose@latest
 ```
+
 7. [Install postgres](#how-to-install-postgres) and create a database named `autograder`. Make sure you postgres is up and running. You can download [Beekeeper Studio](https://www.beekeeperstudio.io/get-community) as a database explorer if you don't already have one.
-8. Run `source .envrc` to export the variables of `.envrc` on your local machine. Run `goose up` to run all the required database migrations. 
+8. Run `source .envrc` to export the variables of `.envrc` on your local machine. Run `goose up` to run all the required database migrations.
 9. Open http://localhost:8080/ to access the web app.
 
 ### On Windows w/o WSL
@@ -54,6 +59,7 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 ## How to install postgres
 
 ### Mac (option 1)
+
 1. Download the most recent version of postgres via their [installer](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads) under the column "Mac OS X"
 2. Go through the steps in the installer. When it prompts you to set up your database admin make the username `postgres` and password `postgres`.
 3. After the install is finished, open pgAdmin which will prompt you to type in your password (`postgres`) to connect to your local server that's been setup via the installation.
@@ -61,6 +67,7 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 5. Name it `autograder` and click Save.
 
 ### Mac (option 2)
+
 1. Install postgres using `brew install postgresql`.
 2. Start postgres using `brew services start postgresql`.
 3. Run `psql postgres`.
@@ -71,16 +78,19 @@ go install github.com/pressly/goose/v3/cmd/goose@latest
 ## How to build the binary
 
 **Note:** Before building the binary for deployment, please do the following:
-1. Set up a Postgres database. Update the credentials in `config.yaml` with the database's credentials. 
-2. Chanage the default JWT Secret in `config.yaml` to be a long and secure sequence of charaters. 
+
+1. Set up a Postgres database. Update the credentials in `config.yaml` with the database's credentials.
+2. Chanage the default JWT Secret in `config.yaml` to be a long and secure sequence of charaters.
 3. TODO (Setting up Email stuff)
 
 ### For Linux / Mac
-Run `go build main.go` on the terminal. This will create a new binary file. 
+
+Run `go build main.go` on the terminal. This will create a new binary file.
 
 You can now run the binary using `./main` on the terminal.
 
 ### For Windows
+
 Run `env GOOS=windows GOARCH=arm64 go build main.go` on the terminal.
 
 If the above doesn't generate a binary or generates a binary that doesn't run on your computer, change the `GOARCH` value from `arm64` to the correct one for your CPU. You can find the list for valid `GOARCH` values [here](https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63#goarch-values).
@@ -88,7 +98,8 @@ If the above doesn't generate a binary or generates a binary that doesn't run on
 You can now run the using `main.exe`
 
 ## The Three-Layered Architecture
-The backend for this project makes use of a slightly modified version of the Three-Layered Architecture. The incoming requests are parsed into the correspoding entity (defined inside `models`) by the `handler` layer. A valid request passes from the `handler` into the `service` layer, where all the business logic is performed. The next step after the `service` layer is the `datastore` layer, where the necessary database operation is performed. 
+
+The backend for this project makes use of a slightly modified version of the Three-Layered Architecture. The incoming requests are parsed into the correspoding entity (defined inside `models`) by the `handler` layer. A valid request passes from the `handler` into the `service` layer, where all the business logic is performed. The next step after the `service` layer is the `datastore` layer, where the necessary database operation is performed.
 
 Such an architecture allows one layer to be modified and tested independently of other operations in addition to providing all the benefits of modularity.
 
@@ -97,15 +108,17 @@ Such an architecture allows one layer to be modified and tested independently of
 You can use Postman/Bruno or a similar tool to test the APIs.
 
 Register:
+
 ```
-POST 
+POST
 URL: 'http://localhost:8080/api/auth/register/<id>?token=<token>'
 Raw JSON: {"first_name": "New", "last_name": "User", "password": "Hello123$%"}
 ```
 
-From the returned Set-Cookie value, take the token's value and set it as the Bearer Token value inside Authorization. 
+From the returned Set-Cookie value, take the token's value and set it as the Bearer Token value inside Authorization.
 
 Create Invite (need token):
+
 ```
 POST
 URL: 'http://localhost:8080/api/auth/invite'
@@ -113,55 +126,63 @@ Raw JSON: {"email": "testing@gmail.com", "user_role": "student"}
 ```
 
 Create Classroom (need token):
+
 ```
-POST 
+POST
 URL: 'http://localhost:8080/api/classroom'
 Raw JSON: {"name":"Joe"}
 ```
 
 Add user to classroom / alter the roles of existing users in classroom:
+
 ```
 PUT
 URL: http://localhost:8080/api/auth/<classroomId>/user
-Raw JSON: 
+Raw JSON:
 {
     "users": [{"email": "test@udallas.edu", "role": "student"}]
 }
 ```
 
 Change the name of a classroom:
+
 ```
 PATCH
-URL: http://localhost:8080/api/classroom/edit/<classroomId>
+URL: http://localhost:8080/api/classroom/<classroomId>
 Raw JSON: {"name": "New Name"}
 ```
 
 Delete a classroom:
+
 ```
 DELETE
-URL: http://localhost:8080/api/classroom/delete/<classroomId>
+URL: http://localhost:8080/api/classroom/<classroomId>
 ```
 
 Get 'view mode' assignments
+
 ```
 GET
 URL: http://localhost:8080/api/classroom/<classroomId>/view_assignments
 ```
 
 Login:
+
 ```
-POST 
+POST
 URL: 'http://localhost:8080/api/auth/login'
 Raw JSON: {"email":"test@udallas.edu", "password":"Hello123$%"}
 ```
 
 Logout:
+
 ```
 POST
 URL: 'http://localhost:8080/api/auth/logout/<sessionId>'
 ```
 
 Password Reset Request:
+
 ```
 POST
 URL: 'http://localhost:8080/api/auth/password'
@@ -169,6 +190,7 @@ Raw JSON: {"email":"test@udallas.edu"}
 ```
 
 Password Reset:
+
 ```
 POST
 URL: 'http://localhost:8080/api/auth/reset_password/<requestId>?token=<token>'
@@ -176,12 +198,14 @@ Raw JSON: {"password":"TryingThis123!"}
 ```
 
 Refresh Access Token:
+
 ```
 POST
 URL: 'http://localhost:8080/api/auth/refresh'
 ```
 
 Change User Info:
+
 ```
 PUT
 URL: 'http://localhost:8080/api/auth/user_info
@@ -194,12 +218,16 @@ Raw JSON:
 }
 
 ```
+
 Is Login Valid:
+
 ```
 GET
 URL: 'http://localhost:8080/api/auth/valid_login
 ```
+
 Get user's first and last name:
+
 ```
 GET
 URL: 'http://localhost:8080/api/auth/user_name'

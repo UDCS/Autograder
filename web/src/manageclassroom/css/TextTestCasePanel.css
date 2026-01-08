@@ -31,7 +31,7 @@
     font-family: "Monomaniac One";
 }
 .run-test-button {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     padding: 6%;
     box-sizing: border-box;
     font-size: 100%;
@@ -43,7 +43,7 @@
     gap: 1rem;
 }
 .test-case-textfield {
-    font-family: "Azeret Mono"
+    font-family: "Roboto"
 }
 .text-testcases {
     display: flex;
@@ -54,7 +54,7 @@
 }
 .testcases-title {
     font-size: 150%;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
 }
 .new-text-test-case {
     font-size: 175%;

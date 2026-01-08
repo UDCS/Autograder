@@ -6,7 +6,6 @@
     flex-direction: column;
     background: white;
     border-radius: 20px;
-    box-shadow: 0 10px 15px 0px rgba(0, 0, 0, 0.25);
     box-sizing: border-box;
 }
 .da-tabs-parent {
@@ -67,7 +66,7 @@
     gap: 2rem;
 }
 .label {
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     font-size: 100%;
 }
 .description {
@@ -83,7 +82,7 @@
 }
 .create-new-question {
     font-size: 150%;
-    font-family: "Azeret Mono";
+    font-family: "Roboto";
     color: white;
     padding: 1%;
     width: 100%;
