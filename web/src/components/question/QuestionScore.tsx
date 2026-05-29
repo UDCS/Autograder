@@ -3,9 +3,10 @@ import "./QuestionScore.css"
 interface QuestionScoreProps {
     points: number | undefined;
     score: number | undefined;
+    numberOnly?: boolean;
 }
 
-function QuestionScore({points, score}: QuestionScoreProps) {
+function QuestionScore({points, score, numberOnly}: QuestionScoreProps) {
     var completionIndicatorSrc = "/public/svg/XMark.svg";
     var colorClass = "red";
     if (score !== undefined && points !== undefined) {
@@ -22,7 +23,7 @@ function QuestionScore({points, score}: QuestionScoreProps) {
     }
     return <div className="questionScore">
         <div className={`score ${colorClass}`}>
-            Score: {score}/{points}
+            {!numberOnly && "Score"}: {score}/{points}
         </div>
         <img className={`completionIndicator ${colorClass}`} src={completionIndicatorSrc} />
     </div>;

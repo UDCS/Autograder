@@ -595,5 +595,11 @@ func (app *GraderApp) GetUserRole(jwksToken string, roomId uuid.UUID) (models.Us
 	if err != nil {
 		return "", fmt.Errorf("invalid authorization credentials")
 	}
+	globalRole, _ := app.GetRole(jwksToken)
+
+	if globalRole == models.Admin {
+		return models.Admin, nil
+	}
+
 	return app.store.GetUserRole(claims.Subject, roomId)
 }
