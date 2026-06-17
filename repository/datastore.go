@@ -22,6 +22,10 @@ type Datastore interface {
 	DeleteClassroom(request models.DeleteClassroomRequest) error
 	GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error)
 	GetUserRole(user string, classroomId uuid.UUID) (models.UserRole, error)
+	// Grades
+	GetClassroomGrades(classroomId uuid.UUID) (models.ClassroomGradesResult, error)
+	CreateDefaultSubmission(userId uuid.UUID, questionId uuid.UUID, defaultCode string) (uuid.UUID, error)
+	UpdateClassroomGrades(updates []models.GradeUpdate) error
 	// Assignments
 	GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
 	GetVerboseAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)

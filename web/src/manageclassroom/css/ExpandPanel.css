@@ -23,11 +23,6 @@
     left: 50%;
     transform: translateX(-50%);
 }
-.left-title {
-    position: absolute;
-    left: 0%;
-    transform: translateX(15%);
-}
 .grade-triangle {
     display: flex;
     gap: 1.5rem;

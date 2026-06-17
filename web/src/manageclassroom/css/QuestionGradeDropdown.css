@@ -31,4 +31,61 @@
     display: flex;
     flex-direction: column;
     padding: .67%;
+    gap: 1.2rem;
+    margin-top: 2%;
+    margin-left: 1%;
+}
+
+.question-grade-row {
+    display: flex;
+    align-items: center;
+}
+.question-grade-label {
+    text-align: left;
+    flex: 1;
+    font-family: "Azeret Mono";
+    font-size: 120%;
+}
+.question-checkbox-parent {
+    display: flex;
+    gap: 1.4rem;
+    flex: 5;
+    align-items: center;
+}
+.question-grade-checkbox {
+    accent-color: black;
+    width: 25px;
+    height: 25px;
+}
+
+.manual-score-input {
+    width: 100px;
+    padding: 1%;
+    border-radius: 10px;
+    border: 1px solid black;
+    font-family: "Azeret Mono";
+    font-size: 120%;
+}
+
+.manual-score-parent { 
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.font-size-header {
+    background: #e2d2e2;
+    display: flex;
+    align-items: center;
+    justify-content: end;   
+}
+
+.question-button-row {
+    display: flex;
+    gap: 1.5rem;
+    width: 50%;
+}
+.question-button {
+    flex: 1;
+    font-size: 100%;
 }

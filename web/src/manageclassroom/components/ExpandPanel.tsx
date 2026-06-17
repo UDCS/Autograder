@@ -28,8 +28,8 @@ function ExpandPanel({children, grade, title}: ExpandPanelProps) {
         <div className="expand-panel">
             <div className="expand-panel-header" onClick={() => setSelected(!selected)}>
                 {hasGrade ? 
-                    <>
-                        <span className="expand-panel-title left-title">{title}</span>
+                    <>  
+                        <span className="expand-panel-title center-title">{title}</span>
                         <div className="grade-triangle"> 
                             <div className={`header-grade ${gradeState}`}>{grade.toFixed(1)}%</div>
                             <div className="expand-button">{triangle()}</div>

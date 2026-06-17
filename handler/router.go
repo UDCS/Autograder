@@ -43,6 +43,8 @@ type Handler interface {
 	DeleteTestcase(c echo.Context) error
 	GetAssignment(c context.Context) error
 	UpdateSubmissionCode(c context.Context) error
+	GetClassroomGrades(c echo.Context) error
+	UpdateClassroomGrades(c echo.Context) error
 	// Grader
 	GradeSubmission(c context.Context) error
 }
@@ -117,6 +119,8 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.POST("/question/:question_id/submission", router.UpdateSubmissionCode)
 	classroom.POST("/verbose_questions", router.SetVerboseQuestions)
 	classroom.GET("/role/:room_id", router.GetUserRole)
+	classroom.GET("/:room_id/grades", router.GetClassroomGrades)
+	classroom.PATCH("/:room_id/grades", router.UpdateClassroomGrades)
 
 	grader := api.Group("/grader")
 	grader.POST("/question/:question_id", router.GradeSubmission)

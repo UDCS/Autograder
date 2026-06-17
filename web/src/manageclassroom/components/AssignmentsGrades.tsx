@@ -1,10 +1,21 @@
+import { AssignmentGrade, ClassroomGrades, QuestionSubmission } from "../../models/grades";
 import "../css/AssignmentsGrades.css"
 import AssignmentGradePanel from "./AssignmentGradePanel";
 
-function AssignmentsGrades() {
+interface AssignmentsGradesProps {
+    grades: ClassroomGrades;
+    updateSubmission: (submissionId: string, changes: Partial<QuestionSubmission>) => void;
+    classroomId: string;
+}
+function AssignmentsGrades({grades, updateSubmission, classroomId}: AssignmentsGradesProps) {
+    const gradesToAssignmentGradePanel = () => {
+        return grades.assignments.map((assignment: AssignmentGrade) => {
+            return <AssignmentGradePanel assignmentGrade={assignment} updateSubmission={updateSubmission} classroomId={classroomId}/>
+        });
+    }
     return (
         <div className="assignments-grades">
-            <AssignmentGradePanel assignmentName="Test Assignment 1"/>
+            {...gradesToAssignmentGradePanel()}
         </div>
     );
 }

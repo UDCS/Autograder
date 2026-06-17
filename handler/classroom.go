@@ -424,6 +424,55 @@ func (router *HttpRouter) UpdateSubmissionCode(c echo.Context) error {
 	return c.JSON(http.StatusAccepted, json_response.JSONMessage{Message: "student code accepted"})
 }
 
+func (router *HttpRouter) UpdateClassroomGrades(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	classroomId, err := uuid.Parse(c.Param("room_id"))
+	if err != nil {
+		logger.Error("could not parse classroom id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("invalid classroom id"))
+	}
+
+	var request models.UpdateClassroomGradesRequest
+	if err = c.Bind(&request); err != nil {
+		logger.Error("failed to parse request body", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse request body"))
+	}
+
+	if err = router.app.UpdateClassroomGrades(tokenString, classroomId, request); err != nil {
+		logger.Error("could not update classroom grades", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, json_response.NewMessage("grades updated successfully"))
+}
+
+func (router *HttpRouter) GetClassroomGrades(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	classroomId, err := uuid.Parse(c.Param("room_id"))
+	if err != nil {
+		logger.Error("could not parse classroom id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("invalid classroom id"))
+	}
+
+	grades, err := router.app.GetClassroomGrades(tokenString, classroomId)
+	if err != nil {
+		logger.Error("could not get classroom grades", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, grades)
+}
+
 func (router *HttpRouter) GetUserRole(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 	if err != nil {

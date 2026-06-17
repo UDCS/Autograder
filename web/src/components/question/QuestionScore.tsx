@@ -23,7 +23,7 @@ function QuestionScore({points, score, numberOnly}: QuestionScoreProps) {
     }
     return <div className="questionScore">
         <div className={`score ${colorClass}`}>
-            {!numberOnly && "Score"}: {score}/{points}
+            {!numberOnly && "Score:"} {score}/{points}
         </div>
         <img className={`completionIndicator ${colorClass}`} src={completionIndicatorSrc} />
     </div>;

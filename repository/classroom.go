@@ -692,6 +692,156 @@ func (store PostgresStore) UpdateSubmissionCode(request models.UpdateSubmissionR
 	return nil
 }
 
+func (store PostgresStore) UpdateClassroomGrades(updates []models.GradeUpdate) error {
+	for _, update := range updates {
+		_, err := store.db.Exec(
+			`INSERT INTO question_grade_overrides (question_id, student_id, is_manual_grade, new_grade)
+			VALUES ($1, $2, $3, $4)
+			ON CONFLICT (student_id, question_id) DO UPDATE SET is_manual_grade = $3, new_grade = $4`,
+			update.QuestionId, update.StudentId, update.IsManualGrade, update.NewScore,
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (store PostgresStore) CreateDefaultSubmission(userId uuid.UUID, questionId uuid.UUID, defaultCode string) (uuid.UUID, error) {
+	submissionId := uuid.New()
+	_, err := store.db.Exec(
+		"INSERT INTO student_submissions (id, user_id, question_id, code, updated_at) VALUES ($1, $2, $3, $4, NOW())",
+		submissionId, userId, questionId, defaultCode,
+	)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return submissionId, nil
+}
+
+func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.ClassroomGradesResult, error) {
+	var assignments []struct {
+		Id   uuid.UUID `db:"id"`
+		Name string    `db:"name"`
+	}
+	err := store.db.Select(&assignments,
+		"SELECT id, name FROM assignments WHERE classroom_id = $1",
+		classroomId,
+	)
+	if err != nil {
+		return models.ClassroomGradesResult{}, err
+	}
+
+	var students []struct {
+		UserId    uuid.UUID `db:"user_id"`
+		FirstName string    `db:"first_name"`
+		LastName  string    `db:"last_name"`
+	}
+	err = store.db.Select(&students, `
+		SELECT u.id AS user_id, u.first_name, u.last_name
+		FROM user_classroom_matching ucm
+		JOIN users u ON ucm.user_id = u.id
+		WHERE ucm.classroom_id = $1 AND ucm.user_role = 'student'
+	`, classroomId)
+	if err != nil {
+		return models.ClassroomGradesResult{}, err
+	}
+
+	result := models.ClassroomGradesResult{
+		Assignments: make([]models.AssignmentGradeResult, 0),
+	}
+
+	for _, assignment := range assignments {
+		var questions []struct {
+			Id          uuid.UUID `db:"id"`
+			Header      string    `db:"header"`
+			DefaultCode string    `db:"default_code"`
+		}
+		err = store.db.Select(&questions,
+			"SELECT id, header, default_code FROM questions WHERE assignment_id = $1",
+			assignment.Id,
+		)
+		if err != nil {
+			return models.ClassroomGradesResult{}, err
+		}
+
+		assignmentResult := models.AssignmentGradeResult{
+			AssignmentId:   assignment.Id,
+			AssignmentName: assignment.Name,
+			Questions:      make([]models.QuestionGradeResult, 0),
+		}
+
+		for _, question := range questions {
+			maxPoints, err := store.GetQuestionPoints(question.Id)
+			if err != nil {
+				return models.ClassroomGradesResult{}, err
+			}
+
+			questionResult := models.QuestionGradeResult{
+				QuestionId:   question.Id,
+				QuestionName: question.Header,
+				MaxPoints:    int(maxPoints),
+				Submissions:  make([]models.QuestionSubmissionGrade, 0),
+			}
+
+			for _, student := range students {
+				var submissionId uuid.UUID
+				var consoleOutput string
+				var code string
+				var submission struct {
+					Id       uuid.UUID `db:"id"`
+					Feedback string    `db:"feedback"`
+					Code     string    `db:"code"`
+				}
+				if subErr := store.db.Get(&submission,
+					"SELECT id, feedback, code FROM student_submissions WHERE user_id=$1 AND question_id=$2",
+					student.UserId, question.Id,
+				); subErr == nil {
+					submissionId = submission.Id
+					consoleOutput = submission.Feedback
+					code = submission.Code
+				} else {
+					submissionId, _ = store.CreateDefaultSubmission(student.UserId, question.Id, question.DefaultCode)
+					code = question.DefaultCode
+				}
+
+				score, _ := store.GetStudentQuestionGrade(student.UserId, question.Id)
+
+				var isManualGrade bool
+				var manualGrade int
+				var override struct {
+					IsManualGrade bool `db:"is_manual_grade"`
+					NewGrade      int  `db:"new_grade"`
+				}
+				if overrideErr := store.db.Get(&override,
+					"SELECT is_manual_grade, COALESCE(new_grade, 0) AS new_grade FROM question_grade_overrides WHERE student_id=$1 AND question_id=$2",
+					student.UserId, question.Id,
+				); overrideErr == nil {
+					isManualGrade = override.IsManualGrade
+					manualGrade = override.NewGrade
+				}
+
+				questionResult.Submissions = append(questionResult.Submissions, models.QuestionSubmissionGrade{
+					SubmissionId:  submissionId,
+					StudentId:     student.UserId,
+					StudentName:   student.FirstName + " " + student.LastName,
+					Score:         int(score),
+					Code:          code,
+					ConsoleOutput: consoleOutput,
+					IsManualGrade: isManualGrade,
+					ManualGrade:   manualGrade,
+				})
+			}
+
+			assignmentResult.Questions = append(assignmentResult.Questions, questionResult)
+		}
+
+		result.Assignments = append(result.Assignments, assignmentResult)
+	}
+
+	return result, nil
+}
+
 func (store PostgresStore) GetUserRole(user string, classroomId uuid.UUID) (models.UserRole, error) {
 	userInfo, err := store.GetUserInfo(user)
 	if err != nil {
