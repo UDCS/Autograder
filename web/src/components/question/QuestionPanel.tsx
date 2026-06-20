@@ -40,19 +40,18 @@ function QuestionPanel({info}: {info: Question}) {
             console.log(response);
         }
     }
-    const gradeUserCode = async () => {
-        var response = await fetch(`/api/grader/question/${info.id!}`, {method: "POST"});
-        if (!response.ok) {
-            console.log(response);
-        }
-    }
     const resetTimeLastChange = () => {
         var d = new Date();
         setTimeLastChange(d);
     }
-    const onSubmit = () => {
+    const onSubmit = async () => {
         setLoading(true);
-        updateUserCode().then(gradeUserCode);
+        await fetch(`/api/grader/question/${info.id!}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code }),
+        });
+        setLoading(false);
     }
     const onChange = (val: string | undefined) => {
         setCode(val);

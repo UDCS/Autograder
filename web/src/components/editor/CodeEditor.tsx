@@ -5,12 +5,16 @@ interface CodeEditorProps {
   value?: string;
   onChange?: (value: string) => void;
   language?: string;
+  fontSize?: number;
+  editable?: boolean;
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = ({
   value,
   onChange,
   language = "python",
+  fontSize=18,
+  editable=true
 }) => {
   return (
     <div style={{ height: "500px" }}>
@@ -24,9 +28,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           }
         }}
         options={{
-          fontSize: 18,
+          fontSize: fontSize,
           minimap: { enabled: false },
           automaticLayout: true,
+          readOnly: !editable
         }}
       />
     </div>

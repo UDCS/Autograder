@@ -22,7 +22,6 @@ function AssignmentDropdown({name, children, id}: AssignmentDropdownProps) {
             </div>
             {selected? 
                 <div className="assignmentBody">
-                    
                     {children}
                 </div>
             :<></>}

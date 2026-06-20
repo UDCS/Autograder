@@ -16,10 +16,16 @@ type Datastore interface {
 	CreateClassroom(classroom models.Classroom) (*models.Classroom, error)
 	MatchUserToClassroom(email string, role string, classroomId uuid.UUID) error
 	GetUserClassroomInfo(userId uuid.UUID, classroomId uuid.UUID) (models.UserInClassroom, error)
+	GetClassroomStudents(classroomId uuid.UUID) ([]models.UserInClassroom, error)
+	DeleteClassroomStudent(classroomId uuid.UUID, user models.UserInClassroom) error
 	EditClassroom(request models.EditClassroomRequest) error
 	DeleteClassroom(request models.DeleteClassroomRequest) error
 	GetClassroomInfo(classroomId uuid.UUID) (models.Classroom, error)
 	GetUserRole(user string, classroomId uuid.UUID) (models.UserRole, error)
+	// Grades
+	GetClassroomGrades(classroomId uuid.UUID) (models.ClassroomGradesResult, error)
+	CreateDefaultSubmission(userId uuid.UUID, questionId uuid.UUID, defaultCode string) (uuid.UUID, error)
+	UpdateClassroomGrades(updates []models.GradeUpdate) error
 	// Assignments
 	GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
 	GetVerboseAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
@@ -27,19 +33,26 @@ type Datastore interface {
 	SetVerboseQuestion(question models.Question) error
 	DeleteAssignment(assignmentId uuid.UUID) error
 	DeleteQuestion(questionId uuid.UUID) error
+	DeleteTestcase(testcaseId uuid.UUID) error
 	GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error)
 	GetAssignmentInfo(assignmentId uuid.UUID) (models.Assignment, error)
 	GetQuestionInfo(questionId uuid.UUID) (models.Question, error)
 	GetQuestionTestcases(questionId uuid.UUID) ([]models.Testcase, error)
+	GetTestcaseInfo(testcaseId uuid.UUID) (models.Testcase, error)
 	UpdateSubmissionCode(request models.UpdateSubmissionRequest) error
 	GetSubmissionId(userId uuid.UUID, questionId uuid.UUID) (uuid.UUID, error)
 	// Auth
 	UserOwnsSubmission(userId uuid.UUID, submissionId uuid.UUID) bool
-	ValidInvite(inviteId uuid.UUID, tokenHash string) bool
+	GetRole(userId uuid.UUID) (models.UserRole, error)
 	// Invitation
 	CreateInvitation(invitation models.Invitation) (*models.Invitation, error)
 	CompleteInvitation(invitationId uuid.UUID, completed bool, updatedAt time.Time) error
 	GetInvitation(invitationId uuid.UUID, tokenHash string) (*models.Invitation, error)
+	GetInvitationFromEmail(email string) (*models.Invitation, error)
+	MatchFutureUserToClassroom(email string, classroomId uuid.UUID, role models.UserRole) error
+	RemoveFutureClassroomMatching(email string)
+	GetInviteClassrooms(email string) (*[]models.FutureStudentClassroomMatching, error)
+	InvitationAlreadyExists(email string) bool
 	// User
 	CreateUser(user models.User) (*models.User, error)
 	GetUserInfo(email string) (*models.User, error)

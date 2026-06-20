@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/navbar/Navbar";
 import DashboardSection from "./DashboardSection";
-import { parseDateString } from "../utils/classroom";
+import { createBlankClassroom, parseDateString } from "../utils/classroom";
+import BlueButton from "../components/buttons/BlueButton";
+import DetailsSubpage from "../manageclassroom/subpages/DetailsSubpage";
+import Popup from "../components/popup/Popup";
 
 function DashboardBody() {
     const [loading, setLoading] = useState(true);
@@ -11,6 +14,10 @@ function DashboardBody() {
     const [activeClasses, setActiveClasses] = useState<any[]>([]);
     const [expiredClasses, setExpiredClasses] = useState<any[]>([]);
     const [noClasses, setNoClasses] = useState(false);
+
+    const [canAddClassroom, setCanAddClassroom] = useState(false);
+    
+    const [isPopup, setIsPopup] = useState<boolean>(false);
     
     useEffect(() => {
         var isError = false;
@@ -67,6 +74,15 @@ function DashboardBody() {
                 setErrorMessage("Error retrieving the classrooms")
             }
         }
+        const getUserRole = async () => {
+            var request = await fetch("/api/auth/role");
+            if (request.ok) {
+                var role = await request.json();
+                if (role == "admin" || role == "instructor") {
+                    setCanAddClassroom(true);
+                }
+            }
+        }
         const stopLoading = () => {
             setLoading(false);
         }
@@ -75,6 +91,8 @@ function DashboardBody() {
                 await verifyLogin();
                 if (isError) return;
                 await getClassrooms();
+                if (isError) return;
+                await getUserRole();
                 stopLoading();
             })();
         }
@@ -89,6 +107,16 @@ function DashboardBody() {
                     <DashboardSection title="Enrolled Classes" classes={enrolledClasses}/>
                     <DashboardSection title="Active Classes" classes={activeClasses} />
                     <DashboardSection title="Expired Classes" classes={expiredClasses} />
+                    {canAddClassroom &&
+                        <div className="create-classroom-parent">
+                            <BlueButton className="create-classroom-button" onClick={() => setIsPopup(true)}>+ Create New Classroom</BlueButton>
+                        </div>
+                    }   
+                    {isPopup && 
+                        <Popup onClose={() => setIsPopup(false)}>
+                            <DetailsSubpage classroomInfo={createBlankClassroom()} newClassroom={true}></DetailsSubpage>
+                        </Popup>
+                    }   
                 </>
                 :
                 <div className="errorParent">

@@ -492,6 +492,20 @@ func (router *HttpRouter) IsValidLogin(c echo.Context) error {
 	return c.JSON(http.StatusOK, json_response.NewMessage("false"))
 }
 
+func (router *HttpRouter) GetRole(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("Failed to parse cooking for'access_token'", zap.Error(err))
+		return err
+	}
+	role, err := router.app.GetRole(tokenString)
+	if err != nil {
+		logger.Error("Failed to get role", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, "failed to get role")
+	}
+	return c.JSON(http.StatusOK, role)
+}
+
 func (router *HttpRouter) ValidInvite(c echo.Context) error {
 	invite_id, err := uuid.Parse(c.Param("invite_id"))
 	token := c.QueryParam("token")

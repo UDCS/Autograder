@@ -22,6 +22,7 @@ type Handler interface {
 	IsValidLogin(c context.Context) error
 	GetUserName(c context.Context) error
 	ValidInvite(c context.Context) error
+	GetRole(c context.Context) error
 	// Classroom
 	CreateClassroom(c context.Context) error
 	EditClassroom(c context.Context) error
@@ -29,6 +30,9 @@ type Handler interface {
 	ChangeUserInfo(c context.Context) error
 	GetClassroom(c context.Context) error
 	GetUserRole(c context.Context) error
+	GetClassroomStudents(c context.Context) error
+	EditClassroomStudents(c context.Context) error
+	DeleteClassroomStudent(c context.Context) error
 	// Assignments
 	GetViewAssignments(c context.Context) error
 	GetVerboseAssignments(c echo.Context) error
@@ -36,8 +40,11 @@ type Handler interface {
 	SetVerboseQuestions(c echo.Context) error
 	DeleteAssignment(c echo.Context) error
 	DeleteQuestion(c echo.Context) error
+	DeleteTestcase(c echo.Context) error
 	GetAssignment(c context.Context) error
 	UpdateSubmissionCode(c context.Context) error
+	GetClassroomGrades(c echo.Context) error
+	UpdateClassroomGrades(c echo.Context) error
 	// Grader
 	GradeSubmission(c context.Context) error
 }
@@ -64,7 +71,7 @@ func New(app service.App) *HttpRouter {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 	}))
-	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(50))))
 	e.Use(middleware.Gzip())
 
 	router := &HttpRouter{
@@ -91,6 +98,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.GET("/valid_login", router.IsValidLogin)
 	auth.GET("/invite/:invite_id/valid", router.ValidInvite)
 	auth.GET("/user_name", router.GetUserName)
+	auth.GET("/role", router.GetRole)
 
 	classroom := api.Group("/classroom")
 	classroom.GET("/all", router.GetClassroomsOfUser)
@@ -101,12 +109,18 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.GET("/:room_id/view_assignments", router.GetViewAssignments)
 	classroom.GET("/:room_id/verbose_assignments", router.GetVerboseAssignments)
 	classroom.POST("/:room_id/verbose_assignments", router.SetVerboseAssignments)
+	classroom.GET("/:room_id/students", router.GetClassroomStudents)
+	classroom.POST("/:room_id/students", router.EditClassroomStudents)
+	classroom.DELETE("/:room_id/student", router.DeleteClassroomStudent)
 	classroom.DELETE("/assignment/:assignment_id", router.DeleteAssignment)
 	classroom.DELETE("/question/:question_id", router.DeleteQuestion)
+	classroom.DELETE("/testcase/:testcase_id", router.DeleteTestcase)
 	classroom.GET("/assignment/:assignment_id", router.GetAssignment)
 	classroom.POST("/question/:question_id/submission", router.UpdateSubmissionCode)
 	classroom.POST("/verbose_questions", router.SetVerboseQuestions)
 	classroom.GET("/role/:room_id", router.GetUserRole)
+	classroom.GET("/:room_id/grades", router.GetClassroomGrades)
+	classroom.PATCH("/:room_id/grades", router.UpdateClassroomGrades)
 
 	grader := api.Group("/grader")
 	grader.POST("/question/:question_id", router.GradeSubmission)

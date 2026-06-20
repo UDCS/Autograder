@@ -1,0 +1,55 @@
+.expand-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 20px;
+    box-shadow: 0px 5px 15px 10px rgba(174, 170, 170, 0.25);
+}
+.expand-panel-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 3%;
+    user-select: none;
+}
+.expand-panel-title {
+    font-family: "Azeret Mono";
+    font-size: 150%;
+}
+.center-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.grade-triangle {
+    display: flex;
+    gap: 1.5rem;
+    margin-left: auto;
+    align-items: center;
+}
+.header-grade {
+    font-family: "Azeret Mono";
+    font-size: 125%;
+}
+.exc-grade {
+    color: limegreen;
+}
+.good-grade {
+    color: green;
+}
+.pass-grade {
+    color: orange;
+}
+.poor-grade {
+    color: red;
+}
+.expand-button {
+    font-size: 200%;
+}
+.expand-panel-body {
+    display: flex;
+    flex-direction: column;
+    padding: 3%;
+}
