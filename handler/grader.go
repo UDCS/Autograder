@@ -24,7 +24,13 @@ func (router *HttpRouter) GradeSubmission(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, json_response.NewError("invalid question id"))
 	}
 
-	if err = router.app.GradeSubmission(tokenString, questionId); err != nil {
+	var body struct {
+		UserId *uuid.UUID `json:"user_id"`
+		Code   *string    `json:"code"`
+	}
+	_ = c.Bind(&body)
+
+	if err = router.app.GradeSubmission(tokenString, questionId, body.UserId, body.Code); err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
 	}
 

@@ -7,6 +7,7 @@ interface StudentGradesProps {
     grades: ClassroomGrades;
     updateSubmission: (submissionId: string, changes: Partial<QuestionSubmission>) => void;
     classroomId: string;
+    showGrades: boolean;
 }
 
 function StudentGrades({ grades, updateSubmission, classroomId }: StudentGradesProps) {
@@ -50,7 +51,7 @@ function StudentGrades({ grades, updateSubmission, classroomId }: StudentGradesP
     return (
         <div className="assignments-grades">
             {Array.from(studentMap.entries()).map(([studentId, studentName]) => (
-                <ExpandPanel key={studentId} title={studentName} grade={calcStudentPercent(studentId)}>
+                <ExpandPanel key={studentId} title={studentName} grade={grades.show_grades ? calcStudentPercent(studentId) : undefined}>
                     {grades.assignments.map(assignment => {
                         const studentQuestions: QuestionGrade[] = assignment.questions
                             .filter(q => q.submissions.some(s => s.student_id === studentId))
@@ -63,7 +64,7 @@ function StudentGrades({ grades, updateSubmission, classroomId }: StudentGradesP
 
                         return (
                             <ExpandPanel key={assignment.assignment_id} title={assignment.assignment_name}
-                                grade={calcAssignmentPercent(studentId, assignment.assignment_id)}>
+                                grade={grades.show_grades ? calcAssignmentPercent(studentId, assignment.assignment_id) : undefined}>
                                 {studentQuestions.map(question => (
                                     <QuestionGradeDropdown
                                         key={question.question_id}

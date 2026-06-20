@@ -47,7 +47,7 @@ type App interface {
 	GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error)
 	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
 	// Grader
-	GradeSubmission(jwksToken string, questionId uuid.UUID) error
+	GradeSubmission(jwksToken string, questionId uuid.UUID, targetUserId *uuid.UUID, code *string) error
 }
 
 type GraderApp struct {

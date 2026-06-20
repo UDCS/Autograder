@@ -76,13 +76,34 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                     <GradeSwitcher onChange={(newSection: GradeSection) => {setCurrentSection(newSection)}}/>
                     <div id="show-grades-parent">
                         <h2 id="show-grades-title">Show Grades:</h2>
-                        <input type='checkbox' id="show-grades-checkbox" />
+                        <input type='checkbox' id="show-grades-checkbox"
+                            checked={classroomGrades!.show_grades}
+                            onChange={(e) => {
+                                const checked = e.target.checked;
+                                setClassroomGrades(prev => {
+                                    if (!prev) return prev;
+                                    return {
+                                        ...prev,
+                                        show_grades: checked,
+                                        assignments: prev.assignments.map(assignment => ({
+                                            ...assignment,
+                                            questions: assignment.questions.map(question => ({
+                                                ...question,
+                                                submissions: question.submissions.map(submission => ({
+                                                    ...submission,
+                                                    show_grade: checked,
+                                                }))
+                                            }))
+                                        }))
+                                    };
+                                });
+                            }} />
                     </div>
                     <div className={clsx(currentSection !== 'assignments' && 'hidden')}>
-                        <AssignmentsGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} />
+                        <AssignmentsGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} />
                     </div>
                     <div className={clsx(currentSection !== 'students' && 'hidden')}>
-                        <StudentGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} />
+                        <StudentGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} />
                     </div>
                 </>
             }

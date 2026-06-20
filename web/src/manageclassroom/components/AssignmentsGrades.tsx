@@ -6,6 +6,7 @@ interface AssignmentsGradesProps {
     grades: ClassroomGrades;
     updateSubmission: (submissionId: string, changes: Partial<QuestionSubmission>) => void;
     classroomId: string;
+    showGrades: boolean;
 }
 function AssignmentsGrades({grades, updateSubmission, classroomId}: AssignmentsGradesProps) {
     const gradesToAssignmentGradePanel = () => {
