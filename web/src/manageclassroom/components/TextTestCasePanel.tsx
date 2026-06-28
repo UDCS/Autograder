@@ -1,27 +1,18 @@
-import { useState } from "react";
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import TextField, { TextFieldInput } from "../../components/textfield/Textfield";
 import TitleInput from "../../components/title-input/TitleInput";
-import { TestCase, TestCaseResults, TextTestCaseBody } from "../../models/testcases";
+import { TestCase, TextTestCaseBody } from "../../models/testcases";
 import "../css/TextTestCasePanel.css"
 import TextTestCase from "./TextTestCase";
-import TestRunResults from "./TestRunResults";
 
 export type TestCasePanelProps = {
     testCaseInfo: TestCase;
+    runSolution: (testcaseId?: string) => void;
 }
 
-const fakeTestCaseResults: TestCaseResults[] = [
-    {name: "Test case 1", maxPoints: 20, points: 15, consoleOutput: "Your code is hot garbage. Consider switching majors"},
-    {name: "Test case 2", maxPoints: 10, points: 10, consoleOutput: "You're not funny."}
-]
-
-function TextTestCasePanel({testCaseInfo}: TestCasePanelProps) {
+function TextTestCasePanel({testCaseInfo, runSolution}: TestCasePanelProps) {
 
     const body = testCaseInfo.body as TextTestCaseBody;
-
-
-    const [isTestRun, setTestRun] = useState(false);
 
     const handleTitleChange = (newTitle: string) => {
         testCaseInfo.name = newTitle;
@@ -42,7 +33,7 @@ function TextTestCasePanel({testCaseInfo}: TestCasePanelProps) {
                     <TitleInput className="test-case-title" value={testCaseInfo.name} onChange={handleTitleChange} />
                 </div>
                 <div className="test-case-run-parent">
-                    <DarkBlueButton className="run-test-button" onClick={() => setTestRun(true)}>Run Test on Solution</DarkBlueButton>
+                    <DarkBlueButton className="run-test-button" onClick={() => runSolution(testCaseInfo.id)}>Run Test on Solution</DarkBlueButton>
                 </div>
             </div>
             <div className="points-timeout">
@@ -55,7 +46,6 @@ function TextTestCasePanel({testCaseInfo}: TestCasePanelProps) {
                 </div>
                 <TextTestCase body={body}></TextTestCase>
             </div>
-            {isTestRun && <TestRunResults testCasesResults={fakeTestCaseResults} close={() => setTestRun(false)} />}
         </div>
     );
 }

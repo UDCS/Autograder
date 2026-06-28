@@ -12,7 +12,7 @@ import { Question } from "../../models/classroom";
 import CopyTestcasePopup from "../../components/popup/CopyTestcasePopup";
 import DeleteTestcasePopup from "../../components/popup/DeleteTestcasePopup"
 
-function TestCasesEditor({question, fontSize: fS}: {question: Question, fontSize?: number}) {
+function TestCasesEditor({question, fontSize: fS, runSolution}: {question: Question, fontSize?: number, runSolution: (testcaseId?: string) => void}) {
 
     if (!question.test_cases) {
         question.test_cases = [];
@@ -52,7 +52,7 @@ function TestCasesEditor({question, fontSize: fS}: {question: Question, fontSize
                 if (testCase.type == "text") {
                     return (
                         <div className={clsx(selectedTestCase === testCase.id && "test-case-panel-parent", selectedTestCase !== testCase.id && "hidden")}>
-                            <TextTestCasePanel testCaseInfo={testCase} />
+                            <TextTestCasePanel testCaseInfo={testCase} runSolution={runSolution} />
                         </div>
                     );
                 }
@@ -68,7 +68,7 @@ function TestCasesEditor({question, fontSize: fS}: {question: Question, fontSize
     return (
         <div className="testcases-editor">
             <div className="testcase-button-panel">
-                <DarkBlueButton className="run-tests-button">Run Tests on Solution</DarkBlueButton>
+                <DarkBlueButton className="run-tests-button" onClick={() => runSolution()}>Run Tests on Solution</DarkBlueButton>
                 <BlueButton className="new-test-case-button" onClick={() => setCreatePopup(true)}>+ Add Test Case</BlueButton>
                 {...testCasesToButtons(testCasesList)}
             </div>

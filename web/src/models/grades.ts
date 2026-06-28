@@ -1,3 +1,5 @@
+export type SubmissionStatus = 'running' | 'failed' | 'partial' | 'passed' | 'error';
+
 // The atomic unit — one student's submission for one question
 export interface QuestionSubmission {
     submission_id: string;
@@ -7,6 +9,7 @@ export interface QuestionSubmission {
     code: string;
     console_output: string;
     manual_grade: number;
+    status: SubmissionStatus;
     // the three checkboxes in the expanded panel
     show_grade: boolean;
     is_manual_grade: boolean;
@@ -18,6 +21,7 @@ export interface QuestionGrade {
     question_id: string;
     question_name: string;
     max_points: number;
+    prog_lang: string;
     submissions: QuestionSubmission[];  // one per student
 }
 

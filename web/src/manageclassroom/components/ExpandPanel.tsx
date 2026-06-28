@@ -1,12 +1,14 @@
 import { useState } from "react";
 import "../css/ExpandPanel.css"
+import clsx from "clsx";
 
 interface ExpandPanelProps {
     children: React.ReactNode;
     grade?: number;
     title: string;
+    gap?: boolean;
 }
-function ExpandPanel({children, grade, title}: ExpandPanelProps) {
+function ExpandPanel({children, grade, title, gap=true}: ExpandPanelProps) {
     const [selected, setSelected] = useState(false);
     const triangle = () => {
         return selected ? "▲" : "▼"; 
@@ -45,7 +47,7 @@ function ExpandPanel({children, grade, title}: ExpandPanelProps) {
                 }
             </div>
             {selected &&
-                <div className="expand-panel-body">
+                <div className={clsx("expand-panel-body", gap && "with-gap")}>
                     {children}
                 </div>
             }

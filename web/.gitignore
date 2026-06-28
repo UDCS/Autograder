@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Transient Vite config artifact (left behind when Vite is killed mid-run)
+vite.config.ts.timestamp-*.mjs
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

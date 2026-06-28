@@ -20,6 +20,7 @@ export function getLanguageFromSuffix(ext: string): string {
     kt: "kotlin",
     swift: "swift",
     sql: "sql",
+    rkt: "racket",
   };
   return map[ext.toLowerCase()] || "plaintext";
 }

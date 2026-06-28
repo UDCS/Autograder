@@ -36,6 +36,7 @@ type App interface {
 	// Grades
 	GetClassroomGrades(jwksToken string, classroomId uuid.UUID) (models.ClassroomGradesResult, error)
 	UpdateClassroomGrades(jwksToken string, classroomId uuid.UUID, request models.UpdateClassroomGradesRequest) error
+	GetSubmissionStatuses(jwksToken string, submissionIds []uuid.UUID) ([]models.SubmissionStatusResult, error)
 	// Assignments
 	GetViewAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
 	GetVerboseAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
@@ -47,7 +48,9 @@ type App interface {
 	GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error)
 	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
 	// Grader
-	GradeSubmission(jwksToken string, questionId uuid.UUID, targetUserId *uuid.UUID, code *string) error
+	GradeSubmission(jwksToken string, questionId uuid.UUID, targetUserId *uuid.UUID, code *string) (uuid.UUID, error)
+	RunSolutionTests(jwksToken string, questionId uuid.UUID, testcaseId *uuid.UUID, solutionCode string) (uuid.UUID, error)
+	GetSolutionTestRun(jwksToken string, runId uuid.UUID) (models.SolutionTestRunResult, error)
 }
 
 type GraderApp struct {

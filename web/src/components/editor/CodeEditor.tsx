@@ -1,5 +1,6 @@
 import React from "react";
 import Editor from "@monaco-editor/react";
+import { registerRacket } from "./racketLanguage";
 
 interface CodeEditorProps {
   value?: string;
@@ -20,6 +21,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     <div style={{ height: "500px" }}>
       <Editor
         height="100%"
+        beforeMount={registerRacket}
         defaultLanguage={language}
         value={value}
         onChange={(newValue) => {

@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Classroom } from "../../models/classroom";
 import GradeSwitcher, { GradeSection } from "../components/GradeSwitcher";
 import "../css/GradesSubpage.css"
 import AssignmentsGrades from "../components/AssignmentsGrades";
 import StudentGrades from "../components/StudentGrades";
 import clsx from "clsx";
-import { ClassroomGrades, QuestionSubmission } from "../../models/grades";
+import { ClassroomGrades, QuestionSubmission, SubmissionStatus } from "../../models/grades";
 
 interface GradesSubpageProps {
     classroomInfo: Classroom;
@@ -17,7 +17,10 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const [errorMessage, setErrorMessage] = useState<string>("");
 
-    const updateSubmission = (submissionId: string, changes: Partial<QuestionSubmission>) => {
+    const activeSubmissions = useRef<Set<string>>(new Set());
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const updateSubmission = useCallback((submissionId: string, changes: Partial<QuestionSubmission>) => {
         setClassroomGrades(prev => {
             if (!prev) return prev;
             return {
@@ -35,7 +38,45 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                 }))
             };
         });
-    }
+    }, []);
+
+    const addSubmission = useCallback((submissionId: string) => {
+        activeSubmissions.current.add(submissionId);
+        if (intervalRef.current) return;
+        intervalRef.current = setInterval(async () => {
+            const ids = Array.from(activeSubmissions.current);
+            if (ids.length === 0) {
+                clearInterval(intervalRef.current!);
+                intervalRef.current = null;
+                return;
+            }
+            try {
+                const res = await fetch('/api/grader/submissions/status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ submission_ids: ids }),
+                });
+                if (!res.ok) return;
+                const results = await res.json() as Array<{ submission_id: string; status: string; score: number; console_output: string }>;
+                for (const r of results) {
+                    if (r.status !== 'running') {
+                        activeSubmissions.current.delete(r.submission_id);
+                        updateSubmission(r.submission_id, {
+                            status: r.status as SubmissionStatus,
+                            score: r.score,
+                            console_output: r.console_output,
+                        });
+                    }
+                }
+            } catch { /* ignore transient network errors */ }
+        }, 2500);
+    }, [updateSubmission]);
+
+    useEffect(() => {
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        };
+    }, []);
 
     useEffect(() => {
         fetch(`/api/classroom/${classroomInfo.id}/grades`)
@@ -59,13 +100,23 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                     }))
                 };
                 setClassroomGrades(grades);
+                // Resume polling for any submissions that were mid-grade when the page loaded
+                for (const a of grades.assignments) {
+                    for (const q of a.questions) {
+                        for (const s of q.submissions) {
+                            if (s.status === 'running') {
+                                addSubmission(s.submission_id);
+                            }
+                        }
+                    }
+                }
                 setLoading(false);
             })
             .catch(err => {
                 setErrorMessage(err.message);
                 setLoading(false);
             });
-    }, [classroomInfo.id]);
+    }, [classroomInfo.id, addSubmission]);
 
     if (errorMessage) return <div className="error">{errorMessage}</div>;
 
@@ -100,10 +151,10 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                             }} />
                     </div>
                     <div className={clsx(currentSection !== 'assignments' && 'hidden')}>
-                        <AssignmentsGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} />
+                        <AssignmentsGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} addSubmission={addSubmission} />
                     </div>
                     <div className={clsx(currentSection !== 'students' && 'hidden')}>
-                        <StudentGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} />
+                        <StudentGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} addSubmission={addSubmission} />
                     </div>
                 </>
             }

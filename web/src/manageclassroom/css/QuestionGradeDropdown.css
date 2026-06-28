@@ -73,12 +73,6 @@
     gap: 1.5rem;
 }
 
-.font-size-header {
-    background: #e2d2e2;
-    display: flex;
-    align-items: center;
-    justify-content: end;   
-}
 
 .question-button-row {
     display: flex;
