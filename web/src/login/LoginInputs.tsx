@@ -67,7 +67,7 @@ function LoginInputs() {
                         setPassword(data.value)
                     }}/>
             </div>       
-            <a href="/reset-password" className="forgot-pw">Forgot Password?</a>
+            <a href="/resetpassword" className="forgot-pw">Forgot Password?</a>
             <button className="submit-button" onClick={login}>Sign In</button>
         </div>
     </div>

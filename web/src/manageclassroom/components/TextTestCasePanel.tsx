@@ -4,13 +4,17 @@ import TitleInput from "../../components/title-input/TitleInput";
 import { TestCase, TextTestCaseBody } from "../../models/testcases";
 import "../css/TextTestCasePanel.css"
 import TextTestCase from "./TextTestCase";
+import Spinner from "../../components/spinner/Spinner";
 
 export type TestCasePanelProps = {
     testCaseInfo: TestCase;
     runSolution: (testcaseId?: string) => void;
+    generateOutput: (testcaseId: string) => void;
+    busy?: boolean;
+    loading?: boolean;
 }
 
-function TextTestCasePanel({testCaseInfo, runSolution}: TestCasePanelProps) {
+function TextTestCasePanel({testCaseInfo, runSolution, generateOutput, busy, loading}: TestCasePanelProps) {
 
     const body = testCaseInfo.body as TextTestCaseBody;
 
@@ -33,7 +37,7 @@ function TextTestCasePanel({testCaseInfo, runSolution}: TestCasePanelProps) {
                     <TitleInput className="test-case-title" value={testCaseInfo.name} onChange={handleTitleChange} />
                 </div>
                 <div className="test-case-run-parent">
-                    <DarkBlueButton className="run-test-button" onClick={() => runSolution(testCaseInfo.id)}>Run Test on Solution</DarkBlueButton>
+                    <DarkBlueButton className="run-test-button" disabled={busy} onClick={() => runSolution(testCaseInfo.id)}>Run Test on Solution</DarkBlueButton>
                 </div>
             </div>
             <div className="points-timeout">
@@ -45,6 +49,10 @@ function TextTestCasePanel({testCaseInfo, runSolution}: TestCasePanelProps) {
                     Tests:
                 </div>
                 <TextTestCase body={body}></TextTestCase>
+                <div className="generate-output-parent">
+                    {loading && <Spinner />}
+                    <DarkBlueButton className="generate-output-button" disabled={busy} onClick={() => generateOutput(testCaseInfo.id)}>Generate Expected Output</DarkBlueButton>
+                </div>
             </div>
         </div>
     );

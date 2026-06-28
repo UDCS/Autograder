@@ -22,6 +22,7 @@ type Handler interface {
 	IsValidLogin(c context.Context) error
 	GetUserName(c context.Context) error
 	ValidInvite(c context.Context) error
+	ValidPasswordReset(c echo.Context) error
 	GetRole(c context.Context) error
 	// Classroom
 	CreateClassroom(c context.Context) error
@@ -95,6 +96,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.POST("/logout", router.Logout)
 	auth.POST("/password", router.PasswordResetRequest)
 	auth.POST("/reset_password/:requestId", router.PasswordReset)
+	auth.GET("/reset_password/:requestId/valid", router.ValidPasswordReset)
 	auth.POST("/refresh", router.RefreshToken)
 	auth.PUT("/:room_id/user", router.MatchUsersToClassroom)
 	auth.PUT("/user_info", router.ChangeUserInfo)

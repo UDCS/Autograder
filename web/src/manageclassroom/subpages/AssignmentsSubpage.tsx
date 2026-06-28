@@ -172,6 +172,7 @@ function AssignmentsSubpage({classroomInfo, active}: AssignmentsSubpageProps) {
         <>
             {!loading &&
                 <>
+                    <div className="save-hint">Tip: press {/Mac|iPhone|iPad/.test(navigator.userAgent) ? "⌘+S" : "Ctrl+S"} to save all assignments.</div>
                     <div className="assignments-parent">
                         {...assignmentsToComponents()}
                         <DarkBlueButton onClick={createNewAssignment} className="new-assignment-button">+ Create New Assignment</DarkBlueButton>

@@ -116,25 +116,26 @@ def fetch_text_testcases(conn, question_id: str, testcase_id: str = None) -> Lis
     with conn.cursor() as cur:
         if testcase_id:
             cur.execute("""
-                SELECT t.id, t.name, tt.inputs, tt.outputs, t.question_id, t.points, t.timeout_seconds
+                SELECT t.id, t.name, tt.inputs, tt.outputs, tt.hidden, t.question_id, t.points, t.timeout_seconds
                 FROM testcases t
                 JOIN text_testcases tt ON tt.testcase_id = t.id
                 WHERE t.question_id = %s AND t.type='text' AND t.id = %s
             """, (question_id, testcase_id))
         else:
             cur.execute("""
-                SELECT t.id, t.name, tt.inputs, tt.outputs, t.question_id, t.points, t.timeout_seconds
+                SELECT t.id, t.name, tt.inputs, tt.outputs, tt.hidden, t.question_id, t.points, t.timeout_seconds
                 FROM testcases t
                 JOIN text_testcases tt ON tt.testcase_id = t.id
                 WHERE t.question_id = %s AND t.type='text'
             """, (question_id,))
         out = []
-        for (id, name, inputs, outputs, question_id, points, timeout_seconds) in cur.fetchall():
+        for (id, name, inputs, outputs, hidden, question_id, points, timeout_seconds) in cur.fetchall():
             out.append({
                 "id": id,
                 "name": name if name is not None else "",
                 "inputs": inputs if inputs is not None else "",
                 "outputs": outputs if outputs is not None else "",
+                "hidden": bool(hidden),
                 "question_id": question_id,
                 "points": int(points),
                 "timeout_ms": int(timeout_seconds) * 1000 if timeout_seconds is not None else DEFAULT_TIME_LIMIT_MS * 1000,
@@ -164,13 +165,17 @@ def update_testcase_grade(conn, tc_id, user_id, grade):
         """)
     conn.commit()
 
-def finalize(conn, status: str, feedback: str):
+def finalize(conn, status: str, feedback: str, feedback_full: str = None):
+    # feedback        -> student-facing (hidden testcase details redacted)
+    # feedback_full   -> instructor-facing (everything); defaults to feedback
+    if feedback_full is None:
+        feedback_full = feedback
     with conn.cursor() as cur:
         cur.execute("""
             UPDATE student_submissions
-               SET status=%s, feedback=%s, updated_at=now()
+               SET status=%s, feedback=%s, feedback_full=%s, updated_at=now()
              WHERE id=%s
-        """, (status, feedback, SUBMISSION_ID))
+        """, (status, feedback, feedback_full, SUBMISSION_ID))
     conn.commit()
 
 # ---- Solution test run helpers (RUN_MODE == "solution") ----
@@ -489,6 +494,38 @@ def run_single_testcase(language: str, code: str, tc: Dict[str, Any], work_dir: 
     return r, ok, msg
 
 
+def _indent(text: str, limit: int = 2000) -> str:
+    text = (text or "")
+    if len(text) > limit:
+        text = text[:limit] + "\n…(truncated)"
+    return "\n".join("    " + line for line in text.splitlines()) or "    "
+
+
+def format_feedback(cases: List[Dict[str, Any]], passed: int, total: int) -> (str, str):
+    """Build (student_feedback, full_feedback). For the student, hidden testcases
+    show only the verdict + points; the full version always shows everything."""
+    summary = f"Passed {passed}/{total} test cases."
+
+    def block(c: Dict[str, Any], reveal: bool) -> str:
+        verdict = "PASSED" if c["ok"] else "FAILED"
+        hidden_tag = " (hidden)" if c["hidden"] else ""
+        lines = [f'Test "{c["name"]}"{hidden_tag}: {verdict} ({c["earned"]}/{c["max_points"]} points)']
+        if reveal:
+            lines.append("  Input:")
+            lines.append(_indent(c["input"]))
+            lines.append("  Expected Output:")
+            lines.append(_indent(c["expected"]))
+            lines.append("  Your Output:")
+            lines.append(_indent(c["got"]))
+            if c.get("message"):
+                lines.append(f"  Note: {c['message']}")
+        return "\n".join(lines)
+
+    student = summary + "\n\n" + "\n\n".join(block(c, reveal=not c["hidden"]) for c in cases)
+    full = summary + "\n\n" + "\n\n".join(block(c, reveal=True) for c in cases)
+    return student.strip(), full.strip()
+
+
 # ----------------------------
 # Main grading flow
 # ----------------------------
@@ -530,6 +567,10 @@ def main() -> int:
                     update_testcase_grade(conn, tc["id"], user_id, points_earned)
 
                     cases_out.append({
+                        "name": tc["name"],
+                        "hidden": tc["hidden"],
+                        "max_points": tc["points"],
+                        "earned": points_earned,
                         "input": tc["inputs"],
                         "expected": tc["outputs"],
                         "got": r["stdout"],
@@ -540,10 +581,10 @@ def main() -> int:
 
 
             status = "passed" if passed_tcs == total_tcs else "failed" if passed_tcs == 0 else "partial"
-            feedback = f"Passed {passed_tcs}/{total_tcs} testcases."
+            feedback, feedback_full = format_feedback(cases_out, passed_tcs, total_tcs)
 
             with db_connect() as conn2:
-                finalize(conn2, status, feedback)
+                finalize(conn2, status, feedback, feedback_full)
 
             # print(f"Grading completed: {status} ({passed}/{total})")
             return 0
@@ -596,10 +637,13 @@ def main_solution() -> int:
                         console = (console + "\n" + msg) if console else msg
 
                     results.append({
+                        "testcase_id": str(tc["id"]),
                         "name": tc["name"],
                         "maxPoints": tc["points"],
                         "points": tc["points"] if ok else 0,
                         "consoleOutput": console,
+                        # raw program stdout, used to auto-fill expected output
+                        "output": r["stdout"],
                     })
 
             status = "passed" if passed_tcs == total_tcs else "failed" if passed_tcs == 0 else "partial"

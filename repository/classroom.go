@@ -826,7 +826,7 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 					Status   string    `db:"status"`
 				}
 				if subErr := store.db.Get(&submission,
-					"SELECT id, feedback, code, status FROM student_submissions WHERE user_id=$1 AND question_id=$2",
+					"SELECT id, feedback_full AS feedback, code, status FROM student_submissions WHERE user_id=$1 AND question_id=$2",
 					student.UserId, question.Id,
 				); subErr == nil {
 					submissionId = submission.Id

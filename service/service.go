@@ -15,10 +15,12 @@ type App interface {
 	Login(user models.UserWithPassword, session models.Session) (*models.JWTTokens, error)
 	Logout(sessionId uuid.UUID) error
 	PasswordResetRequest(jwksToken string) error
+	PasswordResetRequestByEmail(userEmail string) error
 	PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error)
 	RefreshToken(tokenString string) (*models.AccessToken, error)
 	IsValidLogin(jwksToken string) bool
 	ValidInvite(inviteId uuid.UUID, token string) bool
+	ValidPasswordReset(requestId uuid.UUID, tokenString string) bool
 	GetUserName(jwksToken string) (*models.UserName, error)
 	GetRole(jwksToken string) (models.UserRole, error)
 	// Classroom

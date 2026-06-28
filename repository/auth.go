@@ -37,7 +37,7 @@ func (store PostgresStore) GetUserInfo(email string) (*models.User, error) {
 	var user models.User
 	err := store.db.Get(
 		&user,
-		"SELECT id, first_name, last_name, email, password_hash, user_role, created_at, updated_at FROM users WHERE email = $1;",
+		"SELECT id, first_name, last_name, email, password_hash, user_role, created_at, updated_at, password_updated_at FROM users WHERE email = $1;",
 		email,
 	)
 
@@ -47,7 +47,7 @@ func (store PostgresStore) GetUserInfo(email string) (*models.User, error) {
 func (store PostgresStore) UpdateUserPassword(userId uuid.UUID, passwordHash string, updatedAt time.Time) (*models.User, error) {
 	var retrievedUser models.User
 	err := store.db.QueryRowx(
-		"UPDATE users SET password_hash = $2, updated_at = $3 WHERE id = $1 RETURNING id, first_name, last_name, email, user_role, created_at, updated_at;",
+		"UPDATE users SET password_hash = $2, updated_at = $3, password_updated_at = $3 WHERE id = $1 RETURNING id, first_name, last_name, email, user_role, created_at, updated_at, password_updated_at;",
 		userId, passwordHash, updatedAt,
 	).StructScan(&retrievedUser)
 	return &retrievedUser, err
@@ -148,6 +148,19 @@ func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Class
 	user_info, err := store.GetUserInfo(userEmail)
 	if err != nil {
 		return []models.Classroom{}, err
+	}
+
+	// Admins can access every classroom, so list them all regardless of membership.
+	if user_info.UserRole == models.Admin {
+		var classrooms []models.Classroom
+		err = store.db.Select(
+			&classrooms,
+			"SELECT id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index FROM classrooms",
+		)
+		if err != nil {
+			return []models.Classroom{}, err
+		}
+		return classrooms, nil
 	}
 
 	var userInClassrooms []models.UserInClassroom

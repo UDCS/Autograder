@@ -84,10 +84,12 @@ function NewTestCasePopup({onClose, testcaseList, setSelect}: NewTestCasePopupPr
             </div>
             <TextField className="popup-textfield" label="Name" initialValue="Testcase Name" onChange={handleTestcaseName} />
             <TextField className="popup-textfield" label="Points" type="number" initialValue="Testcase Points" onChange={handleTestcasePoints} />
+            {/* Bash test cases are a later feature — only text ("Compare Output") test cases for now.
             <div className="test-type-parent">
                 <label className="test-type-label">Test Type</label>
                 <SelectDropdown options={["Compare Output", "Bash Testcase"]} value={typeToText[selectedType]} className="test-type" onChange={handleTypeSelect}/>
             </div>
+            */}
             <DarkBlueButton className="create-button" disabled={testcasePoints === undefined} onClick={createTestcase}>Create Test Case</DarkBlueButton>
         </Popup>
     );
