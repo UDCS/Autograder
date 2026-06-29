@@ -1,0 +1,85 @@
+.question-grade-dropdown {
+    display: flex;
+    flex-direction: column;
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+}
+.question-grade-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    padding: .67%;
+}
+.question-grade-title {
+    flex: 1;
+    text-align: left;
+    font-size: 120%;
+    font-family: "Azeret Mono";
+}
+.question-grade-button {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: flex-end;
+    align-items: center;
+}
+.question-grade-triangle {
+    font-size: 150%;
+}
+
+.question-grade-body {
+    display: flex;
+    flex-direction: column;
+    padding: .67%;
+    gap: 1.2rem;
+    margin-top: 2%;
+    margin-left: 1%;
+}
+
+.question-grade-row {
+    display: flex;
+    align-items: center;
+}
+.question-grade-label {
+    text-align: left;
+    flex: 1;
+    font-family: "Azeret Mono";
+    font-size: 120%;
+}
+.question-checkbox-parent {
+    display: flex;
+    gap: 1.4rem;
+    flex: 5;
+    align-items: center;
+}
+.question-grade-checkbox {
+    accent-color: black;
+    width: 25px;
+    height: 25px;
+}
+
+.manual-score-input {
+    width: 100px;
+    padding: 1%;
+    border-radius: 10px;
+    border: 1px solid black;
+    font-family: "Azeret Mono";
+    font-size: 120%;
+}
+
+.manual-score-parent { 
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+
+.question-button-row {
+    display: flex;
+    gap: 1.5rem;
+    width: 50%;
+}
+.question-button {
+    flex: 1;
+    font-size: 100%;
+}

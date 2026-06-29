@@ -10,19 +10,14 @@ import (
 
 func (store PostgresStore) CreateInvitation(invitation models.Invitation) (*models.Invitation, error) {
 	var createdInvitation models.Invitation
-	var err error
-	if invitation.ClassroomId != uuid.Nil {
-		err = store.db.QueryRowx(
-			`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at, classroom_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-			RETURNING id, email, user_role, created_at, updated_at, expires_at, classroom_id;`,
-			invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt, invitation.ClassroomId,
-		).StructScan(&createdInvitation)
-	} else {
-		err = store.db.QueryRowx(
-			`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at, classroom_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
-			RETURNING id, email, user_role, created_at, updated_at, expires_at, classroom_id;`,
-			invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt, nil,
-		).StructScan(&createdInvitation)
+	err := store.db.QueryRowx(
+		`INSERT INTO invitations (id, email, user_role, token_hash, created_at, updated_at, expires_at) VALUES ($1, $2, $3, $4, $5, $6, $7) 
+		RETURNING id, email, user_role, created_at, updated_at, expires_at;`,
+		invitation.Id, invitation.Email, invitation.UserRole, invitation.TokenHash, invitation.CreatedAt, invitation.UpdatedAt, invitation.ExpiresAt,
+	).StructScan(&createdInvitation)
+
+	if err != nil {
+		return &models.Invitation{}, err
 	}
 	return &createdInvitation, err
 }
@@ -42,7 +37,7 @@ func (store PostgresStore) GetUserInfo(email string) (*models.User, error) {
 	var user models.User
 	err := store.db.Get(
 		&user,
-		"SELECT id, first_name, last_name, email, password_hash, user_role, created_at, updated_at FROM users WHERE email = $1;",
+		"SELECT id, first_name, last_name, email, password_hash, user_role, created_at, updated_at, password_updated_at FROM users WHERE email = $1;",
 		email,
 	)
 
@@ -52,7 +47,7 @@ func (store PostgresStore) GetUserInfo(email string) (*models.User, error) {
 func (store PostgresStore) UpdateUserPassword(userId uuid.UUID, passwordHash string, updatedAt time.Time) (*models.User, error) {
 	var retrievedUser models.User
 	err := store.db.QueryRowx(
-		"UPDATE users SET password_hash = $2, updated_at = $3 WHERE id = $1 RETURNING id, first_name, last_name, email, user_role, created_at, updated_at;",
+		"UPDATE users SET password_hash = $2, updated_at = $3, password_updated_at = $3 WHERE id = $1 RETURNING id, first_name, last_name, email, user_role, created_at, updated_at, password_updated_at;",
 		userId, passwordHash, updatedAt,
 	).StructScan(&retrievedUser)
 	return &retrievedUser, err
@@ -62,11 +57,28 @@ func (store PostgresStore) GetInvitation(invitationId uuid.UUID, tokenHash strin
 	var invitation models.Invitation
 	err := store.db.Get(
 		&invitation,
-		"SELECT id, email, user_role, token_hash, completed, created_at, updated_at, expires_at, classroom_id FROM invitations WHERE id = $1 AND token_hash = $2;",
+		"SELECT id, email, user_role, token_hash, completed, created_at, updated_at, expires_at FROM invitations WHERE id = $1 AND token_hash = $2;",
 		invitationId, tokenHash,
 	)
 
 	return &invitation, err
+}
+
+func (store PostgresStore) GetInvitationFromEmail(email string) (*models.Invitation, error) {
+	var invitation models.Invitation
+	err := store.db.Get(
+		&invitation,
+		"SELECT id, email, user_role, token_hash, completed, created_at, updated_at, expires_at FROM invitations WHERE email = $1",
+		email,
+	)
+
+	return &invitation, err
+}
+
+func (store PostgresStore) InvitationAlreadyExists(email string) bool {
+	var exists bool
+	_ = store.db.Get(&exists, "SELECT EXISTS (SELECT 1 FROM invitations WHERE email = $1 AND completed = false)", email)
+	return exists
 }
 
 func (store PostgresStore) CreatePasswordChangeRequest(resetDetails models.PasswordResetDetails) error {
@@ -138,6 +150,19 @@ func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Class
 		return []models.Classroom{}, err
 	}
 
+	// Admins can access every classroom, so list them all regardless of membership.
+	if user_info.UserRole == models.Admin {
+		var classrooms []models.Classroom
+		err = store.db.Select(
+			&classrooms,
+			"SELECT id, name, created_at, updated_at, start_date, end_date, course_code, course_description, banner_image_index FROM classrooms",
+		)
+		if err != nil {
+			return []models.Classroom{}, err
+		}
+		return classrooms, nil
+	}
+
 	var userInClassrooms []models.UserInClassroom
 	err = store.db.Select(
 		&userInClassrooms,
@@ -180,4 +205,19 @@ func (store PostgresStore) ChangeUserInfo(request models.ChangeUserInfoRequest) 
 		request.FirstName, request.LastName, time.Now(), request.Email,
 	)
 	return err
+}
+
+func (store PostgresStore) GetRole(userId uuid.UUID) (models.UserRole, error) {
+
+	var role models.UserRole
+	err := store.db.Get(
+		&role,
+		"SELECT user_role FROM users WHERE id=$1",
+		userId,
+	)
+	if err != nil {
+		return "", err
+	}
+	return role, nil
+
 }

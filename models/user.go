@@ -13,9 +13,10 @@ type (
 		LastName     string    `json:"last_name" db:"last_name"`
 		Email        string    `json:"email" db:"email"`
 		PasswordHash string    `json:"password_hash" db:"password_hash"`
-		UserRole     UserRole  `json:"role" db:"user_role"`
-		CreatedAt    time.Time `json:"created_at" db:"created_at"`
-		UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`
+		UserRole          UserRole  `json:"role" db:"user_role"`
+		CreatedAt         time.Time `json:"created_at" db:"created_at"`
+		UpdatedAt         time.Time `json:"updated_at" db:"updated_at"`
+		PasswordUpdatedAt time.Time `json:"password_updated_at" db:"password_updated_at"`
 	}
 
 	UserWithInvitation struct {
@@ -31,8 +32,9 @@ type (
 	}
 
 	UserName struct {
-		FirstName string `json:"first_name" db:"first_name"`
-		LastName  string `json:"last_name" db:"last_name"`
+		FirstName         string    `json:"first_name" db:"first_name"`
+		LastName          string    `json:"last_name" db:"last_name"`
+		PasswordUpdatedAt time.Time `json:"password_updated_at" db:"password_updated_at"`
 	}
 
 	ChangeUserInfoRequest struct {
@@ -42,6 +44,8 @@ type (
 	}
 
 	UserRole string
+
+	UserState string
 )
 
 const (
@@ -49,4 +53,8 @@ const (
 	Instructor UserRole = "instructor"
 	Assistant  UserRole = "assistant"
 	Student    UserRole = "student"
+
+	Uninvited    UserState = "uninvited"
+	Unregistered UserState = "unregistered"
+	Registered   UserState = "registered"
 )

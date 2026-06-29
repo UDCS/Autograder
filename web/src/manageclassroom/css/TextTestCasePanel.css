@@ -60,3 +60,18 @@
     font-size: 175%;
     padding: 1%;
 }
+.generate-output-parent {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1%;
+}
+.generate-output-button {
+    font-family: "Azeret Mono";
+    padding: 0.75rem 1.5rem;
+    box-sizing: border-box;
+    font-size: 110%;
+    color: white;
+    border-radius: 15px;
+}

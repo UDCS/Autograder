@@ -19,8 +19,7 @@ function TestCaseExpand({testCaseResults, className, ...props}: TestCaseExpandPr
         <div className={clsx("testcase-expand", className)} {...props}>
             <div className="testcase-expand-top" onClick={() => setExpanded(!expanded)}>
                 <div className="testcase-expand-label">
-                    {name}
-                    <span className="testcase-expand-points">({points}/{maxPoints} Points)</span>
+                    {name} <span className="testcase-expand-points">({points}/{maxPoints} Points)</span>
                 </div>
                 <div className="expand-triangle">
                     {triangle()}

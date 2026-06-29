@@ -7,10 +7,13 @@ import "../css/AssignmentEditor.css"
 import QuestionEditor from "./QuestionEditor";
 import clsx from "clsx";
 import { Assignment, Question, Visibility } from "../../models/classroom";
-import { assignmentStore, deleteQuestionFromDatabase, saveAssignments, saveQuestions } from "../subpages/AssignmentsSubpage";
+import { assignmentStore, saveAssignments, saveQuestions } from "../subpages/AssignmentsSubpage";
 import { createBlankQuestion, dateToString, parseDateString } from "../../utils/classroom";
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import DeletePopup from "../../components/popup/DeletePopup";
+import { deleteQuestionFromDatabase } from "../../utils/db";
+import { showToast } from "../../components/toast/toastBus";
+import ReorderArrows from "./ReorderArrows";
 
 const visibilityToText = {
     "draft": "Draft",
@@ -24,11 +27,15 @@ const textToVisibility: Record<string, Visibility> = {
 type AssignmentEditorProps = {
     assignmentId: string;
     onDelete: () => void;
+    onMoveUp: () => void;
+    onMoveDown: () => void;
+    isFirst: boolean;
+    isLast: boolean;
 }
 
 const assignmentTitleMaxLength = 64;
 
-function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
+function AssignmentEditor({assignmentId, onDelete, onMoveUp, onMoveDown, isFirst, isLast}: AssignmentEditorProps) {
     const [, forceUpdate] = useReducer(x => x + 1, 0);
 
     const [deleteQuestionPopup, setDeleteQuestionPopup] = useState<boolean>(false);
@@ -58,6 +65,7 @@ function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
     
     const createQuestion = () => {
         var newQuestion = createBlankQuestion(assignmentId);
+        newQuestion.sort_index = assignment.questions?.length ?? 0;
         assignment.questions?.push(newQuestion);
 
         try {
@@ -66,6 +74,30 @@ function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
             console.error("Failed to save questions: ", err)
         }
         forceUpdate();
+    }
+
+    const sortedQuestions = (): Question[] =>
+        ((assignment.questions as Question[]) ?? [])
+            .slice()
+            .sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
+
+    // Move a question up (-1) or down (+1), renumber sort_index contiguously,
+    // and persist immediately.
+    const moveQuestion = (questionId: string, direction: -1 | 1) => {
+        const questions = sortedQuestions();
+        const idx = questions.findIndex(q => q.id === questionId);
+        const target = idx + direction;
+        if (idx < 0 || target < 0 || target >= questions.length) return;
+        [questions[idx], questions[target]] = [questions[target], questions[idx]];
+        questions.forEach((q, i) => { q.sort_index = i; });
+        assignment.questions = questions;
+        forceUpdate();
+        saveQuestions(questions)
+            .then(() => showToast("Successfully saved", "success"))
+            .catch(err => {
+                console.error("Failed to save question order:", err);
+                showToast("Something went wrong while saving", "error");
+            });
     }
     const makeDeletePopup = (deleteId: string) => {
         if (assignment.questions!.length > 1) {
@@ -85,23 +117,30 @@ function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
     }
     
     const saveAssignment = () => {
-        try {
-            saveAssignments([assignmentStore[assignmentId]]);
-        } catch (err) {
-            console.log("something went wrong...")
-        }
+        saveAssignments([assignmentStore[assignmentId]])
+            .then(() => showToast("Successfully saved", "success"))
+            .catch(err => {
+                console.error("Failed to save assignment:", err);
+                showToast("Something went wrong while saving", "error");
+            });
     }
 
     const questionsToComponents = () => {
-        const questions = assignment.questions as Question[];
+        const questions = sortedQuestions();
         if (!questions) return [];
-        return questions.map((q)=> {
-            return <QuestionEditor key={q.id!} onDelete={() => makeDeletePopup(q.id!)} question={q} />
+        return questions.map((q, i)=> {
+            return <QuestionEditor key={q.id!} onDelete={() => makeDeletePopup(q.id!)} question={q}
+                onMoveUp={() => moveQuestion(q.id!, -1)}
+                onMoveDown={() => moveQuestion(q.id!, 1)}
+                isFirst={i === 0}
+                isLast={i === questions.length - 1} />
         })
     }
 
     return (
-        <div className="assignment-editor">
+        <div className="reorderable-row">
+            <ReorderArrows onMoveUp={onMoveUp} onMoveDown={onMoveDown} disableUp={isFirst} disableDown={isLast} />
+            <div className="assignment-editor">
             <div className="title-and-visibility">
                 <div className="title-parent">
                     <TitleInput placeholder="Assignment Title" value={assignment.name ?? ""} onChange={handleAssignmentTitleChange} maxLength={assignmentTitleMaxLength} />
@@ -141,6 +180,7 @@ function AssignmentEditor({assignmentId, onDelete}: AssignmentEditorProps) {
                 </div>
             </div>
             {deleteQuestionPopup && <DeletePopup onDelete={deleteQuestion} onClose={() => setDeleteQuestionPopup(false)} titleToDelete={assignment.questions!.find((q) => q.id === deleteQuestionId)!.header!}/>}
+            </div>
         </div>
     );
 }

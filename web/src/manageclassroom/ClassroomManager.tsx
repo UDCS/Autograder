@@ -6,6 +6,7 @@ import DetailsSubpage from "./subpages/DetailsSubpage";
 import GradesSubpage from "./subpages/GradesSubpage";
 import StudentsSubpage from "./subpages/StudentsSubpage";
 import { Classroom } from "../models/classroom";
+import Toast from "../components/toast/Toast";
 
 function ClassroomManager() {
     
@@ -56,9 +57,26 @@ function ClassroomManager() {
                 stopLoading();
             }
         }
+        const getUserRole = async () => {
+            var response = await fetch(`/api/classroom/role/${classroomId}`);
+            if (response.ok) {
+                var role = await response.json();
+                if (role !== 'admin' && role !== 'instructor') {
+                    setErrorMessage("You do not have the permissions to edit the classroom");     
+                    isError = true;   
+                    stopLoading();       
+                }
+            } else {
+                setErrorMessage("Could not verify user's permissions");     
+                isError = true;   
+                stopLoading();      
+            }
+        }
         (async function () {
             if (loading) {
                 await verifyLogin();
+                if (isError) return;
+                await getUserRole();
                 if (isError) return;
                 await getClassroomInfo();
                 if (isError) return;
@@ -78,7 +96,7 @@ function ClassroomManager() {
                         <ClassroomSidebar onChange={onChange}/>
                         <div id="body">
                             <div className={`${selected === "assignments" ? "" : "hidden"}`}>
-                                <AssignmentsSubpage classroomInfo={classroomInfo} />
+                                <AssignmentsSubpage classroomInfo={classroomInfo} active={selected === "assignments"} />
                             </div>
                             <div className={`${selected === "details" ? "" : "hidden"}`}>
                                 <DetailsSubpage changeClassroomTitle={setClassroomName} classroomInfo={classroomInfo} />
@@ -91,14 +109,16 @@ function ClassroomManager() {
                             </div>
                         </div>
                     </div>
-                </div> 
-            : 
+                </div>
+            :
                 <div className="errorParent">
+
                     <div className="error">
                         {errorMessage}
                     </div>
                 </div>
             }
+            <Toast />
         </>:<></>
         }
         </>

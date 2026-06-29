@@ -15,10 +15,14 @@ type App interface {
 	Login(user models.UserWithPassword, session models.Session) (*models.JWTTokens, error)
 	Logout(sessionId uuid.UUID) error
 	PasswordResetRequest(jwksToken string) error
+	PasswordResetRequestByEmail(userEmail string) error
 	PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error)
 	RefreshToken(tokenString string) (*models.AccessToken, error)
 	IsValidLogin(jwksToken string) bool
+	ValidInvite(inviteId uuid.UUID, token string) bool
+	ValidPasswordReset(requestId uuid.UUID, tokenString string) bool
 	GetUserName(jwksToken string) (*models.UserName, error)
+	GetRole(jwksToken string) (models.UserRole, error)
 	// Classroom
 	CreateClassroom(jwksToken string, classroom models.Classroom) (*models.Classroom, error)
 	MatchUserToClassroom(jwksToken string, userId string, role string, classroomId uuid.UUID) error
@@ -26,8 +30,15 @@ type App interface {
 	DeleteClassroom(jwksToken string, request models.DeleteClassroomRequest) error
 	GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error)
 	GetClassroom(jwksToken string, classroomId uuid.UUID) (models.Classroom, error)
+	GetClassroomStudents(jwksToken string, classroomId uuid.UUID) ([]models.UserInClassroom, error)
+	EditClassroomStudents(jwksToken string, classroomId uuid.UUID, newUsers []models.UserInClassroom) ([]models.UserInClassroom, error)
+	DeleteClassroomStudent(jwksToken string, classroomId uuid.UUID, user models.UserInClassroom) error
 	ChangeUserInfo(jwksToken string, request models.ChangeUserInfoRequest) error
 	GetUserRole(jwksToken string, roomId uuid.UUID) (models.UserRole, error)
+	// Grades
+	GetClassroomGrades(jwksToken string, classroomId uuid.UUID) (models.ClassroomGradesResult, error)
+	UpdateClassroomGrades(jwksToken string, classroomId uuid.UUID, request models.UpdateClassroomGradesRequest) error
+	GetSubmissionStatuses(jwksToken string, submissionIds []uuid.UUID) ([]models.SubmissionStatusResult, error)
 	// Assignments
 	GetViewAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
 	GetVerboseAssignments(jwksToken string, classroomId uuid.UUID) ([]models.Assignment, error)
@@ -35,10 +46,13 @@ type App interface {
 	SetVerboseQuestions(jwksToken string, questions []models.Question) error
 	DeleteAssignment(jwksToken string, assignmentId uuid.UUID) error
 	DeleteQuestion(jwksToken string, questionId uuid.UUID) error
+	DeleteTestcase(jwksToken string, testcaseId uuid.UUID) error
 	GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error)
 	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
 	// Grader
-	GradeSubmission(jwksToken string, questionId uuid.UUID) error
+	GradeSubmission(jwksToken string, questionId uuid.UUID, targetUserId *uuid.UUID, code *string) (uuid.UUID, error)
+	RunSolutionTests(jwksToken string, questionId uuid.UUID, testcaseId *uuid.UUID, solutionCode string) (uuid.UUID, error)
+	GetSolutionTestRun(jwksToken string, runId uuid.UUID) (models.SolutionTestRunResult, error)
 }
 
 type GraderApp struct {

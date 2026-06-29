@@ -8,14 +8,18 @@ import Popup from "../../components/popup/Popup";
 import TextField, { TextFieldInput } from "../../components/textfield/Textfield";
 
 interface DetailsSubpageProps {
-    classroomInfo: Classroom;
-    changeClassroomTitle: (newTitle: string) => void;
+    classroomInfo?: Classroom;
+    changeClassroomTitle?: (newTitle: string) => void;
+    newClassroom?: boolean;
 }
 
 const courseCodeMaxLength = 16;
 const classroomNameMaxLength = 64;
 
-function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpageProps) {
+function DetailsSubpage({classroomInfo, changeClassroomTitle, newClassroom=false}: DetailsSubpageProps) {
+    const directToClassroomManagement = (classroomId: string) => {
+        window.location.href = `/classroom/manage/?id=${classroomId}`
+    }
     const updateClassroomDetails = async (id: string, classroom: Classroom) => {
         var response = await fetch(`/api/classroom/edit/${id}/`, 
             {
@@ -30,7 +34,30 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
         if (!response.ok) {
             console.log(response);
         } else {
-            changeClassroomTitle(classroom.name!);
+            changeClassroomTitle?.(classroom.name!);
+        }
+    }
+
+    const createNewClassroom = async () => {
+        var response = await fetch(`/api/classroom`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(
+                {
+                    id: classroomInfo?.id!,
+                    name: classroomName,
+                    start_date: startDate,
+                    end_date: endDate,
+                    course_code: courseCode,
+                    course_description: courseDescription
+                }
+            )
+        });
+        if (!response.ok) {
+            var text = await response.text();
+            console.error(text);
         }
     }
     const [isPopup, setIsPopup] = useState<boolean>(false);
@@ -42,12 +69,13 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
     const [courseDescription, setCourseDescription] = useState<string>("");
     
     useEffect(() => {
-        setClassroomName(classroomInfo.name!)
-        setCourseCode(classroomInfo.course_code!)
+        setClassroomName(classroomInfo?.name!)
+        setCourseCode(classroomInfo?.course_code!)
         // setBannerImage(classroomInfo.banner_image_index!)
-        setStartDate(classroomInfo.start_date!)
-        setEndDate(classroomInfo.end_date!)
-        setCourseDescription(classroomInfo.course_description!)
+        classroomInfo?.start_date!
+        setStartDate(classroomInfo?.start_date!)
+        setEndDate(classroomInfo?.end_date!)
+        setCourseDescription(classroomInfo?.course_description!)
     }, [classroomInfo])
 
     const handleClassroomNameChange = (input: TextFieldInput) => {
@@ -75,17 +103,21 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
     }
 
     const handleServerSubmit = () => {
-        updateClassroomDetails(
-            classroomInfo.id!,
-            {
-                name: classroomName,
-                course_code: courseCode,
-                // banner_image_index: bannerImage, //Non-functional at the moment
-                start_date: startDate,
-                end_date: endDate,
-                course_description: courseDescription
-            }
-        );
+        if (!newClassroom) {
+            updateClassroomDetails(
+                classroomInfo?.id!,
+                {
+                    name: classroomName,
+                    course_code: courseCode,
+                    // banner_image_index: bannerImage, //Non-functional at the moment
+                    start_date: startDate,
+                    end_date: endDate,
+                    course_description: courseDescription
+                }
+            );
+        } else {
+            createNewClassroom().then(() => directToClassroomManagement(classroomInfo!.id!));
+        }
     }
 
     return (
@@ -93,13 +125,13 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
             {/* Classroom Name Element */}
             <div className="classroom-name-parent">
                 <h3 id="classroom-name-text" className="details-title-fonts">Classroom Name:</h3>
-                <TextField onChange={handleClassroomNameChange} label="" initialValue="Enter Classroom Name" value={classroomInfo.name} className="classroom-name-field" maxLength={classroomNameMaxLength}></TextField>
+                <TextField onChange={handleClassroomNameChange} label="" initialValue="Enter Classroom Name" value={classroomInfo?.name} className="classroom-name-field" maxLength={classroomNameMaxLength}></TextField>
             </div>
             {/* Classroom Code and Banner Image Button Element */}
             <div className="classroom-code-parent">
                     <h3 id="course-name-text" className="details-title-fonts">Course Code:</h3>
                 <div className="classroom-code-sub-parent">
-                    <TextField onChange={handleCourseCodeChange} label="" initialValue="Enter Course Code" value={classroomInfo.course_code} maxLength={courseCodeMaxLength} className="classroom-code-field"></TextField>
+                    <TextField onChange={handleCourseCodeChange} label="" initialValue="Enter Course Code" value={classroomInfo?.course_code} maxLength={courseCodeMaxLength} className="classroom-code-field"></TextField>
                     <BlueButton onClick={() => setIsPopup(true)} className="change-banner-button">Change Banner Image</BlueButton>
                 </div>
             </div>
@@ -107,22 +139,22 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle}: DetailsSubpagePro
             <div className="date-set-parent">
                 <div id="start-date-set">
                     <h3 id="date-set-text" className="details-title-fonts">Start Date:</h3>
-                    <CalendarInput defaultValue={classroomInfo.start_date} onChange={handleStartDateChange}/>
+                    <CalendarInput defaultValue={classroomInfo?.start_date} onChange={handleStartDateChange}/>
                 </div>
                 <div id="end-date-set">
                     <h3 id="date-set-text" className="details-title-fonts">End Date:</h3>
-                    <CalendarInput defaultValue={classroomInfo.end_date} onChange={handleEndDateChange}/>
+                    <CalendarInput defaultValue={classroomInfo?.end_date} onChange={handleEndDateChange}/>
                 </div>
             </div>
             <div className="course-description-parent">
                 <h3 id="course-description-text" className="details-title-fonts">Course Description:</h3>
-                <TextArea id="class-description-box" onChange={handleCourseDescriptionChange} style={{width: "100%"}} rows={5} className="test" value={classroomInfo.course_description}></TextArea>
+                <TextArea id="class-description-box" onChange={handleCourseDescriptionChange} style={{width: "100%"}} rows={5} className="test" value={classroomInfo?.course_description}></TextArea>
             </div>
             <div>
-                <BlueButton onClick={handleServerSubmit} id="submit-changes-button">Submit Changes</BlueButton>
+                <BlueButton onClick={handleServerSubmit} id="submit-changes-button">Submit</BlueButton>
             </div>
             {isPopup && <Popup onClose={() => setIsPopup(false)}>
-                <p className="popup-style">Banner Image Index: {classroomInfo.banner_image_index}</p>
+                <p className="popup-style">Banner Image Index: {classroomInfo?.banner_image_index}</p>
                 <p className="popup-style">Feature Still Under Development.</p>
                 <p className="popup-style">Check Back Later!</p>
             </Popup>}   

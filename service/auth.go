@@ -3,9 +3,11 @@ package service
 import (
 	"fmt"
 	"net/mail"
+	"strings"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
+	"github.com/UDCS/Autograder/utils/config"
 	"github.com/UDCS/Autograder/utils/email"
 	"github.com/UDCS/Autograder/utils/jwt_token"
 	"github.com/UDCS/Autograder/utils/logger"
@@ -38,10 +40,12 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 		return nil, err
 	}
 
+	baseUrl := config.GetBaseURL()
+
 	// TODO: email the invitation with the link containg both token and invitation I
 	//email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
 	//msg := "Subject: Create an Autograder Account\n\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visitting auth/regiser/" + invitation.Id.String() + "?token=" + token + "\n\nThis email cannot be replied to. If you have any questions, please contact your professor."
-	msg := fmt.Sprintf("Subject: Create an Autograder Account\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visitting https://udcs-autograder.web.app/auth/regiser/%s?token=%s\n\nThis email cannot be replied to. If you have any questions, please contact your professor.", invitation.Id.String(), token)
+	msg := fmt.Sprintf("Subject: Create an Autograder Account\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visiting %s/signup?id=%s&token=%s\n\nThis email cannot be replied to. If you have any questions, please contact your professor.", baseUrl, invitation.Id.String(), token)
 	err = email.Send(invitation.Email, msg)
 	if err != nil {
 		fmt.Print(err.Error())
@@ -50,11 +54,24 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7)
-	createdInvitation, err := app.store.CreateInvitation(invitation)
+	var createdInvitation *models.Invitation
+	if !app.store.InvitationAlreadyExists(invitation.Email) {
+		createdInvitation, err = app.store.CreateInvitation(invitation)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		createdInvitation, err = app.store.GetInvitationFromEmail(invitation.Email)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	if err != nil {
-		logger.Error("failed to update the database", zap.Error(err))
-		return nil, err
+	if invitation.ClassroomId != uuid.Nil {
+		err = app.store.MatchFutureUserToClassroom(invitation.Email, invitation.ClassroomId, invitation.UserRole)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return createdInvitation, nil
@@ -77,7 +94,8 @@ func (app *GraderApp) InviteAdmin(invitation models.Invitation) (*models.Invitat
 	"Subject: Create an Admin Autograder Account\n\nAn Autograder admin has invited you to create an admin Autograder account.\n\nYou may create the account be visitting auth/regiser/"
 	+ invitation.Id.String() + "?token=" + token +
 	"\n\nThis email cannot be replied to. If you have any questions, please contact the admin."*/
-	msg := fmt.Sprintf("Subject: Create an Admin Autograder Account\nAn Autograder admin has invited you to create an Autograder account.\n\nYou may create the account be visitting https://udcs-autograder.web.app/auth/regiser/%s?token=%s\n\nThis email cannot be replied to. If you have any questions, please contact the admin.", invitation.Id.String(), token)
+	baseUrl := config.GetBaseURL()
+	msg := fmt.Sprintf("Subject: Create an Admin Autograder Account\nAn Autograder admin has invited you to create an Autograder account.\n\nYou may create the account be visiting %s/signup?id=%s&token=%s\n\nThis email cannot be replied to. If you have any questions, please contact the admin.", baseUrl, invitation.Id.String(), token)
 	err = email.Send(invitation.Email, msg)
 
 	if err != nil {
@@ -151,13 +169,23 @@ func (app *GraderApp) SignUp(userWithInvitation models.UserWithInvitation, sessi
 		logger.Error("failed to set up a session", zap.Error(err))
 	}
 
-	classroomInfo, err := app.store.GetClassroomInfo(retrievedInvitation.ClassroomId)
-	if err == nil {
-		err = app.store.MatchUserToClassroom(createdUser.Email, string(createdUser.UserRole), classroomInfo.Id)
-		if err != nil {
-			return nil, err
+	classrooms, err := app.store.GetInviteClassrooms(createdUser.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch classroom IDs")
+	}
+	for _, classroom := range *classrooms {
+		if err = app.store.MatchUserToClassroom(createdUser.Email, string(classroom.UserRole), classroom.ClassroomId); err != nil {
+			return nil, fmt.Errorf("failed to add user to classroom")
 		}
 	}
+	app.store.RemoveFutureClassroomMatching(createdUser.Email)
+	// classroomInfo, err := app.store.GetClassroomInfo(retrievedInvitation.ClassroomId)
+	// if err == nil {
+	// 	err = app.store.MatchUserToClassroom(createdUser.Email, string(createdUser.UserRole), classroomInfo.Id)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	return tokenDetails, nil
 }
@@ -194,51 +222,79 @@ func (app *GraderApp) Logout(sessionId uuid.UUID) error {
 	return app.store.DeleteSession(sessionId)
 }
 
-func (app *GraderApp) PasswordResetRequest(jwksToken string) error {
-	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
-	if err != nil {
-		return fmt.Errorf("failed to parse access token")
-	}
-	parsedEmail, err := mail.ParseAddress(claims.Subject)
+// sendPasswordReset creates a password reset request for the given email and
+// emails the user a link to the frontend reset page. It never reveals whether
+// an account exists for the email (no account-enumeration leak).
+func (app *GraderApp) sendPasswordReset(userEmail string) error {
+	parsedEmail, err := mail.ParseAddress(userEmail)
 	if err != nil {
 		logger.Error("failed to parse email", zap.Error(err))
 		return fmt.Errorf("failed to parse email")
 	}
 
-	resetRequest := models.PasswordResetDetails{
-		Id:        uuid.New(),
-		Email:     parsedEmail.Address,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	retrievedUser, err := app.store.GetUserInfo(resetRequest.Email)
+	retrievedUser, err := app.store.GetUserInfo(parsedEmail.Address)
 	if err != nil {
-		return fmt.Errorf("user does not exist")
+		// Account does not exist — succeed silently so callers can't probe emails.
+		return nil
 	}
 
-	token, tokenHash, err := token.GenerateRandomTokenAndHash()
+	resetToken, tokenHash, err := token.GenerateRandomTokenAndHash()
 	if err != nil {
 		return err
 	}
 
-	// TODO: email the link for the change
-	//email.Send("auth/reset_password/" + resetRequest.Id.String() + "?token=" + token)
-	msg := fmt.Sprintf("Password Reset Link\nPlease visit the following link to reset your password: https://udcs-autograder.web.app/auth/reset_password/%s?token=%s", resetRequest.Id.String(), token)
-	email.Send(resetRequest.Email, msg)
+	resetRequest := models.PasswordResetDetails{
+		Id:        uuid.New(),
+		Email:     parsedEmail.Address,
+		UserId:    retrievedUser.Id,
+		TokenHash: tokenHash,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		ExpiresAt: time.Now().AddDate(0, 0, 7),
+	}
 
-	resetRequest.UserId = retrievedUser.Id
-	resetRequest.TokenHash = tokenHash
-	resetRequest.ExpiresAt = time.Now().AddDate(0, 0, 7)
+	resetLink := fmt.Sprintf("%s/resetpassword?request_id=%s&token=%s", config.GetBaseURL(), resetRequest.Id.String(), resetToken)
+	// Escape "&" for the href attribute; the browser decodes it back to "&".
+	hrefLink := strings.ReplaceAll(resetLink, "&", "&amp;")
+	htmlBody := fmt.Sprintf(
+		`<p>Please click the link below to reset your password:</p><p><a href="%s">Reset Password</a></p>`,
+		hrefLink,
+	)
+	if err := email.SendHTML(resetRequest.Email, "Password Reset", htmlBody); err != nil {
+		logger.Error("failed to send password reset email", zap.Error(err))
+		return err
+	}
 
-	err = app.store.CreatePasswordChangeRequest(resetRequest)
-
-	if err != nil {
+	if err := app.store.CreatePasswordChangeRequest(resetRequest); err != nil {
 		logger.Error("failed to update the database", zap.Error(err))
 		return err
 	}
 
 	return nil
+}
+
+// PasswordResetRequest sends a reset link to the currently authenticated user
+// (the "Reset Password" button in account settings).
+func (app *GraderApp) PasswordResetRequest(jwksToken string) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("failed to parse access token")
+	}
+	return app.sendPasswordReset(claims.Subject)
+}
+
+// PasswordResetRequestByEmail sends a reset link to the given email. Used by the
+// logged-out "forgot password" flow.
+func (app *GraderApp) PasswordResetRequestByEmail(userEmail string) error {
+	return app.sendPasswordReset(userEmail)
+}
+
+// ValidPasswordReset reports whether a reset request exists for the given id and
+// token, and is neither expired nor already used.
+func (app *GraderApp) ValidPasswordReset(requestId uuid.UUID, tokenString string) bool {
+	tokenHash := token.HashToken(tokenString)
+	request, err := app.store.GetPasswordChangeRequest(requestId, tokenHash)
+	return err == nil && request.ExpiresAt.After(time.Now()) && !request.Completed
 }
 
 func (app *GraderApp) PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error) {
@@ -343,7 +399,7 @@ func (app *GraderApp) GetUserName(jwksToken string) (*models.UserName, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve user info")
 	}
-	return &models.UserName{FirstName: userInfo.FirstName, LastName: userInfo.LastName}, nil
+	return &models.UserName{FirstName: userInfo.FirstName, LastName: userInfo.LastName, PasswordUpdatedAt: userInfo.PasswordUpdatedAt}, nil
 }
 
 func (app *GraderApp) ChangeUserInfo(jwksToken string, request models.ChangeUserInfoRequest) error {
@@ -366,4 +422,22 @@ func (app *GraderApp) ChangeUserInfo(jwksToken string, request models.ChangeUser
 func (app *GraderApp) IsValidLogin(jwksToken string) bool {
 	_, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	return err == nil
+}
+
+func (app *GraderApp) ValidInvite(inviteId uuid.UUID, tokenString string) bool {
+	tokenHash := token.HashToken(tokenString)
+	invite, err := app.store.GetInvitation(inviteId, tokenHash)
+	return err == nil && invite.ExpiresAt.After(time.Now()) && !invite.Completed
+}
+
+func (app *GraderApp) GetRole(jwksToken string) (models.UserRole, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return "", fmt.Errorf("invalid authorization credentials")
+	}
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return "", err
+	}
+	return app.store.GetRole(userInfo.Id)
 }

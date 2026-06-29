@@ -1,10 +1,11 @@
 import { TestCase } from "./testcases";
+import { SubmissionStatus } from "./grades";
 
 export interface Classroom {
     id?: string;
     name?: string;
-    created_at?: Date;
-    updated_at?: Date;
+    created_at?: string;
+    updated_at?: string;
     start_date?: string;
     end_date?: string;
     course_code?: string;
@@ -42,6 +43,9 @@ export interface Question {
     code?: string;
     prog_lang?: ProgLang;
     test_cases?: TestCase[];
+    submission_id?: string;
+    submission_status?: SubmissionStatus;
+    console_output?: string;
 }
 
 // Yet to be integrated into the students sub-page

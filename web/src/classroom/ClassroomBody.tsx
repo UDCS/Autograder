@@ -16,6 +16,7 @@ function ClassroomBody() {
     const [loading, setLoading] = useState(true);
     const [classroomName, setClassroomName] = useState("");
     const [assignments, setAssignments] = useState([]);
+    const [canEditClassroom, setCanEditClassroom] = useState(false);
     const urlParams = new URLSearchParams(window.location.search);
     const classroomId = urlParams.get('id');
 
@@ -106,19 +107,27 @@ function ClassroomBody() {
                 console.error(response.statusText);
             }
         };
+        const getRole = async () => {
+            var response = await fetch(`/api/classroom/role/${classroomId}`);
+            if (response.ok) {
+                var role = await response.json();
+                if (role == "instructor" || role == "admin") {
+                    setCanEditClassroom(true);
+                }
+            }
+        }
         const stopLoading = () => {
             setLoading(false);
         }
-        // const getUserRole = async () => {
-        //     var response = await fetch(`api/classroom/${classroomId}/`)
-        // }
 
         if (loading) {
             verifyLogin().then(() => {
                     if (!isError) {
                         getClassroomName().then(() => {
                             if (!isError) {
-                                getAssignments().then(stopLoading);
+                                getAssignments().then(() => {
+                                    getRole().then(stopLoading);
+                                });
                             }
                         });
                     }
@@ -139,13 +148,13 @@ function ClassroomBody() {
                                 {...assignmentsJSONToReact()}
                             </div>
                             <div id="sidebar">
-                                {/* {role == ("admin" || "teacher") ?  */}
-                                <div id="manage_button">
+                                {canEditClassroom &&
+                                    <div id="manage_button">
                                         <BlueButton onClick={reRoute}>
                                             Manage Classroom
                                         </BlueButton>
-                                </div>
-                                {/* } */}
+                                    </div>
+                                }
                                 <div id="homework">
                                     <HomeworkSidebar>
                                         {...homeworkFromJSON()}

@@ -26,8 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcap2 \
     libnl-route-3-200 \
     libseccomp2 \
-    openjdk-17-jdk \        
-    racket \               
+    openjdk-17-jdk \
+    racket \
+    gcc libc6-dev \
  && rm -rf /var/lib/apt/lists/*
 
 # Copy nsjail from builder

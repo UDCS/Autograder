@@ -8,11 +8,11 @@
     border: none;
 }
 
-.blueButton:hover {
+.blueButton:hover:not(:disabled) {
     background-color: var(--color-aero-blue);
 }
 
-button.blueButton:active {
+button.blueButton:active:not(:disabled) {
     background-color: var(--color-NCS-blue);
 }
 

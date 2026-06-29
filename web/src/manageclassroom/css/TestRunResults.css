@@ -1,4 +1,5 @@
 .test-run-results {
+    z-index: 67;
     position: absolute;
     box-sizing: border-box;
     bottom: 0;
@@ -57,4 +58,21 @@
     border: none;
     width: 20px;
     height: 20px;
+}
+.run-results-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 3rem 0;
+}
+.run-results-loading-text {
+    font-family: 'Azeret Mono';
+}
+.run-results-error {
+    padding: 2rem;
+    text-align: center;
+    font-family: 'Azeret Mono';
+    color: #b00020;
 }

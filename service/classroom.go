@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"net/mail"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
@@ -26,9 +27,16 @@ func (app *GraderApp) CreateClassroom(jwksToken string, classroom models.Classro
 		return nil, fmt.Errorf("unauthorized: only an admin or an instructor can create a classroom")
 	}
 	createdClassroom, err := app.store.CreateClassroom(classroom)
-	e := app.store.MatchUserToClassroom(userInfo.Email, string(userInfo.UserRole), createdClassroom.Id)
-	if e != nil {
-		return createdClassroom, e
+	if err != nil {
+		return &classroom, err
+	}
+	err = app.store.MatchUserToClassroom(userInfo.Email, string(userInfo.UserRole), createdClassroom.Id)
+	if err != nil {
+		return createdClassroom, err
+	}
+	blankAssignment := models.CreateBlankAssignment(classroom.Id)
+	if err = app.store.SetVerboseAssignment(blankAssignment); err != nil {
+		return createdClassroom, err
 	}
 	return createdClassroom, err
 }
@@ -181,6 +189,140 @@ func (app *GraderApp) GetVerboseAssignments(jwksToken string, classroomId uuid.U
 	}
 	return assignments, nil
 }
+
+func (app *GraderApp) GetClassroomStudents(jwksToken string, classroomId uuid.UUID) ([]models.UserInClassroom, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return []models.UserInClassroom{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return []models.UserInClassroom{}, fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return []models.UserInClassroom{}, fmt.Errorf("user not in classroom")
+		} else if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return []models.UserInClassroom{}, fmt.Errorf("user does not have the role to get students of classroom")
+		}
+	}
+
+	students, err := app.store.GetClassroomStudents(classroomId)
+
+	if err != nil {
+		return []models.UserInClassroom{}, err
+	}
+
+	newStudents := make([]models.UserInClassroom, len(students)-1)
+	newStudentIndex := 0
+	for _, student := range students {
+		if student.Email != claims.Subject {
+			newStudents[newStudentIndex] = student
+			newStudentIndex++
+		}
+	}
+
+	return newStudents, nil
+
+}
+
+func (app *GraderApp) EditClassroomStudents(jwksToken string, classroomId uuid.UUID, newUsers []models.UserInClassroom) ([]models.UserInClassroom, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return []models.UserInClassroom{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return []models.UserInClassroom{}, fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return []models.UserInClassroom{}, fmt.Errorf("user not in classroom")
+		} else if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return []models.UserInClassroom{}, fmt.Errorf("user does not have the role get students of classroom")
+		}
+	}
+
+	newStudentList := make([]models.UserInClassroom, 0)
+	for _, student := range newUsers {
+		studentEmail := student.Email
+		studentRole := student.UserRole
+		user, err := app.store.GetUserInfo(studentEmail)
+		userExists := err == nil
+		if userExists {
+			_ = app.store.MatchUserToClassroom(studentEmail, string(studentRole), classroomId)
+			student.FirstName = user.FirstName
+			student.LastName = user.LastName
+			student.ClassroomId = classroomId
+			student.State = models.Registered
+			student.UserId = user.Id
+		} else {
+			parsedEmail, err := mail.ParseAddress(studentEmail)
+			if err != nil {
+				continue
+			}
+			studentEmail = parsedEmail.Address
+			invitation, err := app.store.GetInvitationFromEmail(studentEmail)
+			invitationExists := err == nil
+			if !invitationExists {
+				invitation = &models.Invitation{
+					Id:          uuid.New(),
+					Email:       studentEmail,
+					UserRole:    studentRole,
+					CreatedAt:   time.Now(),
+					UpdatedAt:   time.Now(),
+					ClassroomId: classroomId,
+				}
+				_, _ = app.CreateInvitation(jwksToken, *invitation)
+				student.UserId = invitation.Id
+			} else {
+				_ = app.store.MatchFutureUserToClassroom(studentEmail, classroomId, student.UserRole)
+				student.UserId = invitation.Id
+			}
+			student.ClassroomId = classroomId
+			student.State = models.Unregistered
+		}
+		newStudentList = append(newStudentList, student)
+	}
+	return newStudentList, nil
+
+}
+
+func (app *GraderApp) DeleteClassroomStudent(jwksToken string, classroomId uuid.UUID, user models.UserInClassroom) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return fmt.Errorf("user not in classroom")
+		} else if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return fmt.Errorf("user does not have the role to remove students from classroom")
+		}
+	}
+
+	err = app.store.DeleteClassroomStudent(classroomId, user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func (app *GraderApp) SetVerboseAssignments(jwksToken string, assignments []models.Assignment) error {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
@@ -327,6 +469,45 @@ func (app *GraderApp) DeleteQuestion(jwksToken string, questionId uuid.UUID) err
 	return nil
 }
 
+func (app *GraderApp) DeleteTestcase(jwksToken string, testcaseId uuid.UUID) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("error retrieving user info")
+	}
+	testcaseInfo, err := app.store.GetTestcaseInfo(testcaseId)
+	if err != nil {
+		return fmt.Errorf("error retrieving testcase info")
+	}
+	questionInfo, err := app.store.GetQuestionInfo(testcaseInfo.QuestionId)
+	if err != nil {
+		return fmt.Errorf("failed to get question info")
+	}
+	assignmentInfo, err := app.store.GetAssignmentInfo(questionInfo.AssignmentId)
+	if err != nil {
+		return fmt.Errorf("failed to get assignment info")
+	}
+	if userInfo.UserRole != models.Admin {
+		classroomId := assignmentInfo.ClassroomId
+		userInClassroom, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return fmt.Errorf("user not in classroom")
+		}
+		if userInClassroom.UserRole != models.Instructor {
+			return fmt.Errorf("user does not have the role to delete testcase")
+		}
+	}
+
+	if err = app.store.DeleteTestcase(testcaseId); err != nil {
+		return fmt.Errorf("failed to delete testcase: %s", err.Error())
+	}
+	return nil
+}
+
 func (app *GraderApp) GetAssignment(jwksToken string, assignmentId uuid.UUID) (models.Assignment, error) {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
@@ -397,7 +578,12 @@ func (app *GraderApp) UpdateSubmissionCode(jwksToken string, request models.Upda
 		return fmt.Errorf("invalid authorization credentials")
 	}
 
-	request.UserId = userInfo.Id
+	callerIsInstructor := claims.Role == models.Admin || claims.Role == models.Instructor || claims.Role == models.Assistant
+	if callerIsInstructor && request.UserId != uuid.Nil {
+		// professor is updating a specific student's submission
+	} else {
+		request.UserId = userInfo.Id
+	}
 	request.Id = uuid.New()
 	request.UpdatedAt = time.Now()
 
@@ -409,10 +595,79 @@ func (app *GraderApp) UpdateSubmissionCode(jwksToken string, request models.Upda
 	return nil
 }
 
+func (app *GraderApp) UpdateClassroomGrades(jwksToken string, classroomId uuid.UUID, request models.UpdateClassroomGradesRequest) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return fmt.Errorf("user not in classroom")
+		}
+		if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return fmt.Errorf("user does not have permission to update classroom grades")
+		}
+	}
+
+	return app.store.UpdateClassroomGrades(request.Updates)
+}
+
+func (app *GraderApp) GetClassroomGrades(jwksToken string, classroomId uuid.UUID) (models.ClassroomGradesResult, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return models.ClassroomGradesResult{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return models.ClassroomGradesResult{}, fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return models.ClassroomGradesResult{}, fmt.Errorf("user not in classroom")
+		}
+		if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return models.ClassroomGradesResult{}, fmt.Errorf("user does not have permission to view classroom grades")
+		}
+	}
+
+	return app.store.GetClassroomGrades(classroomId)
+}
+
+func (app *GraderApp) GetSubmissionStatuses(jwksToken string, submissionIds []uuid.UUID) ([]models.SubmissionStatusResult, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving user info")
+	}
+
+	isPrivileged := userInfo.UserRole == models.Admin || userInfo.UserRole == models.Instructor || userInfo.UserRole == models.Assistant
+	return app.store.GetSubmissionStatuses(submissionIds, userInfo.Id, isPrivileged)
+}
+
 func (app *GraderApp) GetUserRole(jwksToken string, roomId uuid.UUID) (models.UserRole, error) {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
 		return "", fmt.Errorf("invalid authorization credentials")
 	}
+	globalRole, _ := app.GetRole(jwksToken)
+
+	if globalRole == models.Admin {
+		return models.Admin, nil
+	}
+
 	return app.store.GetUserRole(claims.Subject, roomId)
 }

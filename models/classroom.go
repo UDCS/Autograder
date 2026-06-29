@@ -88,9 +88,20 @@ type Classroom struct {
 }
 
 type UserInClassroom struct {
+	FirstName string    `json:"first_name" db:"first_name"`
+	LastName  string    `json:"last_name" db:"last_name"`
+	Email     string    `json:"email" db:"email"`
+	State     UserState `json:"state" db:"state"`
+
 	UserId      uuid.UUID `json:"user_id" db:"user_id"`
 	UserRole    UserRole  `json:"user_role" db:"user_role"`
 	ClassroomId uuid.UUID `json:"classroom_id" db:"classroom_id"`
+}
+
+type FutureStudentClassroomMatching struct {
+	UserEmail   string    `json:"email" db:"email"`
+	ClassroomId uuid.UUID `json:"classroom_id" db:"classroom_id"`
+	UserRole    UserRole  `json:"role" db:"role"`
 }
 
 type AddToClassRequest struct {
@@ -137,10 +148,15 @@ type Question struct {
 	SortIndex           uint8      `json:"sort_index" db:"sort_index"`
 	ProgrammingLanguage ProgLang   `json:"prog_lang" db:"prog_lang"`
 	DefaultCode         string     `json:"default_code" db:"default_code"`
+	SolutionCode        string     `json:"solution_code" db:"solution_code"`
 	CodeSubmission      string     `json:"code" db:"code"`
 	Testcases           []Testcase `json:"test_cases"`
 	CreatedAt           time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt           time.Time  `json:"updated_at" db:"updated_at"`
+	// Populated at query time for the student's own submission — not in the questions table
+	SubmissionId     *uuid.UUID `json:"submission_id" db:"-"`
+	SubmissionStatus string     `json:"submission_status" db:"-"`
+	ConsoleOutput    string     `json:"console_output" db:"-"`
 }
 
 func (question *Question) Rectify(properAssignmentId uuid.UUID) {
@@ -148,6 +164,23 @@ func (question *Question) Rectify(properAssignmentId uuid.UUID) {
 	for i := range question.Testcases {
 		testcase := &question.Testcases[i]
 		testcase.Rectify(question.Id)
+	}
+}
+
+func createBlankQuestion(assignmentId uuid.UUID) Question {
+	questionId := uuid.New()
+	now := time.Now()
+	return Question{
+		Id:                  questionId,
+		AssignmentId:        assignmentId,
+		Header:              "",
+		Body:                "",
+		SortIndex:           0,
+		ProgrammingLanguage: Python,
+		DefaultCode:         "",
+		CreatedAt:           now,
+		UpdatedAt:           now,
+		Testcases:           []Testcase{createBlankTestcase(questionId)},
 	}
 }
 
@@ -162,6 +195,24 @@ type Assignment struct {
 	UpdatedAt      time.Time      `json:"updated_at" db:"updated_at"`
 	SortIndex      int            `json:"sort_index" db:"sort_index"`
 	Questions      []Question     `json:"questions"`
+}
+
+func CreateBlankAssignment(classroomId uuid.UUID) Assignment {
+	assignmentId := uuid.New()
+	now := time.Now()
+	nextWeek := now.AddDate(0, 0, 7)
+	return Assignment{
+		Id:             assignmentId,
+		ClassroomId:    classroomId,
+		Name:           "",
+		Description:    "",
+		AssignmentMode: Draft,
+		DueAt:          nextWeek,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		SortIndex:      0,
+		Questions:      []Question{createBlankQuestion(assignmentId)},
+	}
 }
 
 func (assignment *Assignment) Rectify() {

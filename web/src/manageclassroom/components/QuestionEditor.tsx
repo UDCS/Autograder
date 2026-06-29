@@ -8,10 +8,16 @@ import clsx from "clsx";
 import { ProgLang, Question } from "../../models/classroom";
 import SelectDropdown from "../../components/select-dropdown/SelectDropdown";
 import { saveQuestions } from "../subpages/AssignmentsSubpage";
+import { showToast } from "../../components/toast/toastBus";
+import ReorderArrows from "./ReorderArrows";
 
 type QuestionEditorProps = {
     question: Question;
     onDelete: () => void;
+    onMoveUp: () => void;
+    onMoveDown: () => void;
+    isFirst: boolean;
+    isLast: boolean;
 }
 
 const progLangToText: Record<ProgLang, string> = {
@@ -30,7 +36,7 @@ const textToProgLang: Record<string, ProgLang> = {
 
 const questionTitleMaxLength = 64;
 
-function QuestionEditor({question, onDelete}: QuestionEditorProps) {
+function QuestionEditor({question, onDelete, onMoveUp, onMoveDown, isFirst, isLast}: QuestionEditorProps) {
     const [selected, setSelected] = useState(false);
     
     const [progLang, setProgLang] = useState<ProgLang>(question.prog_lang!);
@@ -50,15 +56,18 @@ function QuestionEditor({question, onDelete}: QuestionEditorProps) {
     }
 
     const saveQuestion = () => {
-        try {
-            saveQuestions([question]);
-        } catch (err) {
-            console.error("Failed to save question: ", err)
-        }
+        saveQuestions([question])
+            .then(() => showToast("Successfully saved", "success"))
+            .catch(err => {
+                console.error("Failed to save question: ", err);
+                showToast("Something went wrong while saving", "error");
+            });
     }
 
     return (
-        <div className="question-editor">
+        <div className="reorderable-row">
+            <ReorderArrows onMoveUp={onMoveUp} onMoveDown={onMoveDown} disableUp={isFirst} disableDown={isLast} />
+            <div className="question-editor">
             <div className="title-and-visibility">
                 <div className="title-parent">
                     <TitleInput placeholder="Question Title" value={question.header} onChange={handleTitleChange} maxLength={questionTitleMaxLength} />
@@ -91,6 +100,7 @@ function QuestionEditor({question, onDelete}: QuestionEditorProps) {
                         </button>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     )
