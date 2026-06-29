@@ -148,10 +148,15 @@ type Question struct {
 	SortIndex           uint8      `json:"sort_index" db:"sort_index"`
 	ProgrammingLanguage ProgLang   `json:"prog_lang" db:"prog_lang"`
 	DefaultCode         string     `json:"default_code" db:"default_code"`
+	SolutionCode        string     `json:"solution_code" db:"solution_code"`
 	CodeSubmission      string     `json:"code" db:"code"`
 	Testcases           []Testcase `json:"test_cases"`
 	CreatedAt           time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt           time.Time  `json:"updated_at" db:"updated_at"`
+	// Populated at query time for the student's own submission — not in the questions table
+	SubmissionId     *uuid.UUID `json:"submission_id" db:"-"`
+	SubmissionStatus string     `json:"submission_status" db:"-"`
+	ConsoleOutput    string     `json:"console_output" db:"-"`
 }
 
 func (question *Question) Rectify(properAssignmentId uuid.UUID) {

@@ -49,11 +49,11 @@
     flex: 1;
     overflow-x: hidden;
 }
-.run-tests-button {
-    margin-top: .5%;
+.blueButton.run-tests-button {
+    font-size: 150%;
+    margin-top: 1.25%;
     margin-bottom: .5%;
-    font-size: 100%;
-    width: 30%;
+    width: 45%;
     padding: .5%;
 }
 .tabs-editor {

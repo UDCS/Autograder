@@ -1,7 +1,7 @@
 import { useState } from "react";
 import QuestionScore from "../../components/question/QuestionScore";
 import "../css/QuestionGradeDropdown.css"
-import FontSizeInput from "../../components/font-size-input/FontSizeInput";
+import EditorHeader from "../../components/editor/EditorHeader";
 import CodeEditor from "../../components/editor/CodeEditor";
 import BlueButton from "../../components/buttons/BlueButton";
 import ConsoleOutput from "../../components/assignment/ConsoleOutput";
@@ -15,21 +15,20 @@ interface QGDProps {
     title?: string;
     classroomId: string;
     questionId: string;
+    progLang: string;
+    addSubmission: (submissionId: string) => void;
 }
-function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission, title, classroomId, questionId}: QGDProps) {
+function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission, title, classroomId, questionId, progLang, addSubmission}: QGDProps) {
     const [selected, setSelected] = useState(false);
-
     const [fontSize, setFontSize] = useState(16);
-
     const [manualGrade, setManualGrade] = useState<boolean>(questionSubmission.is_manual_grade);
     const [editable, setEditable] = useState<boolean>(questionSubmission.edit_mode);
     const [gradeChanged, setGradeChanged] = useState<boolean>(false);
-    const [grading, setGrading] = useState<boolean>(false);
-    const triangle = () => {
-        return selected ? "▲" : "▼";
-    }
+
+    const triangle = () => selected ? "▲" : "▼";
     const displayScore = questionSubmission.is_manual_grade ? questionSubmission.manual_grade : questionSubmission.score;
     const gradesVisible = questionSubmission.show_grade;
+
     return (
         <div className="question-grade-dropdown">
             <div className="question-grade-header" onClick={() => setSelected(!selected)}>
@@ -43,7 +42,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                     </div>
                 </div>
             </div>
-            {selected && 
+            {selected &&
                 <div className="question-grade-body">
                     <div className="question-grade-row">
                         <div className="question-grade-label">
@@ -67,29 +66,29 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                                     setGradeChanged(true);
                                 }}/>
                             <div className="manual-score-parent">
-                                    {manualGrade && <>
-                                        <div className="question-grade-label">Score:</div>
-                                        <input className="manual-score-input" type="number"
-                                        value={questionSubmission.manual_grade}
-                                        onChange={(e) => {
-                                            updateSubmission(questionSubmission.submission_id, { manual_grade: e.target.valueAsNumber });
-                                            setGradeChanged(true);
-                                        }} />
-                                    </>}
-                                    {gradeChanged && <BlueButton className="question-button" onClick={() => {
-                                        fetch(`/api/classroom/${classroomId}/grades`, {
-                                            method: "PATCH",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({ updates: [{
-                                                question_id: questionId,
-                                                student_id: questionSubmission.student_id,
-                                                manual_grade: manualGrade,
-                                                new_score: questionSubmission.manual_grade,
-                                            }]})
-                                        });
-                                        setGradeChanged(false);
-                                    }}>Update Grade</BlueButton>}
-                                </div>
+                                {manualGrade && <>
+                                    <div className="question-grade-label">Score:</div>
+                                    <input className="manual-score-input" type="number"
+                                    value={questionSubmission.manual_grade}
+                                    onChange={(e) => {
+                                        updateSubmission(questionSubmission.submission_id, { manual_grade: e.target.valueAsNumber });
+                                        setGradeChanged(true);
+                                    }} />
+                                </>}
+                                {gradeChanged && <BlueButton className="question-button" onClick={() => {
+                                    fetch(`/api/classroom/${classroomId}/grades`, {
+                                        method: "PATCH",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ updates: [{
+                                            question_id: questionId,
+                                            student_id: questionSubmission.student_id,
+                                            manual_grade: manualGrade,
+                                            new_score: questionSubmission.manual_grade,
+                                        }]})
+                                    });
+                                    setGradeChanged(false);
+                                }}>Update Grade</BlueButton>}
+                            </div>
                         </div>
                     </div>
                     <div className="question-grade-row">
@@ -101,13 +100,11 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                     setEditable(e.target.checked);
                                     updateSubmission(questionSubmission.submission_id, { edit_mode: e.target.checked });
-                                }} /> 
+                                }} />
                         </div>
                     </div>
-                    <div className="font-size-header">
-                        <FontSizeInput onChange={(newFontSize: number) => setFontSize(newFontSize)} defaultFontSize={fontSize} />
-                    </div>
-                    <CodeEditor fontSize={fontSize} editable={editable} value={questionSubmission.code}
+                    <EditorHeader progLang={progLang} fontSize={fontSize} onFontSizeChange={setFontSize} />
+                    <CodeEditor fontSize={fontSize} editable={editable} value={questionSubmission.code} language={progLang}
                         onChange={(newCode) => updateSubmission(questionSubmission.submission_id, { code: newCode })} />
                     <div className="question-button-row">
                         <BlueButton className="question-button" onClick={() => {
@@ -121,7 +118,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                             });
                         }}>Save Code</BlueButton>
                         <BlueButton className="question-button" onClick={() => {
-                            setGrading(true);
+                            updateSubmission(questionSubmission.submission_id, { status: 'running' });
                             fetch(`/api/grader/question/${questionId}`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
@@ -129,11 +126,12 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                                     user_id: questionSubmission.student_id,
                                     code: questionSubmission.code,
                                 })
-                            });
+                            }).then(r => r.json())
+                              .then(data => addSubmission(data.submission_id));
                         }}>Resubmit Code</BlueButton>
-                        {grading && <Spinner />}
+                        {questionSubmission.status === 'running' && <Spinner />}
                     </div>
-                    <ConsoleOutput output="test output"></ConsoleOutput>
+                    <ConsoleOutput output={questionSubmission.console_output}></ConsoleOutput>
                 </div>
             }
         </div>

@@ -7,11 +7,12 @@ interface AssignmentsGradesProps {
     updateSubmission: (submissionId: string, changes: Partial<QuestionSubmission>) => void;
     classroomId: string;
     showGrades: boolean;
+    addSubmission: (submissionId: string) => void;
 }
-function AssignmentsGrades({grades, updateSubmission, classroomId}: AssignmentsGradesProps) {
+function AssignmentsGrades({grades, updateSubmission, classroomId, addSubmission}: AssignmentsGradesProps) {
     const gradesToAssignmentGradePanel = () => {
         return grades.assignments.map((assignment: AssignmentGrade) => {
-            return <AssignmentGradePanel assignmentGrade={assignment} updateSubmission={updateSubmission} classroomId={classroomId}/>
+            return <AssignmentGradePanel assignmentGrade={assignment} updateSubmission={updateSubmission} classroomId={classroomId} addSubmission={addSubmission}/>
         });
     }
     return (

@@ -12,3 +12,9 @@
     font-size: 150%;
     border-radius: 25px;
 }
+.save-hint {
+    font-family: "Azeret Mono";
+    font-size: 90%;
+    color: grey;
+    margin-bottom: 1%;
+}

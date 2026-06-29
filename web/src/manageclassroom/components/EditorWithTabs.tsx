@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
+import { registerRacket } from "../../components/editor/racketLanguage";
 import FileTabs from "./FileTabs";
 import {BashTestCaseBody } from "../../models/testcases";
 import { fileName, getLanguageFromSuffix } from "../../utils/editor";
@@ -53,6 +54,7 @@ export default function EditorWithTabs({body, fontSize: fS, setSelectedFilename}
       <div className="tab-editor-parent">
         {files && 
           <Editor
+            beforeMount={registerRacket}
             language={getLanguageFromSuffix(activeFile.suffix)}
             value={activeFile.body}
             onChange={updateFileValue}

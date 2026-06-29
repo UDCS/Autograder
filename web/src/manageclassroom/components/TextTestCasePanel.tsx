@@ -1,27 +1,22 @@
-import { useState } from "react";
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import TextField, { TextFieldInput } from "../../components/textfield/Textfield";
 import TitleInput from "../../components/title-input/TitleInput";
-import { TestCase, TestCaseResults, TextTestCaseBody } from "../../models/testcases";
+import { TestCase, TextTestCaseBody } from "../../models/testcases";
 import "../css/TextTestCasePanel.css"
 import TextTestCase from "./TextTestCase";
-import TestRunResults from "./TestRunResults";
+import Spinner from "../../components/spinner/Spinner";
 
 export type TestCasePanelProps = {
     testCaseInfo: TestCase;
+    runSolution: (testcaseId?: string) => void;
+    generateOutput: (testcaseId: string) => void;
+    busy?: boolean;
+    loading?: boolean;
 }
 
-const fakeTestCaseResults: TestCaseResults[] = [
-    {name: "Test case 1", maxPoints: 20, points: 15, consoleOutput: "Your code is hot garbage. Consider switching majors"},
-    {name: "Test case 2", maxPoints: 10, points: 10, consoleOutput: "You're not funny."}
-]
-
-function TextTestCasePanel({testCaseInfo}: TestCasePanelProps) {
+function TextTestCasePanel({testCaseInfo, runSolution, generateOutput, busy, loading}: TestCasePanelProps) {
 
     const body = testCaseInfo.body as TextTestCaseBody;
-
-
-    const [isTestRun, setTestRun] = useState(false);
 
     const handleTitleChange = (newTitle: string) => {
         testCaseInfo.name = newTitle;
@@ -42,7 +37,7 @@ function TextTestCasePanel({testCaseInfo}: TestCasePanelProps) {
                     <TitleInput className="test-case-title" value={testCaseInfo.name} onChange={handleTitleChange} />
                 </div>
                 <div className="test-case-run-parent">
-                    <DarkBlueButton className="run-test-button" onClick={() => setTestRun(true)}>Run Test on Solution</DarkBlueButton>
+                    <DarkBlueButton className="run-test-button" disabled={busy} onClick={() => runSolution(testCaseInfo.id)}>Run Test on Solution</DarkBlueButton>
                 </div>
             </div>
             <div className="points-timeout">
@@ -54,8 +49,11 @@ function TextTestCasePanel({testCaseInfo}: TestCasePanelProps) {
                     Tests:
                 </div>
                 <TextTestCase body={body}></TextTestCase>
+                <div className="generate-output-parent">
+                    {loading && <Spinner />}
+                    <DarkBlueButton className="generate-output-button" disabled={busy} onClick={() => generateOutput(testCaseInfo.id)}>Generate Expected Output</DarkBlueButton>
+                </div>
             </div>
-            {isTestRun && <TestRunResults testCasesResults={fakeTestCaseResults} close={() => setTestRun(false)} />}
         </div>
     );
 }

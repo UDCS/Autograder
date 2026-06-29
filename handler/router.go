@@ -22,6 +22,7 @@ type Handler interface {
 	IsValidLogin(c context.Context) error
 	GetUserName(c context.Context) error
 	ValidInvite(c context.Context) error
+	ValidPasswordReset(c echo.Context) error
 	GetRole(c context.Context) error
 	// Classroom
 	CreateClassroom(c context.Context) error
@@ -47,6 +48,9 @@ type Handler interface {
 	UpdateClassroomGrades(c echo.Context) error
 	// Grader
 	GradeSubmission(c context.Context) error
+	GetSubmissionStatuses(c echo.Context) error
+	RunSolutionTests(c echo.Context) error
+	GetSolutionTestRun(c echo.Context) error
 }
 
 type HttpRouter struct {
@@ -92,6 +96,7 @@ func (router *HttpRouter) SetupRoutes() {
 	auth.POST("/logout", router.Logout)
 	auth.POST("/password", router.PasswordResetRequest)
 	auth.POST("/reset_password/:requestId", router.PasswordReset)
+	auth.GET("/reset_password/:requestId/valid", router.ValidPasswordReset)
 	auth.POST("/refresh", router.RefreshToken)
 	auth.PUT("/:room_id/user", router.MatchUsersToClassroom)
 	auth.PUT("/user_info", router.ChangeUserInfo)
@@ -124,6 +129,9 @@ func (router *HttpRouter) SetupRoutes() {
 
 	grader := api.Group("/grader")
 	grader.POST("/question/:question_id", router.GradeSubmission)
+	grader.POST("/submissions/status", router.GetSubmissionStatuses)
+	grader.POST("/question/:question_id/solution/run", router.RunSolutionTests)
+	grader.GET("/solution/run/:run_id", router.GetSolutionTestRun)
 }
 
 func (router *HttpRouter) Engage(port string) {

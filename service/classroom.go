@@ -643,6 +643,21 @@ func (app *GraderApp) GetClassroomGrades(jwksToken string, classroomId uuid.UUID
 	return app.store.GetClassroomGrades(classroomId)
 }
 
+func (app *GraderApp) GetSubmissionStatuses(jwksToken string, submissionIds []uuid.UUID) ([]models.SubmissionStatusResult, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving user info")
+	}
+
+	isPrivileged := userInfo.UserRole == models.Admin || userInfo.UserRole == models.Instructor || userInfo.UserRole == models.Assistant
+	return app.store.GetSubmissionStatuses(submissionIds, userInfo.Id, isPrivileged)
+}
+
 func (app *GraderApp) GetUserRole(jwksToken string, roomId uuid.UUID) (models.UserRole, error) {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {

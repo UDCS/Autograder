@@ -53,3 +53,6 @@
     flex-direction: column;
     padding: 3%;
 }
+.with-gap {
+    gap: 1rem;
+}

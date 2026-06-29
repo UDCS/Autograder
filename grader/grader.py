@@ -34,6 +34,7 @@ import traceback
 # ---- Optional: psycopg 3
 try:
     import psycopg
+    from psycopg.types.json import Json
 except Exception as e:
     traceback.print_exc()
     print("FATAL: psycopg package not installed. Add 'psycopg[binary]' to requirements.txt.", file=sys.stderr)
@@ -42,7 +43,14 @@ except Exception as e:
 # ----------------------------
 # Config / environment
 # ----------------------------
+# RUN_MODE selects what we grade:
+#   "submission" (default) -> a student's submission, keyed by SUBMISSION_ID
+#   "solution"             -> an instructor's solution code, keyed by RUN_ID/QUESTION_ID
+RUN_MODE = os.environ.get("RUN_MODE", "submission").strip().lower()
 SUBMISSION_ID = os.environ.get("SUBMISSION_ID", "").strip()
+RUN_ID = os.environ.get("RUN_ID", "").strip()
+QUESTION_ID = os.environ.get("QUESTION_ID", "").strip()
+TESTCASE_ID = os.environ.get("TESTCASE_ID", "").strip()  # optional: run a single testcase
 DB_DSN = os.environ.get("DB_DSN", "").strip()
 USE_NSJAIL = False#os.environ.get("NSJAIL", "0").strip() != "0"
 
@@ -50,11 +58,15 @@ DEFAULT_TIME_LIMIT_MS = int(os.environ.get("PY_TIMEOUT_MS", "2000"))
 DEFAULT_MEMORY_MB = int(os.environ.get("PY_MEMORY_MB", "256"))
 MAX_OUTPUT_BYTES = int(os.environ.get("MAX_OUTPUT_BYTES", str(1_000_000)))  # 1 MB
 
-if not SUBMISSION_ID:
-    print("FATAL: SUBMISSION_ID is required in the environment.", file=sys.stderr)
-    sys.exit(2)
 if not DB_DSN:
     print("FATAL: DB_DSN is required in the environment.", file=sys.stderr)
+    sys.exit(2)
+if RUN_MODE == "solution":
+    if not RUN_ID or not QUESTION_ID:
+        print("FATAL: RUN_ID and QUESTION_ID are required in solution mode.", file=sys.stderr)
+        sys.exit(2)
+elif not SUBMISSION_ID:
+    print("FATAL: SUBMISSION_ID is required in the environment.", file=sys.stderr)
     sys.exit(2)
 
 # ----------------------------
@@ -100,20 +112,30 @@ def fetch_submission_and_limits(conn) -> Dict[str, Any]:
             "question_id": row[3]
         }
 
-def fetch_text_testcases(conn, question_id: str) -> List[Dict[str, Any]]:
+def fetch_text_testcases(conn, question_id: str, testcase_id: str = None) -> List[Dict[str, Any]]:
     with conn.cursor() as cur:
-        cur.execute("""
-            SELECT t.id, tt.inputs, tt.outputs, t.question_id, t.points, t.timeout_seconds
-            FROM testcases t
-            JOIN text_testcases tt ON tt.testcase_id = t.id 
-            WHERE question_id = %s AND type='text'
-        """, (question_id,))
+        if testcase_id:
+            cur.execute("""
+                SELECT t.id, t.name, tt.inputs, tt.outputs, tt.hidden, t.question_id, t.points, t.timeout_seconds
+                FROM testcases t
+                JOIN text_testcases tt ON tt.testcase_id = t.id
+                WHERE t.question_id = %s AND t.type='text' AND t.id = %s
+            """, (question_id, testcase_id))
+        else:
+            cur.execute("""
+                SELECT t.id, t.name, tt.inputs, tt.outputs, tt.hidden, t.question_id, t.points, t.timeout_seconds
+                FROM testcases t
+                JOIN text_testcases tt ON tt.testcase_id = t.id
+                WHERE t.question_id = %s AND t.type='text'
+            """, (question_id,))
         out = []
-        for (id, inputs, outputs, question_id, points, timeout_seconds) in cur.fetchall():
+        for (id, name, inputs, outputs, hidden, question_id, points, timeout_seconds) in cur.fetchall():
             out.append({
                 "id": id,
+                "name": name if name is not None else "",
                 "inputs": inputs if inputs is not None else "",
                 "outputs": outputs if outputs is not None else "",
+                "hidden": bool(hidden),
                 "question_id": question_id,
                 "points": int(points),
                 "timeout_ms": int(timeout_seconds) * 1000 if timeout_seconds is not None else DEFAULT_TIME_LIMIT_MS * 1000,
@@ -143,18 +165,54 @@ def update_testcase_grade(conn, tc_id, user_id, grade):
         """)
     conn.commit()
 
-def finalize(conn, status: str, feedback: str):
+def finalize(conn, status: str, feedback: str, feedback_full: str = None):
+    # feedback        -> student-facing (hidden testcase details redacted)
+    # feedback_full   -> instructor-facing (everything); defaults to feedback
+    if feedback_full is None:
+        feedback_full = feedback
     with conn.cursor() as cur:
         cur.execute("""
             UPDATE student_submissions
-               SET status=%s, feedback=%s, updated_at=now()
+               SET status=%s, feedback=%s, feedback_full=%s, updated_at=now()
              WHERE id=%s
-        """, (status, feedback, SUBMISSION_ID))
+        """, (status, feedback, feedback_full, SUBMISSION_ID))
+    conn.commit()
+
+# ---- Solution test run helpers (RUN_MODE == "solution") ----
+
+def fetch_solution(conn, question_id: str) -> Dict[str, Any]:
+    with conn.cursor() as cur:
+        cur.execute("SELECT prog_lang, solution_code FROM questions WHERE id=%s", (question_id,))
+        row = cur.fetchone()
+        if not row:
+            raise RuntimeError("Question not found: " + str(question_id))
+        return {"language": row[0], "code": row[1] if row[1] is not None else ""}
+
+def set_solution_run_status(conn, status: str):
+    with conn.cursor() as cur:
+        cur.execute("UPDATE solution_test_runs SET status=%s, updated_at=now() WHERE id=%s", (status, RUN_ID))
+    conn.commit()
+
+def finalize_solution_run(conn, status: str, results: List[Dict[str, Any]]):
+    with conn.cursor() as cur:
+        cur.execute(
+            "UPDATE solution_test_runs SET status=%s, results=%s, updated_at=now() WHERE id=%s",
+            (status, Json(results), RUN_ID),
+        )
     conn.commit()
 
 # ----------------------------
 # Execution utilities
 # ----------------------------
+
+# Allow-listed environment for student processes. The grader's own environment
+# holds secrets (DB_DSN, EMAIL/PASS) and run identifiers (SUBMISSION_ID, RUN_ID,
+# QUESTION_ID, …); student code must never inherit those, or a submission could
+# read DB_DSN and connect to the database. Only pass through what a language
+# runtime/compiler legitimately needs. Allow-list (not deny-list) so any secret
+# added later stays out by default.
+_STUDENT_ENV_ALLOWLIST = ("PATH", "HOME", "LANG", "LC_ALL", "LC_CTYPE", "TMPDIR")
+STUDENT_ENV = {k: os.environ[k] for k in _STUDENT_ENV_ALLOWLIST if k in os.environ}
 
 def _normalize(s: str) -> str:
     """
@@ -183,6 +241,7 @@ def _run_cmd(cmd, input_bytes, timeout_sec, cwd=None):
             stderr=subprocess.PIPE,
             timeout=max(1, timeout_sec),
             cwd=cwd,                     # <— ensure we run in work_dir
+            env=STUDENT_ENV,             # <— never leak grader secrets (DB_DSN, etc.) to student code
         )
         elapsed_ms = int((time.time() - start) * 1000)
         return {
@@ -326,9 +385,55 @@ def run_student_rust(code: str, input_str: str, time_limit_ms: int, memory_limit
 
 
 # ----------------------------
+# C (expects a complete program with main(); built with gcc)
+# ----------------------------
+def run_student_c(code: str, input_str: str, time_limit_ms: int, memory_limit_mb: int, work_dir: str) -> dict:
+    main_c = os.path.join(work_dir, "main.c")
+    with open(main_c, "w") as f:
+        f.write(code)
+
+    sec = max(1, (time_limit_ms + 999) // 1000)
+    mem_bytes = memory_limit_mb * 1024 * 1024
+
+    # 1) Compile (`-lm` links the math library, which student code often needs)
+    compile_sec = min(60, max(3, 3 * sec))
+    gcc_cmd = _nsjail_cmd(
+        ["gcc", "-O2", "-o", "main", "main.c", "-lm"],
+        compile_sec, mem_bytes
+    )
+    comp = _run_cmd(gcc_cmd, b"", compile_sec, cwd=work_dir)
+    if comp["returncode"] != 0 or comp["timeout"]:
+        return {
+            "ok": False,
+            "stdout": "",
+            "stderr": ("Compile timeout" if comp["timeout"] else comp["stderr"].decode("utf-8", "replace")),
+            "time_ms": comp["elapsed_ms"],
+            "code": comp["returncode"],
+            "timeout": comp["timeout"],
+        }
+
+    # 2) Run
+    run_cmd = _nsjail_cmd(["./main"], sec, mem_bytes)
+    res = _run_cmd(run_cmd, input_str.encode("utf-8"), sec, cwd=work_dir)
+    return {
+        "ok": (res["returncode"] == 0) and (not res["timeout"]),
+        "stdout": res["stdout"].decode("utf-8", "replace"),
+        "stderr": res["stderr"].decode("utf-8", "replace"),
+        "time_ms": res["elapsed_ms"],
+        "code": res["returncode"],
+        "timeout": res["timeout"],
+    }
+
+
+# ----------------------------
 # Racket (expects #lang racket script reading stdin)
 # ----------------------------
 def run_student_racket(code: str, input_str: str, time_limit_ms: int, memory_limit_mb: int, work_dir: str) -> dict:
+    # Racket runs files as modules and requires a `#lang` line as the first
+    # non-whitespace content. If the student omitted it, default to `#lang racket`.
+    if not code.lstrip().startswith("#lang"):
+        code = "#lang racket\n" + code
+
     student_rkt = os.path.join(work_dir, "student.rkt")
     with open(student_rkt, "w") as f:
         f.write(code)
@@ -360,12 +465,76 @@ def run_solution(language: str, code: str, input_str: str, tlim_ms: int, mlim_mb
         return run_student_java(code, input_str, tlim_ms, mlim_mb, work_dir)
     if lang == "rust":
         return run_student_rust(code, input_str, tlim_ms, mlim_mb, work_dir)
+    if lang == "c":
+        return run_student_c(code, input_str, tlim_ms, mlim_mb, work_dir)
     if lang in ("racket", "scheme"):
         return run_student_racket(code, input_str, tlim_ms, mlim_mb, work_dir)
     return {
         "ok": False, "stdout": "", "stderr": f"Unsupported language: {language}",
         "time_ms": 0, "code": 2, "timeout": False
     }
+
+# ----------------------------
+# Per-testcase runner (shared by submission and solution modes)
+# ----------------------------
+def run_single_testcase(language: str, code: str, tc: Dict[str, Any], work_dir: str):
+    """Run one testcase and judge it. Returns (run_result, ok, message)."""
+    r = run_solution(
+        language=language,
+        code=code,
+        input_str=tc["inputs"],
+        tlim_ms=tc["timeout_ms"],
+        mlim_mb=tc["memory_limit_mb"],
+        work_dir=work_dir,
+    )
+
+    norm_got = _normalize(r["stdout"])
+    norm_exp = _normalize(tc["outputs"])
+    ok = (r["ok"] and norm_got == norm_exp)
+
+    msg = None
+    if not ok:
+        if r["timeout"]:
+            msg = "Timeout"
+        elif r["ok"]:
+            msg = "Wrong answer"
+        else:
+            # include only the first 500 chars of stderr
+            msg = (r["stderr"] or "Runtime error")[:500]
+    return r, ok, msg
+
+
+def _indent(text: str, limit: int = 2000) -> str:
+    text = (text or "")
+    if len(text) > limit:
+        text = text[:limit] + "\n…(truncated)"
+    return "\n".join("    " + line for line in text.splitlines()) or "    "
+
+
+def format_feedback(cases: List[Dict[str, Any]], passed: int, total: int) -> (str, str):
+    """Build (student_feedback, full_feedback). For the student, hidden testcases
+    show only the verdict + points; the full version always shows everything."""
+    summary = f"Passed {passed}/{total} test cases."
+
+    def block(c: Dict[str, Any], reveal: bool) -> str:
+        verdict = "PASSED" if c["ok"] else "FAILED"
+        hidden_tag = " (hidden)" if c["hidden"] else ""
+        lines = [f'Test "{c["name"]}"{hidden_tag}: {verdict} ({c["earned"]}/{c["max_points"]} points)']
+        if reveal:
+            lines.append("  Input:")
+            lines.append(_indent(c["input"]))
+            lines.append("  Expected Output:")
+            lines.append(_indent(c["expected"]))
+            lines.append("  Your Output:")
+            lines.append(_indent(c["got"]))
+            if c.get("message"):
+                lines.append(f"  Note: {c['message']}")
+        return "\n".join(lines)
+
+    student = summary + "\n\n" + "\n\n".join(block(c, reveal=not c["hidden"]) for c in cases)
+    full = summary + "\n\n" + "\n\n".join(block(c, reveal=True) for c in cases)
+    return student.strip(), full.strip()
+
 
 # ----------------------------
 # Main grading flow
@@ -397,29 +566,8 @@ def main() -> int:
             with tempfile.TemporaryDirectory(prefix="grader_") as work_dir:
                 # Iterate testcases
                 for tc in tcs:
-                    r = run_solution(
-                        language=sub["language"],
-                        code=sub["code"],
-                        input_str=tc["inputs"],
-                        tlim_ms=tc["timeout_ms"],
-                        mlim_mb=tc["memory_limit_mb"],
-                        work_dir=work_dir,
-                    )
+                    r, ok, msg = run_single_testcase(sub["language"], sub["code"], tc, work_dir)
 
-                    norm_got = _normalize(r["stdout"])
-                    norm_exp = _normalize(tc["outputs"])
-                    ok = (r["ok"] and norm_got == norm_exp)
-
-                    # Message to explain failures/timeouts
-                    msg = None
-                    if not ok:
-                        if r["timeout"]:
-                            msg = "Timeout"
-                        elif r["ok"]:
-                            msg = "Wrong answer"
-                        else:
-                            # include only the first 500 chars of stderr
-                            msg = (r["stderr"] or "Runtime error")[:500]
                     points_earned = 0
                     if ok:
                         points_earned = tc["points"]
@@ -429,6 +577,10 @@ def main() -> int:
                     update_testcase_grade(conn, tc["id"], user_id, points_earned)
 
                     cases_out.append({
+                        "name": tc["name"],
+                        "hidden": tc["hidden"],
+                        "max_points": tc["points"],
+                        "earned": points_earned,
                         "input": tc["inputs"],
                         "expected": tc["outputs"],
                         "got": r["stdout"],
@@ -437,12 +589,12 @@ def main() -> int:
                         **({"message": msg} if msg else {})
                     })
 
-            
+
             status = "passed" if passed_tcs == total_tcs else "failed" if passed_tcs == 0 else "partial"
-            feedback = f"Passed {passed_tcs}/{total_tcs} testcases."
+            feedback, feedback_full = format_feedback(cases_out, passed_tcs, total_tcs)
 
             with db_connect() as conn2:
-                finalize(conn2, status, feedback)
+                finalize(conn2, status, feedback, feedback_full)
 
             # print(f"Grading completed: {status} ({passed}/{total})")
             return 0
@@ -460,5 +612,70 @@ def main() -> int:
         return 2
 
 
+# ----------------------------
+# Solution test run flow (RUN_MODE == "solution")
+# ----------------------------
+
+def main_solution() -> int:
+    try:
+        with db_connect() as conn:
+            sol = fetch_solution(conn, QUESTION_ID)
+            tcs = fetch_text_testcases(conn, QUESTION_ID, TESTCASE_ID or None)
+
+            if not tcs:
+                print("No testcases found.", file=sys.stderr)
+                finalize_solution_run(conn, "error", [])
+                return 1
+
+            set_solution_run_status(conn, "running")
+
+            total_tcs = len(tcs)
+            passed_tcs = 0
+            results: List[Dict[str, Any]] = []
+
+            with tempfile.TemporaryDirectory(prefix="grader_") as work_dir:
+                for tc in tcs:
+                    r, ok, msg = run_single_testcase(sol["language"], sol["code"], tc, work_dir)
+
+                    if ok:
+                        passed_tcs += 1
+
+                    # console output the professor sees: program stdout, plus the
+                    # failure reason appended when it didn't pass
+                    console = r["stdout"]
+                    if msg:
+                        console = (console + "\n" + msg) if console else msg
+
+                    results.append({
+                        "testcase_id": str(tc["id"]),
+                        "name": tc["name"],
+                        "maxPoints": tc["points"],
+                        "points": tc["points"] if ok else 0,
+                        "consoleOutput": console,
+                        # raw program stdout, used to auto-fill expected output
+                        "output": r["stdout"],
+                    })
+
+            status = "passed" if passed_tcs == total_tcs else "failed" if passed_tcs == 0 else "partial"
+
+            with db_connect() as conn2:
+                finalize_solution_run(conn2, status, results)
+
+            return 0
+
+    except Exception as e:
+        traceback.print_exc()
+        try:
+            with db_connect() as conn3:
+                finalize_solution_run(conn3, "error", [])
+        except Exception as e2:
+            traceback.print_exc()
+            print(f"FATAL (while finalizing solution error): {e2}", file=sys.stderr)
+        print(f"FATAL: {e}", file=sys.stderr)
+        return 2
+
+
 if __name__ == "__main__":
+    if RUN_MODE == "solution":
+        sys.exit(main_solution())
     sys.exit(main())

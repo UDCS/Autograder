@@ -6,6 +6,7 @@ import DetailsSubpage from "./subpages/DetailsSubpage";
 import GradesSubpage from "./subpages/GradesSubpage";
 import StudentsSubpage from "./subpages/StudentsSubpage";
 import { Classroom } from "../models/classroom";
+import Toast from "../components/toast/Toast";
 
 function ClassroomManager() {
     
@@ -95,7 +96,7 @@ function ClassroomManager() {
                         <ClassroomSidebar onChange={onChange}/>
                         <div id="body">
                             <div className={`${selected === "assignments" ? "" : "hidden"}`}>
-                                <AssignmentsSubpage classroomInfo={classroomInfo} />
+                                <AssignmentsSubpage classroomInfo={classroomInfo} active={selected === "assignments"} />
                             </div>
                             <div className={`${selected === "details" ? "" : "hidden"}`}>
                                 <DetailsSubpage changeClassroomTitle={setClassroomName} classroomInfo={classroomInfo} />
@@ -108,14 +109,16 @@ function ClassroomManager() {
                             </div>
                         </div>
                     </div>
-                </div> 
-            : 
+                </div>
+            :
                 <div className="errorParent">
+
                     <div className="error">
                         {errorMessage}
                     </div>
                 </div>
             }
+            <Toast />
         </>:<></>
         }
         </>

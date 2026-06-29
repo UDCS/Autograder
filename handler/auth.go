@@ -317,19 +317,30 @@ func (router *HttpRouter) Logout(c echo.Context) error {
 }
 
 func (router *HttpRouter) PasswordResetRequest(c echo.Context) error {
+	var body struct {
+		Email string `json:"email"`
+	}
+	_ = c.Bind(&body)
 
-	tokenString, err := middlewares.GetAccessToken(c)
-	if err != nil {
-		logger.Error("failed to parse access token", zap.Error(err))
-		return c.JSON(http.StatusUnprocessableEntity, json_response.NewError("failed to parse request body"))
+	var err error
+	if body.Email != "" {
+		// Logged-out "forgot password" flow: email supplied in the body.
+		err = router.app.PasswordResetRequestByEmail(body.Email)
+	} else {
+		// Logged-in flow (account settings): derive the email from the access token.
+		tokenString, tokenErr := middlewares.GetAccessToken(c)
+		if tokenErr != nil {
+			logger.Error("failed to parse access token", zap.Error(tokenErr))
+			return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+		}
+		err = router.app.PasswordResetRequest(tokenString)
 	}
 
-	err = router.app.PasswordResetRequest(tokenString)
 	if err != nil {
 		logger.Error("failed to create a password reset request", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, json_response.NewError("failed to create a password reset request"))
 	}
-	return c.JSON(http.StatusAccepted, json_response.NewMessage("password reset request accepted"))
+	return c.JSON(http.StatusAccepted, json_response.NewMessage("if an account exists for that email, a reset link has been sent"))
 }
 
 func (router *HttpRouter) PasswordReset(c echo.Context) error {
@@ -454,7 +465,7 @@ func (router *HttpRouter) GetUserName(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
 	}
-	return c.JSON(http.StatusOK, echo.Map{"FirstName": userName.FirstName, "LastName": userName.LastName})
+	return c.JSON(http.StatusOK, echo.Map{"FirstName": userName.FirstName, "LastName": userName.LastName, "PasswordUpdatedAt": userName.PasswordUpdatedAt})
 }
 
 func (router *HttpRouter) ChangeUserInfo(c echo.Context) error {
@@ -504,6 +515,19 @@ func (router *HttpRouter) GetRole(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "failed to get role")
 	}
 	return c.JSON(http.StatusOK, role)
+}
+
+func (router *HttpRouter) ValidPasswordReset(c echo.Context) error {
+	requestId, err := uuid.Parse(c.Param("requestId"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError("failed to parse request id"))
+	}
+	token := c.QueryParam("token")
+
+	if router.app.ValidPasswordReset(requestId, token) {
+		return c.JSON(http.StatusOK, json_response.NewMessage("true"))
+	}
+	return c.JSON(http.StatusOK, json_response.NewMessage("false"))
 }
 
 func (router *HttpRouter) ValidInvite(c echo.Context) error {

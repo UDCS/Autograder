@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import BlueButton from "../components/buttons/BlueButton";
 import TextField from "../components/textfield/Textfield";
-import ToggleSwitch from "../components/toggleswitch/ToggleSwitch";
 
 
 function AccountSettings() {
@@ -19,6 +18,7 @@ function AccountSettings() {
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+    const [passwordUpdatedAt, setPasswordUpdatedAt] = useState("");
 
     useEffect(() => {
         const redirectToLogin = () => {
@@ -54,6 +54,12 @@ function AccountSettings() {
                         var lastName = json['LastName'];
                         setFirstName(firstName);
                         setLastName(lastName);
+                        const updatedAt = json['PasswordUpdatedAt'];
+                        if (updatedAt) {
+                            setPasswordUpdatedAt(new Date(updatedAt).toLocaleDateString(undefined, {
+                                year: 'numeric', month: 'long', day: 'numeric'
+                            }));
+                        }
                     } else {
                         console.log(response);
                     }
@@ -69,17 +75,19 @@ function AccountSettings() {
 
     const onResetButtonPressed = async () => {
         setSubmitState(ButtonState.Waiting);
+        setPasswordButtonDisabled(true);
         try {
             var response = await fetch('/api/auth/password', {method: "POST"});
             if (response.ok) {
-                setPasswordButtonDisabled(true);
                 setPasswordMessage("Password reset link sent!")
             } else {
                 console.log(response.status)
                 setPasswordMessage("Password reset link failed to send.")
+                setPasswordButtonDisabled(false);
             }
         } catch (err) {
             setPasswordMessage("Password reset link failed to send.");
+            setPasswordButtonDisabled(false);
         }
     }
 
@@ -140,23 +148,15 @@ function AccountSettings() {
                             <div className="label">Password:</div>
                         </td>
                         <td colSpan={2}>
-                            <div className="lastUpdated">last updated September 1st 2024</div>
+                            <div className="lastUpdated">{passwordUpdatedAt ? `last updated ${passwordUpdatedAt}` : ""}</div>
                         </td>
                         <td>
                             <BlueButton disabled={passwordButtonDisabled} onClick={onResetButtonPressed}>Reset Password</BlueButton>
                         </td>
                     </tr>
                     <tr>
-                        <td align="right" className="labelTd">
-                            <div className="label">Light Mode</div>
-                        </td>
-                        <td colSpan={2} align="left" style={{ paddingRight: "1%" }}>
-                            <div className="colorTheme">
-                                <ToggleSwitch />
-                                <div className="label" style={{ marginLeft: "1%" }}>Dark Mode</div>
-                            </div>
-                        </td>
-                        <td id='linkSentParent'>
+                        <td colSpan={3}></td>
+                        <td id="linkSentParent">
                             <div id="linkSent">
                                 {passwordMessage}
                             </div>

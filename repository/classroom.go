@@ -9,6 +9,7 @@ import (
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func (store PostgresStore) CreateClassroom(classroom models.Classroom) (*models.Classroom, error) {
@@ -238,6 +239,19 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 			}
 			questions[questionIndex].Points = points
 			questions[questionIndex].Score = score
+			var submissionInfo struct {
+				Id       uuid.UUID `db:"id"`
+				Status   string    `db:"status"`
+				Feedback string    `db:"feedback"`
+			}
+			if subErr := store.db.Get(&submissionInfo,
+				"SELECT id, status, feedback FROM student_submissions WHERE user_id=$1 AND question_id=$2",
+				userId, questionId,
+			); subErr == nil {
+				questions[questionIndex].SubmissionId = &submissionInfo.Id
+				questions[questionIndex].SubmissionStatus = submissionInfo.Status
+				questions[questionIndex].ConsoleOutput = submissionInfo.Feedback
+			}
 		}
 		sort.Slice(questions, func(i int, j int) bool {
 			return questions[i].SortIndex < questions[j].SortIndex
@@ -265,7 +279,7 @@ func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId u
 		var questions []models.Question
 		err = store.db.Select(
 			&questions,
-			"SELECT id, assignment_id, header, body, prog_lang, default_code, sort_index FROM questions WHERE assignment_id = $1;",
+			"SELECT id, assignment_id, header, body, prog_lang, default_code, solution_code, sort_index FROM questions WHERE assignment_id = $1;",
 			assignments[assignmentIndex].Id,
 		)
 		if err != nil {
@@ -396,8 +410,8 @@ func (store PostgresStore) SetVerboseAssignment(assignment models.Assignment) er
 	}
 	for _, question := range assignment.Questions {
 		_, err := store.db.Exec(
-			"INSERT INTO questions (id, assignment_id, header, body, prog_lang, updated_at, sort_index, default_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO UPDATE SET header = $3, body=$4, prog_lang=$5, updated_at=$6, sort_index=$7, default_code = $8;",
-			question.Id, question.AssignmentId, question.Header, question.Body, question.ProgrammingLanguage, time.Now(), question.SortIndex, question.DefaultCode,
+			"INSERT INTO questions (id, assignment_id, header, body, prog_lang, updated_at, sort_index, default_code, solution_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (id) DO UPDATE SET header = $3, body=$4, prog_lang=$5, updated_at=$6, sort_index=$7, default_code = $8, solution_code = $9;",
+			question.Id, question.AssignmentId, question.Header, question.Body, question.ProgrammingLanguage, time.Now(), question.SortIndex, question.DefaultCode, question.SolutionCode,
 		)
 		if err != nil {
 			return err
@@ -476,8 +490,8 @@ func (store PostgresStore) DeleteTestcase(testcaseId uuid.UUID) error {
 
 func (store PostgresStore) SetVerboseQuestion(question models.Question) error {
 	_, err := store.db.Exec(
-		"INSERT INTO questions (id, assignment_id, header, body, prog_lang, updated_at, sort_index, default_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO UPDATE SET header = $3, body=$4, prog_lang=$5, updated_at=$6, sort_index=$7, default_code = $8;",
-		question.Id, question.AssignmentId, question.Header, question.Body, question.ProgrammingLanguage, time.Now(), question.SortIndex, question.DefaultCode,
+		"INSERT INTO questions (id, assignment_id, header, body, prog_lang, updated_at, sort_index, default_code, solution_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT (id) DO UPDATE SET header = $3, body=$4, prog_lang=$5, updated_at=$6, sort_index=$7, default_code = $8, solution_code = $9;",
+		question.Id, question.AssignmentId, question.Header, question.Body, question.ProgrammingLanguage, time.Now(), question.SortIndex, question.DefaultCode, question.SolutionCode,
 	)
 	if err != nil {
 		return err
@@ -619,13 +633,20 @@ func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUI
 		}
 		questions[i].Points = points
 		questions[i].Score = score
-		err = store.db.Get(
-			&questions[i],
-			"SELECT code from student_submissions WHERE user_id=$1 AND question_id=$2",
-			userId, questions[i].Id,
-		)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return models.Assignment{}, err
+		var submissionInfo struct {
+			Id       uuid.UUID `db:"id"`
+			Code     string    `db:"code"`
+			Status   string    `db:"status"`
+			Feedback string    `db:"feedback"`
+		}
+		if subErr := store.db.Get(&submissionInfo,
+			"SELECT id, code, status, feedback FROM student_submissions WHERE user_id=$1 AND question_id=$2",
+			userId, questionId,
+		); subErr == nil {
+			questions[i].CodeSubmission = submissionInfo.Code
+			questions[i].SubmissionId = &submissionInfo.Id
+			questions[i].SubmissionStatus = submissionInfo.Status
+			questions[i].ConsoleOutput = submissionInfo.Feedback
 		}
 	}
 
@@ -741,7 +762,14 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 		SELECT u.id AS user_id, u.first_name, u.last_name
 		FROM user_classroom_matching ucm
 		JOIN users u ON ucm.user_id = u.id
-		WHERE ucm.classroom_id = $1 AND ucm.user_role = 'student'
+		WHERE ucm.classroom_id = $1 AND ucm.user_role IN ('student', 'assistant')
+		ORDER BY
+			CASE ucm.user_role
+				WHEN 'student' THEN 0
+				WHEN 'assistant' THEN 1
+				ELSE 2
+			END,
+			u.last_name, u.first_name
 	`, classroomId)
 	if err != nil {
 		return models.ClassroomGradesResult{}, err
@@ -756,9 +784,10 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 			Id          uuid.UUID `db:"id"`
 			Header      string    `db:"header"`
 			DefaultCode string    `db:"default_code"`
+			ProgLang    string    `db:"prog_lang"`
 		}
 		err = store.db.Select(&questions,
-			"SELECT id, header, default_code FROM questions WHERE assignment_id = $1",
+			"SELECT id, header, default_code, prog_lang FROM questions WHERE assignment_id = $1",
 			assignment.Id,
 		)
 		if err != nil {
@@ -781,6 +810,7 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 				QuestionId:   question.Id,
 				QuestionName: question.Header,
 				MaxPoints:    int(maxPoints),
+				ProgLang:     question.ProgLang,
 				Submissions:  make([]models.QuestionSubmissionGrade, 0),
 			}
 
@@ -788,21 +818,25 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 				var submissionId uuid.UUID
 				var consoleOutput string
 				var code string
+				var status string
 				var submission struct {
 					Id       uuid.UUID `db:"id"`
 					Feedback string    `db:"feedback"`
 					Code     string    `db:"code"`
+					Status   string    `db:"status"`
 				}
 				if subErr := store.db.Get(&submission,
-					"SELECT id, feedback, code FROM student_submissions WHERE user_id=$1 AND question_id=$2",
+					"SELECT id, feedback_full AS feedback, code, status FROM student_submissions WHERE user_id=$1 AND question_id=$2",
 					student.UserId, question.Id,
 				); subErr == nil {
 					submissionId = submission.Id
 					consoleOutput = submission.Feedback
 					code = submission.Code
+					status = submission.Status
 				} else {
 					submissionId, _ = store.CreateDefaultSubmission(student.UserId, question.Id, question.DefaultCode)
 					code = question.DefaultCode
+					status = models.SubmissionFailed
 				}
 
 				score, _ := store.GetStudentQuestionGrade(student.UserId, question.Id)
@@ -830,6 +864,7 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 					ConsoleOutput: consoleOutput,
 					IsManualGrade: isManualGrade,
 					ManualGrade:   manualGrade,
+					Status:        status,
 				})
 			}
 
@@ -840,6 +875,85 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 	}
 
 	return result, nil
+}
+
+func (store PostgresStore) SetSubmissionStatus(submissionId uuid.UUID, status models.SubmissionStatus) error {
+	_, err := store.db.Exec(
+		"UPDATE student_submissions SET status = $2 WHERE id = $1",
+		submissionId, status,
+	)
+	return err
+}
+
+func (store PostgresStore) GetSubmissionStatuses(submissionIds []uuid.UUID, userId uuid.UUID, isPrivileged bool) ([]models.SubmissionStatusResult, error) {
+	var rows []struct {
+		Id         uuid.UUID `db:"id"`
+		Status     string    `db:"status"`
+		Feedback   string    `db:"feedback"`
+		UserId     uuid.UUID `db:"user_id"`
+		QuestionId uuid.UUID `db:"question_id"`
+	}
+	err := store.db.Select(&rows,
+		"SELECT id, status, feedback, user_id, question_id FROM student_submissions WHERE id = ANY($1) AND ($2 OR user_id = $3)",
+		pq.Array(submissionIds), isPrivileged, userId,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]models.SubmissionStatusResult, 0, len(rows))
+	for _, row := range rows {
+		score, _ := store.GetStudentQuestionGrade(row.UserId, row.QuestionId)
+		results = append(results, models.SubmissionStatusResult{
+			SubmissionId:  row.Id,
+			Status:        row.Status,
+			Score:         int(score),
+			ConsoleOutput: row.Feedback,
+		})
+	}
+	return results, nil
+}
+
+func (store PostgresStore) UpdateSolutionCode(questionId uuid.UUID, code string) error {
+	_, err := store.db.Exec(
+		"UPDATE questions SET solution_code = $2, updated_at = NOW() WHERE id = $1",
+		questionId, code,
+	)
+	return err
+}
+
+func (store PostgresStore) CreateSolutionTestRun(runId uuid.UUID, questionId uuid.UUID) error {
+	// Cleanup: a question only ever has its most recent run, so drop any
+	// earlier runs for this question before creating the new one.
+	if _, err := store.db.Exec("DELETE FROM solution_test_runs WHERE question_id = $1", questionId); err != nil {
+		return err
+	}
+	_, err := store.db.Exec(
+		"INSERT INTO solution_test_runs (id, question_id, status, results) VALUES ($1, $2, 'running', '[]'::JSONB)",
+		runId, questionId,
+	)
+	return err
+}
+
+func (store PostgresStore) GetSolutionTestRun(runId uuid.UUID) (models.SolutionTestRun, error) {
+	var run models.SolutionTestRun
+	err := store.db.Get(
+		&run,
+		"SELECT id, question_id, status, results FROM solution_test_runs WHERE id = $1",
+		runId,
+	)
+	if err != nil {
+		return models.SolutionTestRun{}, err
+	}
+	return run, nil
+}
+
+func (store PostgresStore) SetSolutionTestRunStatus(runId uuid.UUID, status models.SubmissionStatus) error {
+	_, err := store.db.Exec(
+		"UPDATE solution_test_runs SET status = $2, updated_at = NOW() WHERE id = $1",
+		runId, status,
+	)
+	return err
 }
 
 func (store PostgresStore) GetUserRole(user string, classroomId uuid.UUID) (models.UserRole, error) {

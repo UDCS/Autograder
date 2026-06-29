@@ -26,6 +26,13 @@ type Datastore interface {
 	GetClassroomGrades(classroomId uuid.UUID) (models.ClassroomGradesResult, error)
 	CreateDefaultSubmission(userId uuid.UUID, questionId uuid.UUID, defaultCode string) (uuid.UUID, error)
 	UpdateClassroomGrades(updates []models.GradeUpdate) error
+	SetSubmissionStatus(submissionId uuid.UUID, status models.SubmissionStatus) error
+	GetSubmissionStatuses(submissionIds []uuid.UUID, userId uuid.UUID, isPrivileged bool) ([]models.SubmissionStatusResult, error)
+	// Solution test runs
+	UpdateSolutionCode(questionId uuid.UUID, code string) error
+	CreateSolutionTestRun(runId uuid.UUID, questionId uuid.UUID) error
+	GetSolutionTestRun(runId uuid.UUID) (models.SolutionTestRun, error)
+	SetSolutionTestRunStatus(runId uuid.UUID, status models.SubmissionStatus) error
 	// Assignments
 	GetViewAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)
 	GetVerboseAssignments(userId uuid.UUID, classroomId uuid.UUID) ([]models.Assignment, error)

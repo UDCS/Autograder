@@ -1,0 +1,22 @@
+.toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-family: 'Azeret Mono';
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    z-index: 1000;
+    animation: toast-in 0.2s ease-out;
+}
+.toast-success {
+    background-color: #2e7d32;
+}
+.toast-error {
+    background-color: #b00020;
+}
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

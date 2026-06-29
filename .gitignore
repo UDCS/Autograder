@@ -7,3 +7,7 @@ main
 
 email_info
 emailrc
+
+# Python bytecode cache (grader)
+__pycache__/
+*.pyc

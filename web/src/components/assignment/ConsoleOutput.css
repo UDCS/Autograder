@@ -1,6 +1,6 @@
 .consoleOutput {
-    display: flex;
-    flex-direction: row;
+    display: block;
+    text-align: left;
     background: black;
     color: white;
     font-family: "Azeret Mono";

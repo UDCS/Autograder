@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"net/mail"
+	"strings"
 	"time"
 
 	"github.com/UDCS/Autograder/models"
@@ -221,51 +222,79 @@ func (app *GraderApp) Logout(sessionId uuid.UUID) error {
 	return app.store.DeleteSession(sessionId)
 }
 
-func (app *GraderApp) PasswordResetRequest(jwksToken string) error {
-	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
-	if err != nil {
-		return fmt.Errorf("failed to parse access token")
-	}
-	parsedEmail, err := mail.ParseAddress(claims.Subject)
+// sendPasswordReset creates a password reset request for the given email and
+// emails the user a link to the frontend reset page. It never reveals whether
+// an account exists for the email (no account-enumeration leak).
+func (app *GraderApp) sendPasswordReset(userEmail string) error {
+	parsedEmail, err := mail.ParseAddress(userEmail)
 	if err != nil {
 		logger.Error("failed to parse email", zap.Error(err))
 		return fmt.Errorf("failed to parse email")
 	}
 
-	resetRequest := models.PasswordResetDetails{
-		Id:        uuid.New(),
-		Email:     parsedEmail.Address,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	retrievedUser, err := app.store.GetUserInfo(resetRequest.Email)
+	retrievedUser, err := app.store.GetUserInfo(parsedEmail.Address)
 	if err != nil {
-		return fmt.Errorf("user does not exist")
+		// Account does not exist — succeed silently so callers can't probe emails.
+		return nil
 	}
 
-	token, tokenHash, err := token.GenerateRandomTokenAndHash()
+	resetToken, tokenHash, err := token.GenerateRandomTokenAndHash()
 	if err != nil {
 		return err
 	}
 
-	// TODO: email the link for the change
-	//email.Send("auth/reset_password/" + resetRequest.Id.String() + "?token=" + token)
-	msg := fmt.Sprintf("Password Reset Link\nPlease visit the following link to reset your password: https://udcs-autograder.web.app/auth/reset_password/%s?token=%s", resetRequest.Id.String(), token)
-	email.Send(resetRequest.Email, msg)
+	resetRequest := models.PasswordResetDetails{
+		Id:        uuid.New(),
+		Email:     parsedEmail.Address,
+		UserId:    retrievedUser.Id,
+		TokenHash: tokenHash,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		ExpiresAt: time.Now().AddDate(0, 0, 7),
+	}
 
-	resetRequest.UserId = retrievedUser.Id
-	resetRequest.TokenHash = tokenHash
-	resetRequest.ExpiresAt = time.Now().AddDate(0, 0, 7)
+	resetLink := fmt.Sprintf("%s/resetpassword?request_id=%s&token=%s", config.GetBaseURL(), resetRequest.Id.String(), resetToken)
+	// Escape "&" for the href attribute; the browser decodes it back to "&".
+	hrefLink := strings.ReplaceAll(resetLink, "&", "&amp;")
+	htmlBody := fmt.Sprintf(
+		`<p>Please click the link below to reset your password:</p><p><a href="%s">Reset Password</a></p>`,
+		hrefLink,
+	)
+	if err := email.SendHTML(resetRequest.Email, "Password Reset", htmlBody); err != nil {
+		logger.Error("failed to send password reset email", zap.Error(err))
+		return err
+	}
 
-	err = app.store.CreatePasswordChangeRequest(resetRequest)
-
-	if err != nil {
+	if err := app.store.CreatePasswordChangeRequest(resetRequest); err != nil {
 		logger.Error("failed to update the database", zap.Error(err))
 		return err
 	}
 
 	return nil
+}
+
+// PasswordResetRequest sends a reset link to the currently authenticated user
+// (the "Reset Password" button in account settings).
+func (app *GraderApp) PasswordResetRequest(jwksToken string) error {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return fmt.Errorf("failed to parse access token")
+	}
+	return app.sendPasswordReset(claims.Subject)
+}
+
+// PasswordResetRequestByEmail sends a reset link to the given email. Used by the
+// logged-out "forgot password" flow.
+func (app *GraderApp) PasswordResetRequestByEmail(userEmail string) error {
+	return app.sendPasswordReset(userEmail)
+}
+
+// ValidPasswordReset reports whether a reset request exists for the given id and
+// token, and is neither expired nor already used.
+func (app *GraderApp) ValidPasswordReset(requestId uuid.UUID, tokenString string) bool {
+	tokenHash := token.HashToken(tokenString)
+	request, err := app.store.GetPasswordChangeRequest(requestId, tokenHash)
+	return err == nil && request.ExpiresAt.After(time.Now()) && !request.Completed
 }
 
 func (app *GraderApp) PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error) {
@@ -370,7 +399,7 @@ func (app *GraderApp) GetUserName(jwksToken string) (*models.UserName, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve user info")
 	}
-	return &models.UserName{FirstName: userInfo.FirstName, LastName: userInfo.LastName}, nil
+	return &models.UserName{FirstName: userInfo.FirstName, LastName: userInfo.LastName, PasswordUpdatedAt: userInfo.PasswordUpdatedAt}, nil
 }
 
 func (app *GraderApp) ChangeUserInfo(jwksToken string, request models.ChangeUserInfoRequest) error {
