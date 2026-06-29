@@ -205,6 +205,15 @@ def finalize_solution_run(conn, status: str, results: List[Dict[str, Any]]):
 # Execution utilities
 # ----------------------------
 
+# Allow-listed environment for student processes. The grader's own environment
+# holds secrets (DB_DSN, EMAIL/PASS) and run identifiers (SUBMISSION_ID, RUN_ID,
+# QUESTION_ID, …); student code must never inherit those, or a submission could
+# read DB_DSN and connect to the database. Only pass through what a language
+# runtime/compiler legitimately needs. Allow-list (not deny-list) so any secret
+# added later stays out by default.
+_STUDENT_ENV_ALLOWLIST = ("PATH", "HOME", "LANG", "LC_ALL", "LC_CTYPE", "TMPDIR")
+STUDENT_ENV = {k: os.environ[k] for k in _STUDENT_ENV_ALLOWLIST if k in os.environ}
+
 def _normalize(s: str) -> str:
     """
     Normalize output for comparison:
@@ -232,6 +241,7 @@ def _run_cmd(cmd, input_bytes, timeout_sec, cwd=None):
             stderr=subprocess.PIPE,
             timeout=max(1, timeout_sec),
             cwd=cwd,                     # <— ensure we run in work_dir
+            env=STUDENT_ENV,             # <— never leak grader secrets (DB_DSN, etc.) to student code
         )
         elapsed_ms = int((time.time() - start) * 1000)
         return {
