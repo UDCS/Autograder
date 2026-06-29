@@ -5,7 +5,7 @@ import { TestCase, TextTestCaseBody } from "../../models/testcases";
 import "../css/TestCasesEditor.css"
 import TestCaseButton from "./TestCaseButton";
 import TextTestCasePanel from "./TextTestCasePanel";
-import BashTestCasePanel from "./BashTestCasePanel";
+// import BashTestCasePanel from "./BashTestCasePanel"; // bash test cases are a later feature
 import clsx from "clsx";
 import NewTestCasePopup from "../../components/popup/NewTestCasePopup";
 import { Question } from "../../models/classroom";
@@ -124,11 +124,13 @@ function TestCasesEditor({question, fontSize: fS, runSolution}: {question: Quest
                         </div>
                     );
                 }
-                return (
-                    <div className={clsx(selectedTestCase === testCase.id && "test-case-panel-parent", selectedTestCase !== testCase.id && "hidden")}>
-                        <BashTestCasePanel testCaseInfo={testCase} fontSize={fontSize} />
-                    </div>
-                );
+                // Bash test cases are a later feature — only text test cases are rendered for now.
+                // return (
+                //     <div className={clsx(selectedTestCase === testCase.id && "test-case-panel-parent", selectedTestCase !== testCase.id && "hidden")}>
+                //         <BashTestCasePanel testCaseInfo={testCase} fontSize={fontSize} />
+                //     </div>
+                // );
+                return null;
             }
         );
     }
