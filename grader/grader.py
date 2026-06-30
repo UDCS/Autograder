@@ -31,8 +31,6 @@ import subprocess
 from typing import Dict, Any, List
 import traceback
 
-print("random change from grader?")
-
 # ---- Optional: psycopg 3
 try:
     import psycopg

@@ -56,32 +56,37 @@ func (lg LocalGrader) RunSolution(runId uuid.UUID, questionId uuid.UUID, testcas
 
 type CloudGrader struct{}
 
-func (cg CloudGrader) GradeSubmission(submissionId uuid.UUID) {
+const (
+	cloudProjectID = "udcs-autograder"
+	cloudRegion    = "us-south1"
+	cloudJobName   = "grader-job"
+)
+
+// runJob launches the grader Cloud Run job with the given environment overrides
+// (DB_DSN and other base config come from the job definition itself) and waits
+// for it to finish. Errors are propagated so the caller can mark the run failed.
+func (cg CloudGrader) runJob(envVars map[string]string) error {
 	ctx := context.Background()
 
 	c, err := run.NewJobsClient(ctx)
-	logger.New()
 	if err != nil {
 		logger.Error(err.Error())
+		return err
 	}
-
 	defer c.Close()
 
-	projectID := "udcs-autograder"
-	region := "us-south1"
-	jobName := "grader-job"
+	fullName := fmt.Sprintf("projects/%s/locations/%s/jobs/%s", cloudProjectID, cloudRegion, cloudJobName)
 
-	fullName := fmt.Sprintf("projects/%s/locations/%s/jobs/%s", projectID, region, jobName)
+	env := make([]*runpb.EnvVar, 0, len(envVars))
+	for name, value := range envVars {
+		env = append(env, &runpb.EnvVar{Name: name, Values: &runpb.EnvVar_Value{Value: value}})
+	}
 
 	req := &runpb.RunJobRequest{
 		Name: fullName,
 		Overrides: &runpb.RunJobRequest_Overrides{
 			ContainerOverrides: []*runpb.RunJobRequest_Overrides_ContainerOverride{
-				{
-					Env: []*runpb.EnvVar{
-						{Name: "SUBMISSION_ID", Values: &runpb.EnvVar_Value{Value: submissionId.String()}},
-					},
-				},
+				{Env: env},
 			},
 		},
 	}
@@ -89,13 +94,33 @@ func (cg CloudGrader) GradeSubmission(submissionId uuid.UUID) {
 	op, err := c.RunJob(ctx, req)
 	if err != nil {
 		logger.Error(err.Error())
+		return err
 	}
 
-	_, err = op.Wait(ctx)
-	if err != nil {
+	if _, err = op.Wait(ctx); err != nil {
 		logger.Error(err.Error())
+		return err
 	}
 
+	return nil
+}
+
+func (cg CloudGrader) GradeSubmission(submissionId uuid.UUID) error {
+	return cg.runJob(map[string]string{
+		"SUBMISSION_ID": submissionId.String(),
+	})
+}
+
+func (cg CloudGrader) RunSolution(runId uuid.UUID, questionId uuid.UUID, testcaseId *uuid.UUID) error {
+	env := map[string]string{
+		"RUN_MODE":    "solution",
+		"RUN_ID":      runId.String(),
+		"QUESTION_ID": questionId.String(),
+	}
+	if testcaseId != nil {
+		env["TESTCASE_ID"] = testcaseId.String()
+	}
+	return cg.runJob(env)
 }
 
 func GetGrader() Grader {
