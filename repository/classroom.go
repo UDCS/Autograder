@@ -208,8 +208,8 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 	var assignments []models.Assignment
 	err := store.db.Select(
 		&assignments,
-		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at, sort_index FROM assignments WHERE classroom_id = $1 AND assignment_mode = 'view';",
-		classroomId,
+		"SELECT id, classroom_id, name, description, assignment_mode, to_char(due_at AT TIME ZONE $2, 'YYYY-MM-DD') AS due_at, created_at, updated_at, sort_index FROM assignments WHERE classroom_id = $1 AND assignment_mode = 'view';",
+		classroomId, store.timeZone,
 	)
 	if err != nil {
 		return []models.Assignment{}, err
@@ -266,8 +266,8 @@ func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId u
 	var assignments []models.Assignment
 	err := store.db.Select(
 		&assignments,
-		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at, sort_index FROM assignments WHERE classroom_id = $1;",
-		classroomId,
+		"SELECT id, classroom_id, name, description, assignment_mode, to_char(due_at AT TIME ZONE $2, 'YYYY-MM-DD') AS due_at, created_at, updated_at, sort_index FROM assignments WHERE classroom_id = $1;",
+		classroomId, store.timeZone,
 	)
 	if err != nil {
 		return []models.Assignment{}, err
@@ -401,9 +401,11 @@ func (store PostgresStore) DeleteClassroomStudent(classroomId uuid.UUID, user mo
 }
 
 func (store PostgresStore) SetVerboseAssignment(assignment models.Assignment) error {
+	// due_at is stored as the end-of-day (23:59:59) instant in the app timezone ($9)
+	// for the calendar date the professor selected ($6).
 	_, err := store.db.Exec(
-		"INSERT INTO assignments (id, classroom_id, name, description, assignment_mode, due_at,  updated_at, sort_index) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (id) DO UPDATE SET name = $3, description=$4, assignment_mode=$5, due_at = $6, updated_at=$7, sort_index=$8;",
-		assignment.Id, assignment.ClassroomId, assignment.Name, assignment.Description, assignment.AssignmentMode, assignment.DueAt, time.Now(), assignment.SortIndex,
+		"INSERT INTO assignments (id, classroom_id, name, description, assignment_mode, due_at, updated_at, sort_index) VALUES ($1, $2, $3, $4, $5, (($6::date) + time '23:59:59') AT TIME ZONE $9, $7, $8) ON CONFLICT (id) DO UPDATE SET name = $3, description=$4, assignment_mode=$5, due_at = (($6::date) + time '23:59:59') AT TIME ZONE $9, updated_at=$7, sort_index=$8;",
+		assignment.Id, assignment.ClassroomId, assignment.Name, assignment.Description, assignment.AssignmentMode, assignment.DueAt.String(), time.Now(), assignment.SortIndex, store.timeZone,
 	)
 	if err != nil {
 		return err
@@ -587,8 +589,8 @@ func (store PostgresStore) GetAssignmentInfo(assignmentId uuid.UUID) (models.Ass
 	var assignment models.Assignment
 	err := store.db.Get(
 		&assignment,
-		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at, sort_index FROM assignments WHERE id=$1;",
-		assignmentId,
+		"SELECT id, classroom_id, name, description, assignment_mode, to_char(due_at AT TIME ZONE $2, 'YYYY-MM-DD') AS due_at, created_at, updated_at, sort_index FROM assignments WHERE id=$1;",
+		assignmentId, store.timeZone,
 	)
 	if err != nil {
 		return models.Assignment{}, err
@@ -599,8 +601,8 @@ func (store PostgresStore) GetAssignmentInfo(assignmentId uuid.UUID) (models.Ass
 func (store PostgresStore) GetAssignment(assignmentId uuid.UUID, userId uuid.UUID) (models.Assignment, error) {
 	var assignment models.Assignment
 	err := store.db.QueryRowx(
-		"SELECT id, classroom_id, name, description, assignment_mode, due_at, created_at, updated_at, sort_index FROM assignments WHERE id = $1;",
-		assignmentId,
+		"SELECT id, classroom_id, name, description, assignment_mode, to_char(due_at AT TIME ZONE $2, 'YYYY-MM-DD') AS due_at, created_at, updated_at, sort_index FROM assignments WHERE id = $1;",
+		assignmentId, store.timeZone,
 	).StructScan(&assignment)
 	if err != nil {
 		return models.Assignment{}, err
@@ -841,6 +843,18 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 
 				score, _ := store.GetStudentQuestionGrade(student.UserId, question.Id)
 
+				// Whether the student's most recent grade run was after the deadline.
+				var isLate bool
+				_ = store.db.Get(&isLate, `
+					SELECT (sa.submitted_at > a.due_at)
+					FROM submission_attempts sa
+					JOIN questions q   ON q.id = sa.question_id
+					JOIN assignments a ON a.id = q.assignment_id
+					WHERE sa.user_id = $1 AND sa.question_id = $2
+					ORDER BY sa.submitted_at DESC
+					LIMIT 1
+				`, student.UserId, question.Id)
+
 				var isManualGrade bool
 				var manualGrade int
 				var override struct {
@@ -865,6 +879,7 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 					IsManualGrade: isManualGrade,
 					ManualGrade:   manualGrade,
 					Status:        status,
+					IsLate:        isLate,
 				})
 			}
 
@@ -912,6 +927,48 @@ func (store PostgresStore) GetSubmissionStatuses(submissionIds []uuid.UUID, user
 		})
 	}
 	return results, nil
+}
+
+// RecordSubmissionAttempt appends a single grade-run entry to a student's
+// submission history. History is metadata-only: no code snapshot is stored.
+func (store PostgresStore) RecordSubmissionAttempt(userId uuid.UUID, questionId uuid.UUID, submittedAt time.Time, score int, status models.SubmissionStatus) error {
+	_, err := store.db.Exec(
+		"INSERT INTO submission_attempts (user_id, question_id, submitted_at, score, status) VALUES ($1, $2, $3, $4, $5)",
+		userId, questionId, submittedAt, score, status,
+	)
+	return err
+}
+
+// GetSubmissionAttempts returns a student's grade-run history for a question,
+// newest first, with is_late computed against the assignment's due date.
+func (store PostgresStore) GetSubmissionAttempts(userId uuid.UUID, questionId uuid.UUID) ([]models.SubmissionAttempt, error) {
+	attempts := make([]models.SubmissionAttempt, 0)
+	err := store.db.Select(&attempts, `
+		SELECT sa.id, sa.submitted_at, sa.score, sa.status,
+		       (sa.submitted_at > a.due_at) AS is_late
+		FROM submission_attempts sa
+		JOIN questions q   ON q.id = sa.question_id
+		JOIN assignments a ON a.id = q.assignment_id
+		WHERE sa.user_id = $1 AND sa.question_id = $2
+		ORDER BY sa.submitted_at DESC
+	`, userId, questionId)
+	if err != nil {
+		return nil, err
+	}
+	return attempts, nil
+}
+
+// GetSubmissionStatusById returns the current status of a submission row.
+func (store PostgresStore) GetSubmissionStatusById(submissionId uuid.UUID) (models.SubmissionStatus, error) {
+	var status string
+	err := store.db.Get(&status,
+		"SELECT status FROM student_submissions WHERE id = $1",
+		submissionId,
+	)
+	if err != nil {
+		return "", err
+	}
+	return status, nil
 }
 
 func (store PostgresStore) UpdateSolutionCode(questionId uuid.UUID, code string) error {

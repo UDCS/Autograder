@@ -51,6 +51,7 @@ type App interface {
 	UpdateSubmissionCode(jwksToken string, request models.UpdateSubmissionRequest) error
 	// Grader
 	GradeSubmission(jwksToken string, questionId uuid.UUID, targetUserId *uuid.UUID, code *string) (uuid.UUID, error)
+	GetSubmissionHistory(jwksToken string, questionId uuid.UUID, studentId uuid.UUID) ([]models.SubmissionAttempt, error)
 	RunSolutionTests(jwksToken string, questionId uuid.UUID, testcaseId *uuid.UUID, solutionCode string) (uuid.UUID, error)
 	GetSolutionTestRun(jwksToken string, runId uuid.UUID) (models.SolutionTestRunResult, error)
 }

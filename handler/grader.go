@@ -90,6 +90,33 @@ func (router *HttpRouter) GetSolutionTestRun(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
+func (router *HttpRouter) GetSubmissionHistory(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("failed to parse cookie for `access_token`", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
+	}
+
+	questionId, err := uuid.Parse(c.Param("question_id"))
+	if err != nil {
+		logger.Error("failed to parse question id")
+		return c.JSON(http.StatusBadRequest, json_response.NewError("invalid question id"))
+	}
+
+	studentId, err := uuid.Parse(c.QueryParam("student_id"))
+	if err != nil {
+		logger.Error("failed to parse student id")
+		return c.JSON(http.StatusBadRequest, json_response.NewError("invalid student id"))
+	}
+
+	attempts, err := router.app.GetSubmissionHistory(tokenString, questionId, studentId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, attempts)
+}
+
 func (router *HttpRouter) GetSubmissionStatuses(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 	if err != nil {

@@ -190,7 +190,7 @@ type Assignment struct {
 	Name           string         `json:"name" db:"name"`
 	Description    string         `json:"description" db:"description"`
 	AssignmentMode AssignmentMode `json:"assignment_mode" db:"assignment_mode"`
-	DueAt          time.Time      `json:"due_at" db:"due_at"`
+	DueAt          DateOnly       `json:"due_at" db:"due_at"`
 	CreatedAt      time.Time      `json:"created_at" db:"created_at"`
 	UpdatedAt      time.Time      `json:"updated_at" db:"updated_at"`
 	SortIndex      int            `json:"sort_index" db:"sort_index"`
@@ -207,7 +207,7 @@ func CreateBlankAssignment(classroomId uuid.UUID) Assignment {
 		Name:           "",
 		Description:    "",
 		AssignmentMode: Draft,
-		DueAt:          nextWeek,
+		DueAt:          DateOnly{Time: nextWeek},
 		CreatedAt:      now,
 		UpdatedAt:      now,
 		SortIndex:      0,

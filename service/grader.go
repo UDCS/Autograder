@@ -67,15 +67,50 @@ func (app *GraderApp) GradeSubmission(jwksToken string, questionId uuid.UUID, ta
 
 	_ = app.store.SetSubmissionStatus(submissionId, models.SubmissionRunning)
 
+	// Only a student's own grade runs are recorded in submission history;
+	// instructor/assistant re-runs must not pollute it or trigger a false late flag.
+	isStudentSelf := targetUserId == nil
+	submittedAt := time.Now()
+
 	asyncGrader := grader.GetGrader()
 	go func() {
 		if err := asyncGrader.GradeSubmission(submissionId); err != nil {
 			// Docker itself failed — the container didn't run so status is still 'running'; reset it
 			_ = app.store.SetSubmissionStatus(submissionId, models.SubmissionFailed)
+			return
+		}
+		if isStudentSelf {
+			// The grader has finished writing the final status + testcase grades by now.
+			status, err := app.store.GetSubmissionStatusById(submissionId)
+			if err != nil {
+				return
+			}
+			score, _ := app.store.GetStudentQuestionGrade(gradeUserId, questionId)
+			_ = app.store.RecordSubmissionAttempt(gradeUserId, questionId, submittedAt, int(score), status)
 		}
 	}()
 
 	return submissionId, nil
+}
+
+// GetSubmissionHistory returns a student's grade-run history for a question.
+// Only instructors, assistants, and admins for the question's classroom may view it.
+func (app *GraderApp) GetSubmissionHistory(jwksToken string, questionId uuid.UUID, studentId uuid.UUID) ([]models.SubmissionAttempt, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return nil, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving user info")
+	}
+
+	if err := app.instructorAuthForQuestion(userInfo, questionId); err != nil {
+		return nil, err
+	}
+
+	return app.store.GetSubmissionAttempts(studentId, questionId)
 }
 
 // instructorAuthForQuestion verifies the user may act on a question: admins

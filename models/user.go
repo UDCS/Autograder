@@ -34,6 +34,7 @@ type (
 	UserName struct {
 		FirstName         string    `json:"first_name" db:"first_name"`
 		LastName          string    `json:"last_name" db:"last_name"`
+		Email             string    `json:"email" db:"email"`
 		PasswordUpdatedAt time.Time `json:"password_updated_at" db:"password_updated_at"`
 	}
 

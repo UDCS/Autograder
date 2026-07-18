@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	_ "time/tzdata" // embed the IANA tz database so time.LoadLocation works on all OSes (e.g. Windows)
 
 	"github.com/UDCS/Autograder/handler"
 	"github.com/UDCS/Autograder/repository"
@@ -19,7 +20,7 @@ func main() {
 
 	config := config.GetConfig()
 
-	graderDatastore := repository.New(config.Db)
+	graderDatastore := repository.New(config.Db, config.App.TimeZone)
 	graderService := service.New(graderDatastore, config.Auth)
 	graderHandler := handler.New(graderService)
 

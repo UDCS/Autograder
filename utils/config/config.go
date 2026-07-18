@@ -14,10 +14,15 @@ type (
 		Server *Server
 		Db     *Db
 		Auth   *Auth
+		App    *App
 	}
 
 	Server struct {
 		Port string
+	}
+
+	App struct {
+		TimeZone string
 	}
 
 	Db struct {
@@ -53,12 +58,21 @@ func GetConfig() *Config {
 		viper.AddConfigPath("./")
 		viper.AutomaticEnv()
 		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+		viper.SetDefault("app.timezone", "America/Chicago")
 
 		if err := viper.ReadInConfig(); err != nil {
 			panic(err)
 		}
 
 		if err := viper.Unmarshal(&configInstance); err != nil {
+			panic(err)
+		}
+
+		if configInstance.App == nil {
+			configInstance.App = &App{TimeZone: "America/Chicago"}
+		}
+		// Fail fast on an invalid timezone name rather than at query time.
+		if _, err := time.LoadLocation(configInstance.App.TimeZone); err != nil {
 			panic(err)
 		}
 	})

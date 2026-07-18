@@ -1,6 +1,9 @@
 server:
   port: 8080
-  
+
+app:
+  timezone: America/Chicago
+
 db:
   host: localhost
   port: 5432

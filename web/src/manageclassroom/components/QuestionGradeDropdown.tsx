@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import QuestionScore from "../../components/question/QuestionScore";
 import "../css/QuestionGradeDropdown.css"
 import EditorHeader from "../../components/editor/EditorHeader";
@@ -6,7 +6,13 @@ import CodeEditor from "../../components/editor/CodeEditor";
 import BlueButton from "../../components/buttons/BlueButton";
 import ConsoleOutput from "../../components/assignment/ConsoleOutput";
 import Spinner from "../../components/spinner/Spinner";
-import { QuestionSubmission } from "../../models/grades";
+import { QuestionSubmission, SubmissionAttempt } from "../../models/grades";
+
+const formatAttemptTime = (iso: string) =>
+    new Date(iso).toLocaleString(undefined, {
+        year: "numeric", month: "short", day: "numeric",
+        hour: "numeric", minute: "2-digit", timeZoneName: "short",
+    });
 
 interface QGDProps {
     questionSubmission: QuestionSubmission;
@@ -24,10 +30,42 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
     const [manualGrade, setManualGrade] = useState<boolean>(questionSubmission.is_manual_grade);
     const [editable, setEditable] = useState<boolean>(questionSubmission.edit_mode);
     const [gradeChanged, setGradeChanged] = useState<boolean>(false);
+    const [history, setHistory] = useState<SubmissionAttempt[] | null>(null);
+    const [historyLoading, setHistoryLoading] = useState<boolean>(false);
+    const [historyExpanded, setHistoryExpanded] = useState<boolean>(false);
+    const resubmitLockRef = useRef<boolean>(false);
 
     const triangle = () => selected ? "▲" : "▼";
     const displayScore = questionSubmission.is_manual_grade ? questionSubmission.manual_grade : questionSubmission.score;
     const gradesVisible = questionSubmission.show_grade;
+    const status = questionSubmission.status;
+    const isRunning = status === 'running';
+
+    // Newest first; show only the 3 most recent until the dropdown is expanded.
+    const sortedHistory = history
+        ? [...history].sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime())
+        : [];
+    const visibleHistory = historyExpanded ? sortedHistory : sortedHistory.slice(0, 3);
+    const hiddenCount = sortedHistory.length - visibleHistory.length;
+
+    const loadHistory = () => {
+        setHistoryLoading(true);
+        fetch(`/api/grader/question/${questionId}/submissions/history?student_id=${questionSubmission.student_id}`)
+            .then(r => r.ok ? r.json() : [])
+            .then((data: SubmissionAttempt[]) => setHistory(data))
+            .catch(() => setHistory([]))
+            .finally(() => setHistoryLoading(false));
+    };
+
+    // Load history the first time the panel is expanded.
+    useEffect(() => {
+        if (selected && history === null && !historyLoading) loadHistory();
+    }, [selected]);
+
+    // Refresh history once a grade run finishes (status leaves 'running').
+    useEffect(() => {
+        if (selected && status !== 'running' && history !== null) loadHistory();
+    }, [status]);
 
     return (
         <div className="question-grade-dropdown">
@@ -36,6 +74,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                     {title ?? questionSubmission.student_name}
                 </div>
                 <div className="question-grade-button">
+                    {questionSubmission.is_late && <span className="late-badge">LATE</span>}
                     {gradesVisible && <QuestionScore score={displayScore} points={max_score} numberOnly />}
                     <div className="question-grade-triangle">
                         {triangle()}
@@ -103,6 +142,32 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                                 }} />
                         </div>
                     </div>
+                    <div className="submission-history">
+                        <div className="submission-history-title">
+                            Submission History{sortedHistory.length > 0 && ` (${sortedHistory.length})`}
+                        </div>
+                        {historyLoading && history === null
+                            ? <Spinner />
+                            : sortedHistory.length > 0
+                                ? <>
+                                    {visibleHistory.map(attempt => (
+                                        <div className="submission-history-row" key={attempt.id}>
+                                            <span className="submission-history-time">{formatAttemptTime(attempt.submitted_at)}</span>
+                                            <span className="submission-history-score">{attempt.score}/{max_score}</span>
+                                            <span className={`submission-history-status ${attempt.status}`}>{attempt.status}</span>
+                                            {attempt.is_late && <span className="late-badge">LATE</span>}
+                                        </div>
+                                    ))}
+                                    {sortedHistory.length > 3 &&
+                                        <button className="submission-history-toggle" type="button"
+                                            onClick={() => setHistoryExpanded(prev => !prev)}>
+                                            {historyExpanded ? "Show less ▲" : `Show ${hiddenCount} more ▼`}
+                                        </button>
+                                    }
+                                </>
+                                : <div className="submission-history-empty">No submissions yet.</div>
+                        }
+                    </div>
                     <EditorHeader progLang={progLang} fontSize={fontSize} onFontSizeChange={setFontSize} />
                     <CodeEditor fontSize={fontSize} editable={editable} value={questionSubmission.code} language={progLang}
                         onChange={(newCode) => updateSubmission(questionSubmission.submission_id, { code: newCode })} />
@@ -117,7 +182,10 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                                 })
                             });
                         }}>Save Code</BlueButton>
-                        <BlueButton className="question-button" onClick={() => {
+                        <BlueButton className="question-button" disabled={isRunning} onClick={() => {
+                            // Prevent spam: ignore clicks while a grade run is in flight or still running.
+                            if (resubmitLockRef.current || isRunning) return;
+                            resubmitLockRef.current = true;
                             updateSubmission(questionSubmission.submission_id, { status: 'running' });
                             fetch(`/api/grader/question/${questionId}`, {
                                 method: "POST",
@@ -127,9 +195,10 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                                     code: questionSubmission.code,
                                 })
                             }).then(r => r.json())
-                              .then(data => addSubmission(data.submission_id));
-                        }}>Resubmit Code</BlueButton>
-                        {questionSubmission.status === 'running' && <Spinner />}
+                              .then(data => addSubmission(data.submission_id))
+                              .finally(() => { resubmitLockRef.current = false; });
+                        }}>{isRunning ? "Grading..." : "Resubmit Code"}</BlueButton>
+                        {isRunning && <Spinner />}
                     </div>
                     <ConsoleOutput output={questionSubmission.console_output}></ConsoleOutput>
                 </div>
