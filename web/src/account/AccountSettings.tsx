@@ -18,6 +18,7 @@ function AccountSettings() {
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
     const [passwordUpdatedAt, setPasswordUpdatedAt] = useState("");
 
     useEffect(() => {
@@ -54,6 +55,7 @@ function AccountSettings() {
                         var lastName = json['LastName'];
                         setFirstName(firstName);
                         setLastName(lastName);
+                        setEmail(json['Email']);
                         const updatedAt = json['PasswordUpdatedAt'];
                         if (updatedAt) {
                             setPasswordUpdatedAt(new Date(updatedAt).toLocaleDateString(undefined, {
@@ -91,6 +93,14 @@ function AccountSettings() {
         }
     }
 
+    const onSignOut = async () => {
+        try {
+            await fetch('/api/auth/logout', { method: "POST" });
+        } finally {
+            window.location.href = "/login";
+        }
+    }
+
     const ChangeUserInfo = async () => {
         if (firstName == '' || lastName == '') {
             setSubmitState(ButtonState.Error);
@@ -120,7 +130,10 @@ function AccountSettings() {
         <div id="accountRoot">
         {isLoggedIn ? 
             <>
-                <h1 className="header">Account Settings</h1>
+                <div id="accountHeader">
+                    <h1 className="header">Account Settings</h1>
+                    <BlueButton id='signOut' onClick={onSignOut}>Sign Out</BlueButton>
+                </div>
                 <table id="fieldsTable">
                     <tr>
                         <td align="right" className="labelTd">
@@ -141,6 +154,14 @@ function AccountSettings() {
                                 setLastName(data.value);
                                 setSubmitState(ButtonState.Idle);
                             }} className="nameField input" id="lastName" label="" value={lastName} />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right" className="labelTd">
+                            <div className="label">Email:</div>
+                        </td>
+                        <td colSpan={3}>
+                            <div className="lastUpdated">{email}</div>
                         </td>
                     </tr>
                     <tr>

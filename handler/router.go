@@ -49,6 +49,7 @@ type Handler interface {
 	// Grader
 	GradeSubmission(c context.Context) error
 	GetSubmissionStatuses(c echo.Context) error
+	GetSubmissionHistory(c echo.Context) error
 	RunSolutionTests(c echo.Context) error
 	GetSolutionTestRun(c echo.Context) error
 }
@@ -129,6 +130,7 @@ func (router *HttpRouter) SetupRoutes() {
 
 	grader := api.Group("/grader")
 	grader.POST("/question/:question_id", router.GradeSubmission)
+	grader.GET("/question/:question_id/submissions/history", router.GetSubmissionHistory)
 	grader.POST("/submissions/status", router.GetSubmissionStatuses)
 	grader.POST("/question/:question_id/solution/run", router.RunSolutionTests)
 	grader.GET("/solution/run/:run_id", router.GetSolutionTestRun)

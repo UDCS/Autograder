@@ -1,6 +1,10 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type SubmissionStatus = string
 
@@ -22,6 +26,18 @@ type QuestionSubmissionGrade struct {
 	IsManualGrade bool             `json:"is_manual_grade"`
 	ManualGrade   int              `json:"manual_grade"`
 	Status        SubmissionStatus `json:"status"`
+	IsLate        bool             `json:"is_late"`
+}
+
+// SubmissionAttempt is one entry in a student's grade-run history for a
+// question. IsLate is computed on read by comparing SubmittedAt to the
+// assignment's due_at.
+type SubmissionAttempt struct {
+	Id          uuid.UUID        `json:"id" db:"id"`
+	SubmittedAt time.Time        `json:"submitted_at" db:"submitted_at"`
+	Score       int              `json:"score" db:"score"`
+	Status      SubmissionStatus `json:"status" db:"status"`
+	IsLate      bool             `json:"is_late" db:"is_late"`
 }
 
 type QuestionGradeResult struct {

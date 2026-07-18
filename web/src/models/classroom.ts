@@ -21,7 +21,7 @@ export interface Assignment {
     name?: string;
     description?: string;
     assignment_mode?: Visibility;
-    due_at?: Date;
+    due_at?: string;  // date-only "YYYY-MM-DD"; backend interprets it as end-of-day in the app timezone
     created_at?: Date;
     updated_at?: Date;
     sort_index?: number;

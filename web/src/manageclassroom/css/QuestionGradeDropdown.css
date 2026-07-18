@@ -83,3 +83,71 @@
     flex: 1;
     font-size: 100%;
 }
+
+.late-badge {
+    background-color: #c0392b;
+    color: white;
+    font-family: "Azeret Mono";
+    font-size: 80%;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+}
+
+.submission-history {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 1%;
+}
+.submission-history-title {
+    font-family: "Azeret Mono";
+    font-size: 120%;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+.submission-history-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-family: "Azeret Mono";
+}
+.submission-history-time {
+    flex: 1;
+    text-align: left;
+}
+.submission-history-score {
+    min-width: 70px;
+    text-align: right;
+}
+.submission-history-status {
+    min-width: 80px;
+    text-transform: capitalize;
+}
+.submission-history-status.passed { color: #2e7d32; }
+.submission-history-status.partial { color: #b8860b; }
+.submission-history-status.failed,
+.submission-history-status.error { color: #c0392b; }
+.submission-history-status.running { color: #555; }
+.submission-history-empty {
+    font-family: "Azeret Mono";
+    color: #555;
+}
+.submission-history-toggle {
+    align-self: flex-start;
+    margin-top: 0.3rem;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-family: "Azeret Mono";
+    font-size: 100%;
+    color: var(--color-process-cyan);
+    text-decoration: underline;
+}
+.submission-history-toggle:hover {
+    color: var(--color-NCS-blue);
+}

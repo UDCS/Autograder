@@ -399,7 +399,7 @@ func (app *GraderApp) GetUserName(jwksToken string) (*models.UserName, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve user info")
 	}
-	return &models.UserName{FirstName: userInfo.FirstName, LastName: userInfo.LastName, PasswordUpdatedAt: userInfo.PasswordUpdatedAt}, nil
+	return &models.UserName{FirstName: userInfo.FirstName, LastName: userInfo.LastName, Email: userInfo.Email, PasswordUpdatedAt: userInfo.PasswordUpdatedAt}, nil
 }
 
 func (app *GraderApp) ChangeUserInfo(jwksToken string, request models.ChangeUserInfoRequest) error {

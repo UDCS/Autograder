@@ -1,5 +1,14 @@
 export type SubmissionStatus = 'running' | 'failed' | 'partial' | 'passed' | 'error';
 
+// One entry in a student's grade-run history for a question (metadata only)
+export interface SubmissionAttempt {
+    id: string;
+    submitted_at: string;
+    score: number;
+    status: SubmissionStatus;
+    is_late: boolean;
+}
+
 // The atomic unit — one student's submission for one question
 export interface QuestionSubmission {
     submission_id: string;
@@ -10,6 +19,7 @@ export interface QuestionSubmission {
     console_output: string;
     manual_grade: number;
     status: SubmissionStatus;
+    is_late?: boolean;
     // the three checkboxes in the expanded panel
     show_grade: boolean;
     is_manual_grade: boolean;
