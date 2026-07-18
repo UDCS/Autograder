@@ -8,7 +8,6 @@ createRoot(document.getElementById('root')!).render(
     <Navbar />
     <div className="bottom-page">
         <h1 id="notication-text">Page under development</h1>
-        <a href="/test" id="page">Test page</a>
     </div>
   </StrictMode>,
 )

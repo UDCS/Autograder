@@ -1,0 +1,16 @@
+.noise-bg {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    display: block;
+    pointer-events: none;
+}
+
+/* Fallback when WebGL is unavailable: the signature brand gradient. */
+.noise-bg--fallback {
+    background: linear-gradient(135deg,
+        var(--color-process-cyan) 0%,
+        var(--color-raisin-black) 100%);
+}

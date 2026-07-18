@@ -7,6 +7,9 @@
     padding-top: 1vh;
     padding-bottom: 1vh;
     background: #fff;
+    /* Sit above the fixed noise canvas (z-index:0) on the homepage. */
+    position: relative;
+    z-index: 1;
 }
 
 .nav-left {
