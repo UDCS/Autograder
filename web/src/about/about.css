@@ -1,28 +1,203 @@
-@import url(..//reset.css);
-@import "tailwindcss";
+@import url(../reset.css);
+@import url(../colors.css);
+@import url(../glass.css);
 
 * {
     overscroll-behavior: none;
 }
 
+/* Unlike the single-screen homepage, this page scrolls. The noise canvas is
+   position: fixed, so it stays put behind the panels while it does. */
 body {
     font-family: "Azeret Mono";
     margin: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
-#notication-text {
-    font-family: "Monomaniac One";
-    font-size: 96px;
-    text-transform: uppercase;
-}
-
-.bottom-page {
-    width: 100vw;
-    height: 94vh;
+/* Sit above the fixed noise canvas (z-index: 0). */
+.about {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vh, 4rem) 5vw clamp(3rem, 8vh, 5rem);
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
+    gap: clamp(1.25rem, 3vh, 2rem);
+}
+
+/* --- Hero: the ABOUT label above the wordmark ------------------------------ */
+
+.about__head {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: clamp(0.5rem, 2vh, 1.25rem);
+    margin-bottom: clamp(0.5rem, 2vh, 1.5rem);
+}
+
+.about__eyebrow {
+    font-family: "Monomaniac One";
+    font-size: clamp(24px, 4vh, 40px);
+    text-transform: uppercase;
+    letter-spacing: 0.35em;
+    /* letter-spacing pads the right edge; pull it back to stay optically centered */
+    text-indent: 0.35em;
+    color: var(--color-white);
+}
+
+/* Narrower than the homepage's 920px so the wordmark reads as a section
+   header rather than a landing splash. Glow comes from .wordmark. */
+#logo-about {
+    width: min(92vw, 620px);
+}
+
+.about__tagline {
+    max-width: 46ch;
+    line-height: 1.6;
+    color: var(--color-white);
+    opacity: 0.85;
+}
+
+/* --- Panels --------------------------------------------------------------- */
+
+.about__panel {
+    padding: clamp(1.5rem, 3.5vh, 2.25rem) clamp(1.5rem, 4vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.about__panel p {
+    line-height: 1.65;
+}
+
+.about__h2 {
+    font-family: "Monomaniac One";
+    font-size: clamp(22px, 3.2vh, 30px);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-white);
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--color-process-cyan);
+    /* Let the accent rule stop at the text rather than span the panel. */
+    align-self: flex-start;
+}
+
+/* Two panels side by side; collapses at the breakpoint below. Left to stretch
+   so the pair reads as matched cards rather than two ragged-bottom columns. */
+.about__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.25rem, 3vh, 2rem);
+}
+
+.about__note {
+    font-size: 0.875rem;
+    opacity: 0.75;
+}
+
+/* --- "How grading works" numbered flow ------------------------------------ */
+
+.about__steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.about__step {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.about__step-num {
+    font-family: "Monomaniac One";
+    font-size: clamp(28px, 4vh, 40px);
+    line-height: 1;
+    color: var(--color-process-cyan);
+}
+
+.about__step-title {
+    font-family: "Monomaniac One";
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-white);
+    margin-bottom: 0.35rem;
+}
+
+/* --- Language tiles ------------------------------------------------------- */
+
+.about__langs {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.about__lang {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.about__lang-name {
+    font-family: "Monomaniac One";
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    color: var(--color-aero-blue);
+}
+
+.about__lang-detail {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    opacity: 0.85;
+}
+
+/* --- Footer CTA ----------------------------------------------------------- */
+
+.about__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding-top: clamp(1rem, 3vh, 2rem);
+}
+
+.about__cta {
+    text-decoration: none;
+}
+
+.about__cta .blueButton {
+    padding: 0.9rem 2.75rem;
+}
+
+.about__links {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
     justify-content: center;
+}
+
+/* --- Narrow screens ------------------------------------------------------- */
+
+@media (max-width: 800px) {
+    .about__row,
+    .about__langs {
+        grid-template-columns: 1fr;
+    }
+
+    .about__eyebrow {
+        letter-spacing: 0.2em;
+        text-indent: 0.2em;
+    }
 }

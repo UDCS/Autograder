@@ -32,7 +32,7 @@ function Home() {
       <main className="home">
         <header className="home__head">
           <h1 id="welcome-text">Welcome to</h1>
-          <div id="logo-main">
+          <div id="logo-main" className="wordmark">
             <Logo />
           </div>
         </header>

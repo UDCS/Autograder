@@ -1,5 +1,6 @@
 @import url(./reset.css);
 @import url(./colors.css);
+@import url(./glass.css);
 
 * {
     overscroll-behavior: none;
@@ -9,26 +10,6 @@ body {
     font-family: "Azeret Mono";
     margin: 0;
     overflow: hidden;
-}
-
-/* Frosted-glass panel: dark translucent fill reads better than white over the
-   dark-blue noise field and keeps white text crisp. */
-.glass {
-    background: rgba(30, 33, 43, 0.38);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
-    backdrop-filter: blur(16px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 20px;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    color: var(--color-white);
-}
-
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .glass {
-        background: rgba(30, 33, 43, 0.85);
-    }
 }
 
 .home {
@@ -54,27 +35,10 @@ body {
     color: var(--color-white);
 }
 
-/* Scale the large AUTOGRADER wordmark SVG down on smaller screens. */
+/* Scale the large AUTOGRADER wordmark SVG down on smaller screens. Sizing and
+   the glow filter come from .wordmark in glass.css. */
 #logo-main {
     width: min(94vw, 920px);
-}
-
-#logo-main [data-svg-wrapper],
-#logo-main svg {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-
-/* The wordmark's gradient fades to near-black on one side and gets lost against
-   the dark noise field. A light halo lifts the dark letters, a cyan glow adds
-   brand pop, and a soft dark shadow crisps the edges over brighter noise. */
-#logo-main svg {
-    filter:
-        drop-shadow(0 0 4px rgba(255, 255, 255, 0.7))
-        drop-shadow(0 0 22px rgba(12, 170, 220, 0.6))
-        drop-shadow(0 0 40px rgba(12, 170, 220, 0.35))
-        drop-shadow(0 3px 10px rgba(0, 0, 0, 0.65));
 }
 
 .hero {
@@ -107,19 +71,4 @@ body {
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
-}
-
-.ghost-btn {
-    font-family: "Azeret Mono";
-    color: var(--color-white);
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 20px;
-    padding: 0.6rem 1.2rem;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.ghost-btn:hover {
-    background: rgba(255, 255, 255, 0.18);
 }
