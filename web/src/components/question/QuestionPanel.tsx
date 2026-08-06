@@ -27,6 +27,7 @@ function QuestionPanel({info}: {info: Question}) {
 
     const activeSubmissionId = useRef<string | undefined>(info.submission_id ?? undefined);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const submitLockRef = useRef<boolean>(false);
 
     useEffect(() => {
         if (!grading) return;
@@ -84,15 +85,22 @@ function QuestionPanel({info}: {info: Question}) {
         setTimeLastChange(d);
     }
     const onSubmit = async () => {
-        const res = await fetch(`/api/grader/question/${info.id!}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code }),
-        });
-        if (res.ok) {
-            const data = await res.json();
-            activeSubmissionId.current = data.submission_id;
-            setGrading(true);
+        // Prevent spam: ignore clicks while a submission is in flight or still grading.
+        if (submitLockRef.current || grading) return;
+        submitLockRef.current = true;
+        try {
+            const res = await fetch(`/api/grader/question/${info.id!}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                activeSubmissionId.current = data.submission_id;
+                setGrading(true);
+            }
+        } finally {
+            submitLockRef.current = false;
         }
     }
     const onChange = (val: string | undefined) => {
@@ -132,8 +140,8 @@ function QuestionPanel({info}: {info: Question}) {
         </div>
         <div className="submitAndScore">
             <div className="submitParent">
-                <BlueButton className="submitButton" onClick={onSubmit}>
-                    Submit
+                <BlueButton className="submitButton" onClick={onSubmit} disabled={grading}>
+                    {grading ? "Submitting..." : "Submit"}
                 </BlueButton>
                 {grading && <Spinner />}
             </div>

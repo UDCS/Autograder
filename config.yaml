@@ -1,5 +1,9 @@
 server:
+  # Quoted because Server.Port is a string; Cloud Run overrides it via $PORT anyway.
   port: "8080"
+
+app:
+  timezone: America/Chicago
 
 db:
   host: "cloudsql"

@@ -8,7 +8,7 @@ import QuestionEditor from "./QuestionEditor";
 import clsx from "clsx";
 import { Assignment, Question, Visibility } from "../../models/classroom";
 import { assignmentStore, saveAssignments, saveQuestions } from "../subpages/AssignmentsSubpage";
-import { createBlankQuestion, dateToString, parseDateString } from "../../utils/classroom";
+import { createBlankQuestion } from "../../utils/classroom";
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import DeletePopup from "../../components/popup/DeletePopup";
 import { deleteQuestionFromDatabase } from "../../utils/db";
@@ -56,8 +56,7 @@ function AssignmentEditor({assignmentId, onDelete, onMoveUp, onMoveDown, isFirst
         assignment.description = newDesc;
     }
     const handleDueDateChange = (newDueDate: string) => {
-        let toDate = parseDateString(newDueDate);
-        assignment.due_at = toDate;
+        assignment.due_at = newDueDate;
     }
     const handleVisibilityChange = (newVisibility: string) => {
         assignment.assignment_mode = textToVisibility[newVisibility];
@@ -151,7 +150,7 @@ function AssignmentEditor({assignmentId, onDelete, onMoveUp, onMoveDown, isFirst
                 <div className="due-date-visibility">
                     <div className="due-date-parent">
                         <div className="label">Due Date:</div>
-                        <CalendarInput defaultValue={dateToString(assignment.due_at!)} onChange={handleDueDateChange} />
+                        <CalendarInput defaultValue={assignment.due_at!} onChange={handleDueDateChange} />
                     </div>                
                     <div className="visibility-parent">
                         <div className="label">Visibility:</div>

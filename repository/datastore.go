@@ -29,6 +29,9 @@ type Datastore interface {
 	UpdateClassroomGrades(updates []models.GradeUpdate) error
 	SetSubmissionStatus(submissionId uuid.UUID, status models.SubmissionStatus) error
 	GetSubmissionStatuses(submissionIds []uuid.UUID, userId uuid.UUID, isPrivileged bool) ([]models.SubmissionStatusResult, error)
+	GetSubmissionStatusById(submissionId uuid.UUID) (models.SubmissionStatus, error)
+	RecordSubmissionAttempt(userId uuid.UUID, questionId uuid.UUID, submittedAt time.Time, score int, status models.SubmissionStatus) error
+	GetSubmissionAttempts(userId uuid.UUID, questionId uuid.UUID) ([]models.SubmissionAttempt, error)
 	// Solution test runs
 	UpdateSolutionCode(questionId uuid.UUID, code string) error
 	CreateSolutionTestRun(runId uuid.UUID, questionId uuid.UUID) error
@@ -79,16 +82,18 @@ type Datastore interface {
 }
 
 type PostgresStore struct {
-	db *sqlx.DB
+	db       *sqlx.DB
+	timeZone string
 }
 
-func New(dbConfig *config.Db) PostgresStore {
+func New(dbConfig *config.Db, timeZone string) PostgresStore {
 	ConnString := getConnStringFromConfig(dbConfig)
 	logger.Debug(ConnString)
 	db := sqlx.MustConnect("postgres", ConnString)
 
 	return PostgresStore{
-		db: db,
+		db:       db,
+		timeZone: timeZone,
 	}
 }
 

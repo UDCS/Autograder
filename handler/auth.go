@@ -465,7 +465,7 @@ func (router *HttpRouter) GetUserName(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
 	}
-	return c.JSON(http.StatusOK, echo.Map{"FirstName": userName.FirstName, "LastName": userName.LastName, "PasswordUpdatedAt": userName.PasswordUpdatedAt})
+	return c.JSON(http.StatusOK, echo.Map{"FirstName": userName.FirstName, "LastName": userName.LastName, "Email": userName.Email, "PasswordUpdatedAt": userName.PasswordUpdatedAt})
 }
 
 func (router *HttpRouter) ChangeUserInfo(c echo.Context) error {

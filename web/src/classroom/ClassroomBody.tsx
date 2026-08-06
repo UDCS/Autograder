@@ -6,6 +6,7 @@ import HomeworkSidebar from "../components/homework/HomeworkSidebar";
 import Navbar from "../components/navbar/Navbar";
 import TitleBanner from "../components/titlebanner/TitleBanner";
 import BlueButton from "../components/buttons/BlueButton";
+import { parseDateString } from "../utils/classroom";
 
 function ClassroomBody() {
     
@@ -53,12 +54,12 @@ function ClassroomBody() {
     const homeworkFromJSON = () => {
         if (!assignments) return [];
         return assignments.filter((a) => {
-            var dueDate = new Date(a["due_at"]);
+            var dueDate = parseDateString(a["due_at"]);
             var now = new Date();
             var timeDifference = dueDate.getTime() - now.getTime();
-            return timeDifference <= msInTwoWeeks; 
-        }).map(a => 
-            <HomeworkAssignment name={a['name']} dueDate={new Date(a["due_at"])} assignmentId={a['id']} />
+            return timeDifference <= msInTwoWeeks;
+        }).map(a =>
+            <HomeworkAssignment name={a['name']} dueDate={parseDateString(a["due_at"])} assignmentId={a['id']} />
         )
     }
 

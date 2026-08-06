@@ -55,7 +55,7 @@ export const createBlankAssignment = (classroomId: string): Assignment => {
         name: "",
         description: "",
         assignment_mode: "draft",
-        due_at: nextWeek,
+        due_at: dateToString(nextWeek),
         created_at: today,
         updated_at: today,
         sort_index: 0,
