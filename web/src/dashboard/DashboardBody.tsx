@@ -118,12 +118,23 @@ function DashboardBody() {
                         </Popup>
                     }   
                 </>
-                :
+                :<>
                 <div className="errorParent">
                     <div className="error">
                         You are not part of any classrooms
                     </div>
                 </div>
+                {canAddClassroom &&
+                        <div className="create-classroom-parent">
+                            <BlueButton className="create-classroom-button" onClick={() => setIsPopup(true)}>+ Create New Classroom</BlueButton>
+                        </div>
+                }   
+                {isPopup && 
+                    <Popup onClose={() => setIsPopup(false)}>
+                        <DetailsSubpage classroomInfo={createBlankClassroom()} newClassroom={true}></DetailsSubpage>
+                    </Popup>
+                }
+                </>
                 }
             </>
             : 
