@@ -95,16 +95,17 @@ function About() {
           <section className="glass about__panel">
             <h2 className="about__h2">For instructors</h2>
             <p>
-              Set up a classroom with a course code, description, term dates, and
-              banner, then build the roster &mdash; students can be enrolled before
-              they have even made an account. Assignments move through draft, edit,
-              and view modes, so nothing goes live before you are ready, and
-              deadlines are stored as real instants in the course's own timezone
-              rather than whatever the server happens to be set to.
+              Set up a classroom with a course code, description, and term dates,
+              then build the roster &mdash; students can be enrolled before they
+              have even made an account. Assignments stay in draft until you make
+              them visible, so nothing goes live before you are ready, and deadlines
+              are stored as real instants in the course's own timezone rather than
+              whatever the server happens to be set to.
             </p>
             <p>
-              Every question carries its own point value, starter code, and reference
-              solution. Run your solution against the test cases and Autograder fills
+              Every question carries its own starter code and reference solution, and
+              its points are set per test case. Run your solution against the test
+              cases and Autograder fills
               in the expected output for you. Grades roll up per student and per
               assignment, late submissions are flagged automatically, and any grade
               can be overridden by hand when a submission deserves it.
@@ -122,8 +123,8 @@ function About() {
             </p>
             <p>
               Hidden test cases stay hidden. You see the verdict and the points, not
-              the instructor's inputs. Every attempt you make is kept, so both you and
-              your instructor can see how a solution got to where it is.
+              the instructor's inputs. Every attempt you make is kept, so your
+              instructor can see how a solution got to where it is.
             </p>
           </section>
         </div>

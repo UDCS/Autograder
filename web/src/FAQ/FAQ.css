@@ -1,28 +1,262 @@
-@import url(..//reset.css);
-@import "tailwindcss";
+@import url(../reset.css);
+@import url(../colors.css);
+@import url(../glass.css);
 
 * {
     overscroll-behavior: none;
 }
 
+/* Like the About page and unlike the single-screen homepage, this page scrolls.
+   The noise canvas is position: fixed, so it stays put behind the panels. */
 body {
     font-family: "Azeret Mono";
     margin: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
-#notication-text {
-    font-family: "Monomaniac One";
-    font-size: 96px;
-    text-transform: uppercase;
-}
-
-.bottom-page {
-    width: 100vw;
-    height: 94vh;
+/* Sit above the fixed noise canvas (z-index: 0). */
+.faq {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vh, 4rem) 5vw clamp(3rem, 8vh, 5rem);
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
+    gap: clamp(1.25rem, 3vh, 2rem);
+}
+
+/* --- Hero: the HELP label above the wordmark, matching the About page ------ */
+
+.faq__head {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: clamp(0.5rem, 2vh, 1.25rem);
+    margin-bottom: clamp(0.5rem, 2vh, 1.5rem);
+}
+
+.faq__eyebrow {
+    font-family: "Monomaniac One";
+    font-size: clamp(24px, 4vh, 40px);
+    text-transform: uppercase;
+    letter-spacing: 0.35em;
+    /* letter-spacing pads the right edge; pull it back to stay optically centered */
+    text-indent: 0.35em;
+    color: var(--color-white);
+}
+
+/* Same size as the About page's wordmark so the two read as sibling pages. */
+#logo-faq {
+    width: min(92vw, 620px);
+}
+
+.faq__tagline {
+    max-width: 46ch;
+    line-height: 1.6;
+    color: var(--color-white);
+    opacity: 0.85;
+}
+
+/* --- Panels --------------------------------------------------------------- */
+
+.faq__panel {
+    padding: clamp(1.5rem, 3.5vh, 2.25rem) clamp(1.25rem, 3vw, 2rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.faq__h2 {
+    font-family: "Monomaniac One";
+    font-size: clamp(22px, 3.2vh, 30px);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-white);
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--color-process-cyan);
+    /* Let the accent rule stop at the text rather than span the panel. */
+    align-self: flex-start;
+}
+
+/* --- Accordion ------------------------------------------------------------ */
+
+.faq__items {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Hairline separators between rows, but not above the first one. */
+.faq__item + .faq__item {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.faq__q {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0.5rem;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    font-family: "Azeret Mono";
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-white);
+    transition: background 0.15s ease;
+}
+
+.faq__q:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Nothing else in the app styles focus, and this page is meant to be usable
+   from the keyboard, so make the ring unmistakable. */
+.faq__q:focus-visible {
+    outline: 2px solid var(--color-process-cyan);
+    outline-offset: 2px;
+}
+
+.faq__q-arrow {
+    flex: none;
+    color: var(--color-process-cyan);
+    /* Nudge onto the first line of a question that wraps to two. */
+    line-height: 1.5;
+}
+
+.faq__a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0 0.5rem 1.25rem;
+    line-height: 1.65;
+    opacity: 0.92;
+}
+
+/* reset.css strips list styling globally, so put it back inside answers. */
+.faq__a ul {
+    list-style: disc outside;
+    padding-left: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.faq__a code {
+    font-family: "Azeret Mono";
+    font-size: 0.875em;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 6px;
+    padding: 0.1em 0.4em;
+    /* Long inline code (the special-character list) must not widen the page.
+       When it does wrap, give each fragment its own border and rounding rather
+       than leaving the chip sliced open at the line break. */
+    overflow-wrap: break-word;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+.faq__a strong {
+    font-weight: 700;
+    color: var(--color-white);
+}
+
+.faq__a em {
+    font-style: italic;
+}
+
+/* Caveats and gotchas: a cyan edge marks "read this bit" without shouting. */
+.faq__a .faq__warn {
+    border-left: 3px solid var(--color-process-cyan);
+    padding-left: 0.85rem;
+}
+
+/* --- Expand all ----------------------------------------------------------- */
+
+.faq__controls {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.faq__toggle-all {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    font-family: "Azeret Mono";
+    font-size: 0.875rem;
+    /* This control sits on the bare noise field rather than on a glass panel,
+       where cyan-on-cyan gets thin; the dark halo keeps it readable. */
+    color: var(--color-white);
+    text-decoration: underline;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.faq__toggle-all:hover {
+    color: var(--color-aero-blue);
+}
+
+.faq__toggle-all:focus-visible {
+    outline: 2px solid var(--color-process-cyan);
+    outline-offset: 2px;
+}
+
+/* --- Closing note and footer ---------------------------------------------- */
+
+.faq__note {
+    max-width: 70ch;
+    margin: 0 auto;
+    text-align: center;
+    line-height: 1.65;
+    font-size: 0.9375rem;
+    color: var(--color-white);
+    opacity: 0.8;
+}
+
+.faq__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding-top: clamp(1rem, 3vh, 2rem);
+}
+
+.faq__cta {
+    text-decoration: none;
+}
+
+.faq__cta .blueButton {
+    padding: 0.9rem 2.75rem;
+}
+
+.faq__links {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
     justify-content: center;
+}
+
+/* --- Narrow screens ------------------------------------------------------- */
+
+@media (max-width: 800px) {
+    .faq__eyebrow {
+        letter-spacing: 0.2em;
+        text-indent: 0.2em;
+    }
+
+    .faq__q {
+        font-size: 0.9375rem;
+        padding: 0.875rem 0.25rem;
+    }
+
+    .faq__a {
+        padding: 0 0.25rem 1rem;
+    }
 }
