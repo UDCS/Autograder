@@ -6,7 +6,6 @@ import (
 
 	"github.com/UDCS/Autograder/models"
 	"github.com/UDCS/Autograder/utils/config"
-	"github.com/UDCS/Autograder/utils/logger"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -88,8 +87,16 @@ type PostgresStore struct {
 
 func New(dbConfig *config.Db, timeZone string) PostgresStore {
 	ConnString := getConnStringFromConfig(dbConfig)
-	logger.Debug(ConnString)
 	db := sqlx.MustConnect("postgres", ConnString)
+
+	// Cap connections per container. Cloud Run can run up to maxScale instances
+	// concurrently, each with its own pool, so the instance-wide ceiling is
+	// maxScale * MaxOpenConns -- that has to stay under the database's
+	// max_connections, which scales with the Cloud SQL machine tier.
+	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(2)
+	db.SetConnMaxLifetime(30 * time.Minute)
+	db.SetConnMaxIdleTime(5 * time.Minute)
 
 	return PostgresStore{
 		db:       db,

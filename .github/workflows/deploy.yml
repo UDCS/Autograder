@@ -87,7 +87,10 @@ jobs:
           region: ${{secrets.MAIN_REGION}}
           source: .
           project_id: ${{secrets.GCP_PROJECT_ID}}
-          flags: --add-cloudsql-instances="${{secrets.GCP_PROJECT_ID}}:${{secrets.MAIN_REGION}}:${{secrets.DB_NAME}}" --timeout=600s --port=8080
+          # The Cloud SQL connection name uses the *instance* name (autograder-db),
+          # not the database name (DB_NAME, "autograder"). --set- rather than --add-
+          # so the list is replaced instead of accumulating stale entries.
+          flags: --set-cloudsql-instances="${{secrets.GCP_PROJECT_ID}}:${{secrets.MAIN_REGION}}:autograder-db" --timeout=600s --port=8080
           env_vars: |
             DB_HOST=cloudsql
             DB_PORT=${{ secrets.DB_PORT }}
