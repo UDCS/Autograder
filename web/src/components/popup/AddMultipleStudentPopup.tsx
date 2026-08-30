@@ -46,7 +46,7 @@ function NewFilePopup({onClose, body}: NewFilePopupProps) {
     return (
         <Popup onClose={onClose} className="new-file-popup">
             <div className="popup-title">
-                Create New File
+                Add multiple students to classroom
             </div>
             <TextField className="popup-textfield" label="File Name" initialValue="File Name" onChange={handleFilenameChange} />
             {error && 
