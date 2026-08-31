@@ -211,19 +211,18 @@ func (app *GraderApp) GetClassroomStudents(jwksToken string, classroomId uuid.UU
 	}
 
 	students, err := app.store.GetClassroomStudents(classroomId)
-
 	if err != nil {
 		return []models.UserInClassroom{}, err
 	}
 
-	newStudents := make([]models.UserInClassroom, len(students)-1)
-	newStudentIndex := 0
+	newStudents := make([]models.UserInClassroom, 0, len(students))
+
 	for _, student := range students {
 		if student.Email != claims.Subject {
-			newStudents[newStudentIndex] = student
-			newStudentIndex++
+			newStudents = append(newStudents, student)
 		}
 	}
+	fmt.Printf("are these the students? : %+v\n", newStudents)
 
 	return newStudents, nil
 
@@ -268,23 +267,17 @@ func (app *GraderApp) EditClassroomStudents(jwksToken string, classroomId uuid.U
 				continue
 			}
 			studentEmail = parsedEmail.Address
-			invitation, err := app.store.GetInvitationFromEmail(studentEmail)
-			invitationExists := err == nil
-			if !invitationExists {
-				invitation = &models.Invitation{
-					Id:          uuid.New(),
-					Email:       studentEmail,
-					UserRole:    studentRole,
-					CreatedAt:   time.Now(),
-					UpdatedAt:   time.Now(),
-					ClassroomId: classroomId,
-				}
-				_, _ = app.CreateInvitation(jwksToken, *invitation)
-				student.UserId = invitation.Id
-			} else {
-				_ = app.store.MatchFutureUserToClassroom(studentEmail, classroomId, student.UserRole)
-				student.UserId = invitation.Id
+			invitation := &models.Invitation{
+				Id:          uuid.New(),
+				Email:       studentEmail,
+				UserRole:    studentRole,
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+				ClassroomId: classroomId,
 			}
+			_, _ = app.CreateInvitation(jwksToken, *invitation)
+			student.UserId = invitation.Id
+
 			student.ClassroomId = classroomId
 			student.State = models.Unregistered
 		}

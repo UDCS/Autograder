@@ -10,6 +10,7 @@ import (
 type App interface {
 	// Auth
 	CreateInvitation(jwksToken string, invitation models.Invitation) (*models.Invitation, error)
+	sendInviteLink(invitation models.Invitation, token string) error
 	InviteAdmin(invitation models.Invitation) (*models.Invitation, error)
 	SignUp(user models.UserWithInvitation, session models.Session) (*models.JWTTokens, error)
 	Login(user models.UserWithPassword, session models.Session) (*models.JWTTokens, error)

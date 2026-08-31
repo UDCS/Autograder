@@ -17,6 +17,17 @@ import (
 	"go.uber.org/zap"
 )
 
+func (app *GraderApp) sendInviteLink(invitation models.Invitation, token string) error {
+	baseUrl := config.GetBaseURL()
+	msg := fmt.Sprintf("Subject: Create an Autograder Account\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visiting %s/signup?id=%s&token=%s\n\nThis email cannot be replied to. If you have any questions, please contact your professor.", baseUrl, invitation.Id.String(), token)
+	err := email.Send(invitation.Email, msg)
+	if err != nil {
+		fmt.Print(err.Error())
+		return err
+	}
+	return nil
+}
+
 func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invitation) (*models.Invitation, error) {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
@@ -40,31 +51,17 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 		return nil, err
 	}
 
-	baseUrl := config.GetBaseURL()
-
-	// TODO: email the invitation with the link containg both token and invitation I
-	//email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
-	//msg := "Subject: Create an Autograder Account\n\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visitting auth/regiser/" + invitation.Id.String() + "?token=" + token + "\n\nThis email cannot be replied to. If you have any questions, please contact your professor."
-	msg := fmt.Sprintf("Subject: Create an Autograder Account\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visiting %s/signup?id=%s&token=%s\n\nThis email cannot be replied to. If you have any questions, please contact your professor.", baseUrl, invitation.Id.String(), token)
-	err = email.Send(invitation.Email, msg)
-	if err != nil {
-		fmt.Print(err.Error())
+	if err = app.sendInviteLink(invitation, token); err != nil {
 		return nil, err
 	}
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7)
+
 	var createdInvitation *models.Invitation
-	if !app.store.InvitationAlreadyExists(invitation.Email) {
-		createdInvitation, err = app.store.CreateInvitation(invitation)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		createdInvitation, err = app.store.GetInvitationFromEmail(invitation.Email)
-		if err != nil {
-			return nil, err
-		}
+	createdInvitation, err = app.store.CreateInvitation(invitation)
+	if err != nil {
+		return nil, err
 	}
 
 	if invitation.ClassroomId != uuid.Nil {
