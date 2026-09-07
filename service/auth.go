@@ -344,7 +344,7 @@ func (app *GraderApp) PasswordReset(details models.NewPasswordDetails, session m
 	return tokenDetails, nil
 }
 
-func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.AccessToken, error) {
+func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.JWTTokens, error) {
 	refreshTokenClaims, err := jwt_token.ParseRefreshTokenString(refreshTokenString, app.authConfig.JWT.Secret)
 	if err != nil {
 		return nil, fmt.Errorf("invalid autorization credentials")
@@ -360,17 +360,20 @@ func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.AccessTok
 		return nil, fmt.Errorf("invalid refresh token")
 	}
 
-	accessTokenString, accessTokenExpiration, err := jwt_token.CreateAccessTokenString(session.UserEmail, session.UserRole, app.authConfig.JWT.AccessTokenDuration, app.authConfig.JWT.Secret)
+	if app.authConfig.JWT.SessionMaxDuration > 0 && time.Now().After(session.CreatedAt.Add(app.authConfig.JWT.SessionMaxDuration)) {
+		return nil, fmt.Errorf("session exceeded max duration")
+	}
+
+	tokenDetails, err := jwt_token.CreateJWTTokens(session.UserEmail, session.UserRole, app.authConfig.JWT)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create access token: %v", err)
+		return nil, fmt.Errorf("failed to create JWT tokens: %v", err)
 	}
 
-	accessToken := &models.AccessToken{
-		TokenString: accessTokenString,
-		ExpiresAt:   accessTokenExpiration,
+	if err := app.store.UpdateSession(session.Id, token.HashToken(tokenDetails.RefreshToken.TokenString), tokenDetails.RefreshToken.ExpiresAt); err != nil {
+		return nil, fmt.Errorf("failed to update session: %v", err)
 	}
 
-	return accessToken, nil
+	return tokenDetails, nil
 }
 
 func (app *GraderApp) GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error) {

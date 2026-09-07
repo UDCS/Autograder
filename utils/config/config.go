@@ -43,6 +43,7 @@ type (
 		Secret               string
 		AccessTokenDuration  time.Duration `mapstructure:"access_token_duration"`
 		RefreshTokenDuration time.Duration `mapstructure:"refresh_token_duration"`
+		SessionMaxDuration   time.Duration `mapstructure:"session_max_duration"`
 	}
 )
 
@@ -59,6 +60,7 @@ func GetConfig() *Config {
 		viper.AutomaticEnv()
 		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 		viper.SetDefault("app.timezone", "America/Chicago")
+		viper.SetDefault("auth.jwt.session_max_duration", "336h")
 
 		if err := viper.ReadInConfig(); err != nil {
 			panic(err)

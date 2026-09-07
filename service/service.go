@@ -18,7 +18,7 @@ type App interface {
 	PasswordResetRequest(jwksToken string) error
 	PasswordResetRequestByEmail(userEmail string) error
 	PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error)
-	RefreshToken(tokenString string) (*models.AccessToken, error)
+	RefreshToken(tokenString string) (*models.JWTTokens, error)
 	IsValidLogin(jwksToken string) bool
 	ValidInvite(inviteId uuid.UUID, token string) bool
 	ValidPasswordReset(requestId uuid.UUID, tokenString string) bool

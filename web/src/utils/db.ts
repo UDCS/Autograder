@@ -1,5 +1,7 @@
+import fetchWithAuth from './fetcher';
+
 export async function deteleStudentFromDatabase(UUID: string) {
-    var response = await fetch(`/api/classroom/question/${UUID}`, 
+    var response = await fetchWithAuth(`/api/classroom/question/${UUID}`, 
         {
             method: "DELETE",
         }
@@ -11,7 +13,7 @@ export async function deteleStudentFromDatabase(UUID: string) {
 }
 
 export async function deleteQuestionFromDatabase(questionId: string) {
-    var response = await fetch(`/api/classroom/question/${questionId}`, 
+    var response = await fetchWithAuth(`/api/classroom/question/${questionId}`, 
         {
             method: "DELETE",
         }
@@ -23,7 +25,7 @@ export async function deleteQuestionFromDatabase(questionId: string) {
 }
 
 export async function deleteAssignmentFromDatabase(assignmentId: string) {
-    var response = await fetch(`/api/classroom/assignment/${assignmentId}`, 
+    var response = await fetchWithAuth(`/api/classroom/assignment/${assignmentId}`, 
         {
             method: "DELETE",
         }
@@ -35,7 +37,7 @@ export async function deleteAssignmentFromDatabase(assignmentId: string) {
 }
 
 export async function deleteTestcaseFromDatabase(testcaseId: string) {
-    var response = await fetch(`/api/classroom/testcase/${testcaseId}`, {
+    var response = await fetchWithAuth(`/api/classroom/testcase/${testcaseId}`, {
         method: "DELETE"
     });
     if (!response.ok) {

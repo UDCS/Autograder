@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fetchWithAuth from '../utils/fetcher';
 import BlueButton from "../components/buttons/BlueButton";
 import TextField from "../components/textfield/Textfield";
 
@@ -30,7 +31,7 @@ function AccountSettings() {
         const getIsLoggedIn = async () => {
             if(!loaded) {
                 try {
-                    var response = await fetch('/api/auth/valid_login');
+                    var response = await fetchWithAuth('/api/auth/valid_login');
                     if (response.ok) {
                         var json = await response.json();
                         var loggedIn = json['message'] == 'true';
@@ -48,7 +49,7 @@ function AccountSettings() {
         const getUserName =async () => {
             if (!loaded) {
                 try {
-                    var response = await fetch('/api/auth/user_name');
+                        var response = await fetchWithAuth('/api/auth/user_name');
                     if (response.ok) {
                         var json = await response.json();
                         var firstName = json['FirstName'];
@@ -79,7 +80,7 @@ function AccountSettings() {
         setSubmitState(ButtonState.Waiting);
         setPasswordButtonDisabled(true);
         try {
-            var response = await fetch('/api/auth/password', {method: "POST"});
+                var response = await fetchWithAuth('/api/auth/password', {method: "POST"});
             if (response.ok) {
                 setPasswordMessage("Password reset link sent!")
             } else {
@@ -95,7 +96,7 @@ function AccountSettings() {
 
     const onSignOut = async () => {
         try {
-            await fetch('/api/auth/logout', { method: "POST" });
+                await fetchWithAuth('/api/auth/logout', { method: "POST" });
         } finally {
             window.location.href = "/login";
         }
@@ -106,7 +107,7 @@ function AccountSettings() {
             setSubmitState(ButtonState.Error);
         } else {
             try {
-                var response = await fetch('/api/auth/user_info', {
+                    var response = await fetchWithAuth('/api/auth/user_info', {
                     method:"PUT",
                     headers: {
                         'Content-Type': 'application/json'

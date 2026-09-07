@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -12,10 +11,6 @@ func ParseCookieForToken(c echo.Context, tokenName string) (tokenString string, 
 
 	if err != nil {
 		return "", fmt.Errorf("could not find `%s` cookie: %v", tokenName, err)
-	}
-
-	if cookie.Expires.After(time.Now()) {
-		return "", fmt.Errorf("expired authentication credentials")
 	}
 
 	return cookie.Value, nil
