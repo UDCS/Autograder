@@ -5,6 +5,7 @@ import Logo from "../components/logo/Logo"
 import NoiseBackground from "../components/background/NoiseBackground"
 import BlueButton from "../components/buttons/BlueButton"
 import FaqItem from './FaqItem'
+import fetchWithAuth from '../utils/fetcher'
 import './FAQ.css'
 
 /* Answers are JSX rather than strings because several need inline code, lists,
@@ -485,7 +486,7 @@ function Faq() {
     let alive = true;
     (async () => {
       try {
-        const response = await fetch('/api/auth/valid_login');
+        const response = await fetchWithAuth('/api/auth/valid_login');
         if (response.ok) {
           const json = await response.json();
           if (alive) setLoggedIn(json['message'] === 'true');

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import fetchWithAuth from '../../utils/fetcher';
 import { Classroom } from "../../models/classroom";
 import GradeSwitcher, { GradeSection } from "../components/GradeSwitcher";
 import "../css/GradesSubpage.css"
@@ -51,7 +52,7 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                 return;
             }
             try {
-                const res = await fetch('/api/grader/submissions/status', {
+                const res = await fetchWithAuth('/api/grader/submissions/status', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ submission_ids: ids }),
@@ -79,7 +80,7 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
     }, []);
 
     useEffect(() => {
-        fetch(`/api/classroom/${classroomInfo.id}/grades`)
+        fetchWithAuth(`/api/classroom/${classroomInfo.id}/grades`)
             .then(async r => {
                 if (!r.ok) throw new Error(await r.text());
                 return r.json();

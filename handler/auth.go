@@ -419,22 +419,45 @@ func (router *HttpRouter) RefreshToken(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, json_response.NewError("unauthorized"))
 	}
 
-	accessTokenDetails, err := router.app.RefreshToken(refreshTokenString)
+	tokenDetails, err := router.app.RefreshToken(refreshTokenString)
 	if err != nil {
 		logger.Error("failed to refresh the access token", zap.Error(err))
-		return c.JSON(http.StatusInternalServerError, "failed to refresh the access token")
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("failed to refresh token"))
 	}
 
 	c.SetCookie(&http.Cookie{
 		Name:     "access_token",
-		Value:    accessTokenDetails.TokenString,
+		Value:    tokenDetails.AccessToken.TokenString,
 		Path:     "/",
-		Expires:  accessTokenDetails.ExpiresAt,
+		Expires:  tokenDetails.AccessToken.ExpiresAt,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	c.SetCookie(&http.Cookie{
+		Name:     "refresh_token",
+		Value:    tokenDetails.RefreshToken.TokenString,
+		Path:     "/",
+		Expires:  tokenDetails.RefreshToken.ExpiresAt,
 		Secure:   true,
 		HttpOnly: true,
 	})
 
-	return c.JSON(http.StatusOK, json_response.NewMessage("token refreshed"))
+	if sessionIDCookie, cookieErr := c.Cookie("session_id"); cookieErr == nil {
+		c.SetCookie(&http.Cookie{
+			Name:     "session_id",
+			Value:    sessionIDCookie.Value,
+			Path:     "/",
+			Expires:  tokenDetails.RefreshToken.ExpiresAt,
+			Secure:   true,
+			HttpOnly: true,
+		})
+	}
+
+	return c.JSON(http.StatusOK, echo.Map{
+		"message":            "token refreshed",
+		"access_expires_at":  tokenDetails.AccessToken.ExpiresAt.UnixMilli(),
+		"refresh_expires_at": tokenDetails.RefreshToken.ExpiresAt.UnixMilli(),
+	})
 }
 
 func (router *HttpRouter) GetClassroomsOfUser(c echo.Context) error {

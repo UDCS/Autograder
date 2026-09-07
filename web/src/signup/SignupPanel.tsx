@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fetchWithAuth from '../utils/fetcher';
 import TextField, { TextFieldInput } from "../components/textfield/Textfield";
 
 function SignupPanel() {
@@ -19,7 +20,7 @@ function SignupPanel() {
     const inviteId = urlParams.get('id');
     const token = urlParams.get('token');
     const verifyInvite = async () => {
-        var response = await fetch(`/api/auth/invite/${inviteId}/valid?token=${token}`)
+        var response = await fetchWithAuth(`/api/auth/invite/${inviteId}/valid?token=${token}`)
         if (response.ok) {
             var json = await response.json();
             if (json['message'] !== 'true') {
@@ -39,7 +40,7 @@ function SignupPanel() {
         } else if (password1 !== password2) {
             alert("Passwords do not match")
         } else {
-            var response = await fetch(`/api/auth/register/${inviteId}?token=${token}`, {
+            var response = await fetchWithAuth(`/api/auth/register/${inviteId}?token=${token}`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'

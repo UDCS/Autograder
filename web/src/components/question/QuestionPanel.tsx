@@ -6,6 +6,7 @@ import ConsoleOutput from "../assignment/ConsoleOutput";
 import EditorHeader from "../editor/EditorHeader";
 import { registerRacket } from "../editor/racketLanguage";
 import { useEffect, useRef, useState } from "react";
+import fetchWithAuth from '../../utils/fetcher';
 import { Question } from "../../models/classroom";
 import Spinner from "../spinner/Spinner";
 
@@ -36,7 +37,7 @@ function QuestionPanel({info}: {info: Question}) {
 
         intervalRef.current = setInterval(async () => {
             try {
-                const res = await fetch('/api/grader/submissions/status', {
+                const res = await fetchWithAuth('/api/grader/submissions/status', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ submission_ids: [sid] }),
@@ -66,7 +67,7 @@ function QuestionPanel({info}: {info: Question}) {
         const requestBody = {
             "code": c,
         }
-        var response = await fetch(`/api/classroom/question/${info.id}/submission`,
+        var response = await fetchWithAuth(`/api/classroom/question/${info.id}/submission`,
             {
                 method: "POST",
                 headers: {
@@ -89,7 +90,7 @@ function QuestionPanel({info}: {info: Question}) {
         if (submitLockRef.current || grading) return;
         submitLockRef.current = true;
         try {
-            const res = await fetch(`/api/grader/question/${info.id!}`, {
+            const res = await fetchWithAuth(`/api/grader/question/${info.id!}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ code }),

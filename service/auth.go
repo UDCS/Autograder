@@ -17,6 +17,17 @@ import (
 	"go.uber.org/zap"
 )
 
+func (app *GraderApp) sendInviteLink(invitation models.Invitation, token string) error {
+	baseUrl := config.GetBaseURL()
+	msg := fmt.Sprintf("Subject: Create an Autograder Account\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visiting %s/signup?id=%s&token=%s\n\nThis email cannot be replied to. If you have any questions, please contact your professor.", baseUrl, invitation.Id.String(), token)
+	err := email.Send(invitation.Email, msg)
+	if err != nil {
+		fmt.Print(err.Error())
+		return err
+	}
+	return nil
+}
+
 func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invitation) (*models.Invitation, error) {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {
@@ -40,31 +51,17 @@ func (app *GraderApp) CreateInvitation(jwksToken string, invitation models.Invit
 		return nil, err
 	}
 
-	baseUrl := config.GetBaseURL()
-
-	// TODO: email the invitation with the link containg both token and invitation I
-	//email.Send("auth/register/" + invitation.Id.String() + "?token=" + token)
-	//msg := "Subject: Create an Autograder Account\n\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visitting auth/regiser/" + invitation.Id.String() + "?token=" + token + "\n\nThis email cannot be replied to. If you have any questions, please contact your professor."
-	msg := fmt.Sprintf("Subject: Create an Autograder Account\nYour professor has invited you to create an Autograder account.\n\nYou may create the account be visiting %s/signup?id=%s&token=%s\n\nThis email cannot be replied to. If you have any questions, please contact your professor.", baseUrl, invitation.Id.String(), token)
-	err = email.Send(invitation.Email, msg)
-	if err != nil {
-		fmt.Print(err.Error())
+	if err = app.sendInviteLink(invitation, token); err != nil {
 		return nil, err
 	}
 
 	invitation.TokenHash = tokenHash
 	invitation.ExpiresAt = time.Now().AddDate(0, 0, 7)
+
 	var createdInvitation *models.Invitation
-	if !app.store.InvitationAlreadyExists(invitation.Email) {
-		createdInvitation, err = app.store.CreateInvitation(invitation)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		createdInvitation, err = app.store.GetInvitationFromEmail(invitation.Email)
-		if err != nil {
-			return nil, err
-		}
+	createdInvitation, err = app.store.CreateInvitation(invitation)
+	if err != nil {
+		return nil, err
 	}
 
 	if invitation.ClassroomId != uuid.Nil {
@@ -347,7 +344,7 @@ func (app *GraderApp) PasswordReset(details models.NewPasswordDetails, session m
 	return tokenDetails, nil
 }
 
-func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.AccessToken, error) {
+func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.JWTTokens, error) {
 	refreshTokenClaims, err := jwt_token.ParseRefreshTokenString(refreshTokenString, app.authConfig.JWT.Secret)
 	if err != nil {
 		return nil, fmt.Errorf("invalid autorization credentials")
@@ -363,17 +360,20 @@ func (app *GraderApp) RefreshToken(refreshTokenString string) (*models.AccessTok
 		return nil, fmt.Errorf("invalid refresh token")
 	}
 
-	accessTokenString, accessTokenExpiration, err := jwt_token.CreateAccessTokenString(session.UserEmail, session.UserRole, app.authConfig.JWT.AccessTokenDuration, app.authConfig.JWT.Secret)
+	if app.authConfig.JWT.SessionMaxDuration > 0 && time.Now().After(session.CreatedAt.Add(app.authConfig.JWT.SessionMaxDuration)) {
+		return nil, fmt.Errorf("session exceeded max duration")
+	}
+
+	tokenDetails, err := jwt_token.CreateJWTTokens(session.UserEmail, session.UserRole, app.authConfig.JWT)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create access token: %v", err)
+		return nil, fmt.Errorf("failed to create JWT tokens: %v", err)
 	}
 
-	accessToken := &models.AccessToken{
-		TokenString: accessTokenString,
-		ExpiresAt:   accessTokenExpiration,
+	if err := app.store.UpdateSession(session.Id, token.HashToken(tokenDetails.RefreshToken.TokenString), tokenDetails.RefreshToken.ExpiresAt); err != nil {
+		return nil, fmt.Errorf("failed to update session: %v", err)
 	}
 
-	return accessToken, nil
+	return tokenDetails, nil
 }
 
 func (app *GraderApp) GetClassroomsOfUser(jwksToken string) ([]models.Classroom, error) {

@@ -144,6 +144,14 @@ func (store PostgresStore) DeleteSession(sessionId uuid.UUID) error {
 	return err
 }
 
+func (store PostgresStore) UpdateSession(sessionId uuid.UUID, tokenHash string, expiresAt time.Time) error {
+	_, err := store.db.Exec(
+		"UPDATE sessions SET token_hash = $2, expires_at = $3 WHERE id = $1;",
+		sessionId, tokenHash, expiresAt,
+	)
+	return err
+}
+
 func (store PostgresStore) GetClassroomsOfUser(userEmail string) ([]models.Classroom, error) {
 	user_info, err := store.GetUserInfo(userEmail)
 	if err != nil {

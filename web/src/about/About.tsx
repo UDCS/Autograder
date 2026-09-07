@@ -1,4 +1,5 @@
 import { StrictMode, useEffect, useState } from 'react'
+import fetchWithAuth from '../utils/fetcher'
 import { createRoot } from 'react-dom/client'
 import Navbar from "../components/navbar/Navbar"
 import Logo from "../components/logo/Logo"
@@ -47,7 +48,7 @@ function About() {
     let alive = true;
     (async () => {
       try {
-        const response = await fetch('/api/auth/valid_login');
+        const response = await fetchWithAuth('/api/auth/valid_login')
         if (response.ok) {
           const json = await response.json();
           if (alive) setLoggedIn(json['message'] === 'true');

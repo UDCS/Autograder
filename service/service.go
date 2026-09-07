@@ -10,6 +10,7 @@ import (
 type App interface {
 	// Auth
 	CreateInvitation(jwksToken string, invitation models.Invitation) (*models.Invitation, error)
+	sendInviteLink(invitation models.Invitation, token string) error
 	InviteAdmin(invitation models.Invitation) (*models.Invitation, error)
 	SignUp(user models.UserWithInvitation, session models.Session) (*models.JWTTokens, error)
 	Login(user models.UserWithPassword, session models.Session) (*models.JWTTokens, error)
@@ -17,7 +18,7 @@ type App interface {
 	PasswordResetRequest(jwksToken string) error
 	PasswordResetRequestByEmail(userEmail string) error
 	PasswordReset(details models.NewPasswordDetails, session models.Session) (*models.JWTTokens, error)
-	RefreshToken(tokenString string) (*models.AccessToken, error)
+	RefreshToken(tokenString string) (*models.JWTTokens, error)
 	IsValidLogin(jwksToken string) bool
 	ValidInvite(inviteId uuid.UUID, token string) bool
 	ValidPasswordReset(requestId uuid.UUID, tokenString string) bool

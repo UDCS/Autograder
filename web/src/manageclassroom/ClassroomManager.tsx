@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fetchWithAuth from '../utils/fetcher';
 import Navbar from "../components/navbar/Navbar";
 import ClassroomSidebar, { ClassroomSidebarSelected } from "./components/ClassroomSidebar";
 import AssignmentsSubpage from "./subpages/AssignmentsSubpage";
@@ -28,7 +29,7 @@ function ClassroomManager() {
         var isError = false;
         const verifyLogin = async () => {
             try {
-                var response = await fetch('/api/auth/valid_login');
+                var response = await fetchWithAuth('/api/auth/valid_login');
                 if (response.ok) {
                     var json = await response.json();
                     if (json['message'] != 'true') {
@@ -46,7 +47,7 @@ function ClassroomManager() {
             }
         }
         const getClassroomInfo = async () => {
-            var response = await fetch(`/api/classroom/${classroomId}`);
+            var response = await fetchWithAuth(`/api/classroom/${classroomId}`);
             if (response.ok) {
                 var json = await response.json();
                 setClassroomInfo(json);
@@ -58,7 +59,7 @@ function ClassroomManager() {
             }
         }
         const getUserRole = async () => {
-            var response = await fetch(`/api/classroom/role/${classroomId}`);
+            var response = await fetchWithAuth(`/api/classroom/role/${classroomId}`);
             if (response.ok) {
                 var role = await response.json();
                 if (role !== 'admin' && role !== 'instructor') {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fetchWithAuth from '../../utils/fetcher';
 import BlueButton from "../../components/buttons/BlueButton";
 import CalendarInput from "../../components/calendar-input/CalendarInput";
 import TextArea from "../../components/textarea/TextArea";
@@ -21,7 +22,7 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle, newClassroom=false
         window.location.href = `/classroom/manage/?id=${classroomId}`
     }
     const updateClassroomDetails = async (id: string, classroom: Classroom) => {
-        var response = await fetch(`/api/classroom/edit/${id}/`, 
+        var response = await fetchWithAuth(`/api/classroom/edit/${id}/`, 
             {
                 method: "PATCH",
                 headers: {
@@ -39,7 +40,7 @@ function DetailsSubpage({classroomInfo, changeClassroomTitle, newClassroom=false
     }
 
     const createNewClassroom = async () => {
-        var response = await fetch(`/api/classroom`, {
+        var response = await fetchWithAuth(`/api/classroom`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

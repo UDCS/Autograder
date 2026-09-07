@@ -76,6 +76,7 @@ type Datastore interface {
 	CreateSession(session models.Session) (*models.Session, error)
 	DeleteSession(sessionId uuid.UUID) error
 	GetSession(userEmail string, refreshTokenString string) (*models.Session, error)
+	UpdateSession(sessionId uuid.UUID, tokenHash string, expiresAt time.Time) error
 	GetClassroomsOfUser(userEmail string) ([]models.Classroom, error)
 	ChangeUserInfo(request models.ChangeUserInfoRequest) error
 }

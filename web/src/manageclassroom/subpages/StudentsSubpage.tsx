@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fetchWithAuth from '../../utils/fetcher';
 import StudentPanel, { isValidNewUser, UserInClassroom } from "../components/StudentPanel"
 import "../css/StudentsSubpage.css";
 import DeletePopup from "../../components/popup/DeletePopup";
@@ -13,7 +14,7 @@ interface StudentsSubpageProps {
 export const editStudentsInClassroom = (classroomId: string, usersToUpdate: UserInClassroom[], oldStudentList: UserInClassroom[], setStudentList: (newList: UserInClassroom[]) => void) => {
     const requestBody = {students: usersToUpdate};
     (async function () {
-        var response = await fetch(`/api/classroom/${classroomId}/students`, {
+        var response = await fetchWithAuth(`/api/classroom/${classroomId}/students`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -52,7 +53,7 @@ function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
         setAllUsers(allUsers.filter((_, i: number) => index != i));
         (async function () {
             const requestBody = {email: toDelete.email!};
-            var response = await fetch(`/api/classroom/${classroomId}/student`, {
+            var response = await fetchWithAuth(`/api/classroom/${classroomId}/student`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"
@@ -112,7 +113,7 @@ function StudentsSubpage({classroomInfo}: StudentsSubpageProps) {
             setLoading(false);
         }
         const getAllUsers = async () => {
-            var response = await fetch(`/api/classroom/${classroomId}/students`);   
+            var response = await fetchWithAuth(`/api/classroom/${classroomId}/students`);   
             if (response.ok) {
                 var json = await response.json();
                 setAllUsers(json);

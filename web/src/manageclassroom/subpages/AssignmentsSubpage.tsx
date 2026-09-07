@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from "react";
+import fetchWithAuth from '../../utils/fetcher';
 import { Assignment, Classroom, Question } from "../../models/classroom";
 import { createBlankAssignment } from "../../utils/classroom";
 import AssignmentEditor from "../components/AssignmentEditor";
@@ -16,7 +17,7 @@ interface AssignmentsSubpageProps {
 export async function saveAssignments(assignmentList: Assignment[]) {
     if (!assignmentList) return;
     var classroomId = assignmentList[0].classroom_id;
-    var response = await fetch(`/api/classroom/${classroomId}/verbose_assignments`, 
+    var response = await fetchWithAuth(`/api/classroom/${classroomId}/verbose_assignments`, 
         {
             method: "POST",
             headers: {
@@ -33,7 +34,7 @@ export async function saveAssignments(assignmentList: Assignment[]) {
 
 export async function saveQuestions(questionList: Question[]) {
     if (!questionList) return;
-    var response = await fetch(`/api/classroom/verbose_questions`, 
+    var response = await fetchWithAuth(`/api/classroom/verbose_questions`, 
         {
             method: "POST",
             headers: {
@@ -147,7 +148,7 @@ function AssignmentsSubpage({classroomInfo, active}: AssignmentsSubpageProps) {
         var isError = false;
 
         const getAssignments = async () => {
-            var response = await fetch(`/api/classroom/${classroomInfo.id!}/verbose_assignments`);
+            var response = await fetchWithAuth(`/api/classroom/${classroomInfo.id!}/verbose_assignments`);
             var jsonResponse;
             if (response.ok) {
                 jsonResponse = await response.json();

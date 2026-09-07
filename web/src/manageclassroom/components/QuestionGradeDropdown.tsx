@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import fetchWithAuth from '../../utils/fetcher';
 import QuestionScore from "../../components/question/QuestionScore";
 import "../css/QuestionGradeDropdown.css"
 import EditorHeader from "../../components/editor/EditorHeader";
@@ -50,7 +51,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
 
     const loadHistory = () => {
         setHistoryLoading(true);
-        fetch(`/api/grader/question/${questionId}/submissions/history?student_id=${questionSubmission.student_id}`)
+        fetchWithAuth(`/api/grader/question/${questionId}/submissions/history?student_id=${questionSubmission.student_id}`)
             .then(r => r.ok ? r.json() : [])
             .then((data: SubmissionAttempt[]) => setHistory(data))
             .catch(() => setHistory([]))
@@ -115,7 +116,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                                     }} />
                                 </>}
                                 {gradeChanged && <BlueButton className="question-button" onClick={() => {
-                                    fetch(`/api/classroom/${classroomId}/grades`, {
+                                    fetchWithAuth(`/api/classroom/${classroomId}/grades`, {
                                         method: "PATCH",
                                         headers: { "Content-Type": "application/json" },
                                         body: JSON.stringify({ updates: [{
@@ -173,7 +174,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                         onChange={(newCode) => updateSubmission(questionSubmission.submission_id, { code: newCode })} />
                     <div className="question-button-row">
                         <BlueButton className="question-button" onClick={() => {
-                            fetch(`/api/classroom/question/${questionId}/submission`, {
+                            fetchWithAuth(`/api/classroom/question/${questionId}/submission`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
@@ -187,7 +188,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                             if (resubmitLockRef.current || isRunning) return;
                             resubmitLockRef.current = true;
                             updateSubmission(questionSubmission.submission_id, { status: 'running' });
-                            fetch(`/api/grader/question/${questionId}`, {
+                            fetchWithAuth(`/api/grader/question/${questionId}`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({
