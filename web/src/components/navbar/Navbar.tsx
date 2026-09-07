@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import fetchWithAuth from '../../utils/fetcher';
 import './Navbar.css'
 import '/global.css'
 import AnimatedLogo from './AnimatedLogo';
@@ -13,7 +14,7 @@ function Navbar(){
     useEffect(() => {
         const getIsLoggedIn = async () => {
             try {
-                var response = await fetch('/api/auth/valid_login');
+                var response = await fetchWithAuth('/api/auth/valid_login');
                 if (response.ok) {
                     var json = await response.json();
                     setLoggedIn(json['message'] == 'true');
@@ -23,7 +24,7 @@ function Navbar(){
             }
         };
         getIsLoggedIn();
-    });
+    }, []);
 
     return (
         <nav className="navbar drop-shadow">

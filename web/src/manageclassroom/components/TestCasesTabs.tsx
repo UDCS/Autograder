@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import fetchWithAuth from '../../utils/fetcher';
 import "../css/TestCasesTabs.css"
 import clsx from "clsx";
 import { Editor } from "@monaco-editor/react";
@@ -44,7 +45,7 @@ function TestCasesTabs({question}: {question: Question}) {
         setRunStatus("running");
         setTestRun(true);
         try {
-            const res = await fetch(`/api/grader/question/${question.id}/solution/run`, {
+            const res = await fetchWithAuth(`/api/grader/question/${question.id}/solution/run`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -57,7 +58,7 @@ function TestCasesTabs({question}: {question: Question}) {
 
             pollRef.current = setInterval(async () => {
                 try {
-                    const r = await fetch(`/api/grader/solution/run/${run_id}`);
+                    const r = await fetchWithAuth(`/api/grader/solution/run/${run_id}`);
                     if (!r.ok) return;
                     const data = await r.json();
                     if (data.status !== "running") {

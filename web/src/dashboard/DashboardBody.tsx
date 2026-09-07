@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fetchWithAuth from '../utils/fetcher';
 import Navbar from "../components/navbar/Navbar";
 import DashboardSection from "./DashboardSection";
 import { createBlankClassroom, parseDateString } from "../utils/classroom";
@@ -24,7 +25,7 @@ function DashboardBody() {
         
         const verifyLogin = async () => {
             try {
-                var response = await fetch('/api/auth/valid_login');
+                var response = await fetchWithAuth('/api/auth/valid_login');
                 if (response.ok) {
                     var json = await response.json();
                     if (json['message'] != 'true') {
@@ -42,7 +43,7 @@ function DashboardBody() {
             }
         }
         const getClassrooms = async () => {
-            var request = await fetch('/api/classroom/all');
+            var request = await fetchWithAuth('/api/classroom/all');
             
             var currentEnrolledClasses = [];
             var currentActiveClasses = [];
@@ -75,7 +76,7 @@ function DashboardBody() {
             }
         }
         const getUserRole = async () => {
-            var request = await fetch("/api/auth/role");
+            var request = await fetchWithAuth("/api/auth/role");
             if (request.ok) {
                 var role = await request.json();
                 if (role == "admin" || role == "instructor") {

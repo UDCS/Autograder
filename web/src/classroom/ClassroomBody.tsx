@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fetchWithAuth from '../utils/fetcher';
 import AssignmentDropdown from "../components/assignment/AssignmentDropdown";
 import QuestionBulletPoint, { CompletionState } from "../components/question/QuestionBulletPoint";
 import HomeworkAssignment from "../components/homework/HomeworkAssignment";
@@ -71,7 +72,7 @@ function ClassroomBody() {
         var isError = false;
         const verifyLogin = async () => {
             try {
-                var response = await fetch('/api/auth/valid_login');
+                var response = await fetchWithAuth('/api/auth/valid_login');
                 if (response.ok) {
                     var json = await response.json();
                     if (json['message'] != 'true') {
@@ -89,7 +90,7 @@ function ClassroomBody() {
             }
         };
         const getClassroomName = async () => {
-            var response = await fetch(`/api/classroom/${classroomId}`);
+            var response = await fetchWithAuth(`/api/classroom/${classroomId}`);
             if (response.ok) {
                 var json = await response.json();
                 setClassroomName(json["name"]);
@@ -100,7 +101,7 @@ function ClassroomBody() {
             }
         }
         const getAssignments = async () => {
-            var response = await fetch(`/api/classroom/${classroomId}/view_assignments`);
+            var response = await fetchWithAuth(`/api/classroom/${classroomId}/view_assignments`);
             if (response.ok) {
                 var json = await response.json();
                 setAssignments(json['assignments']);
@@ -109,7 +110,7 @@ function ClassroomBody() {
             }
         };
         const getRole = async () => {
-            var response = await fetch(`/api/classroom/role/${classroomId}`);
+            var response = await fetchWithAuth(`/api/classroom/role/${classroomId}`);
             if (response.ok) {
                 var role = await response.json();
                 if (role == "instructor" || role == "admin") {

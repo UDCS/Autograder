@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fetchWithAuth from '../utils/fetcher';
 import AssignmentPanel from "../components/assignment/AssignmentPanel";
 import Navbar from "../components/navbar/Navbar";
 
@@ -12,7 +13,7 @@ function AssignmentBody() {
     useEffect(() => {
         var isError = false;
         const getAssignment = async () => {
-            var response = await fetch(`/api/classroom/assignment/${assignmentId}`);
+            var response = await fetchWithAuth(`/api/classroom/assignment/${assignmentId}`);
             if (response.ok) {
                 var json = await response.json();
                 setAssignmentInfo(json);
@@ -22,7 +23,7 @@ function AssignmentBody() {
         }
         const verifyLogin = async () => {
             try {
-                var response = await fetch('/api/auth/valid_login');
+                var response = await fetchWithAuth('/api/auth/valid_login');
                 if (response.ok) {
                     var json = await response.json();
                     if (json['message'] != 'true') {

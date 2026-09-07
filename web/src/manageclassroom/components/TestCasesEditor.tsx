@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import fetchWithAuth from '../../utils/fetcher';
 import BlueButton from "../../components/buttons/BlueButton";
 import DarkBlueButton from "../../components/buttons/DarkBlueButton";
 import { TestCase, TextTestCaseBody } from "../../models/testcases";
@@ -53,7 +54,7 @@ function TestCasesEditor({question, fontSize: fS, runSolution}: {question: Quest
             // Persist the latest solution code + test case inputs so the grader runs against them.
             await saveQuestions([question]);
 
-            const res = await fetch(`/api/grader/question/${question.id}/solution/run`, {
+            const res = await fetchWithAuth(`/api/grader/question/${question.id}/solution/run`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ testcase_id: testcaseId, solution_code: question.solution_code ?? "" }),
@@ -65,7 +66,7 @@ function TestCasesEditor({question, fontSize: fS, runSolution}: {question: Quest
             const results = await new Promise<any[]>((resolve, reject) => {
                 const interval = setInterval(async () => {
                     try {
-                        const r = await fetch(`/api/grader/solution/run/${run_id}`);
+                        const r = await fetchWithAuth(`/api/grader/solution/run/${run_id}`);
                         if (!r.ok) return;
                         const data = await r.json();
                         if (data.status !== "running") {

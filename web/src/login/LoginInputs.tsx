@@ -1,4 +1,5 @@
 import {useEffect, useState } from "react";
+import fetchWithAuth from '../utils/fetcher';
 import TextField from "../components/textfield/Textfield";
 
 interface FormData {
@@ -14,7 +15,7 @@ function LoginInputs() {
     const login = async () => {
 
         try {
-            const response = await fetch("/api/auth/login", {
+            const response = await fetchWithAuth("/api/auth/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

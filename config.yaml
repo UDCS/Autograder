@@ -15,7 +15,8 @@ db:
 auth:
   jwt:
     secret: secret # Change this to a long random string
-    access_token_duration: 15m
-    refresh_token_duration: 48h
+    access_token_duration: 1h
+    refresh_token_duration: 168h
+    session_max_duration: 336h
   admins:
   - mharold@udallas.edu
