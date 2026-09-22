@@ -6,7 +6,8 @@ import "../css/GradesSubpage.css"
 import AssignmentsGrades from "../components/AssignmentsGrades";
 import StudentGrades from "../components/StudentGrades";
 import clsx from "clsx";
-import { ClassroomGrades, QuestionSubmission, SubmissionStatus } from "../../models/grades";
+import { AssignmentGrade, ClassroomGrades, ClassroomGradesResponse, QuestionGradesResponse, QuestionSubmission, SubmissionStatus } from "../../models/grades";
+import { Assignment } from "../../models/classroom";
 
 interface GradesSubpageProps {
     classroomInfo: Classroom;
@@ -21,7 +22,7 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
     const activeSubmissions = useRef<Set<string>>(new Set());
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const updateSubmission = useCallback((submissionId: string, changes: Partial<QuestionSubmission>) => {
+    const updateSubmission = useCallback((submissionId: string | null, changes: Partial<QuestionSubmission>, studentId?: string) => {
         setClassroomGrades(prev => {
             if (!prev) return prev;
             return {
@@ -31,12 +32,46 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                     questions: assignment.questions.map(question => ({
                         ...question,
                         submissions: question.submissions.map(submission =>
-                            submission.submission_id === submissionId
+                            submission.submission_id === submissionId && (submissionId !== null || submission.student_id === studentId)
                                 ? { ...submission, ...changes }
                                 : submission
                         )
                     }))
                 }))
+            };
+        });
+    }, []);
+
+    const setQuestionGrades = useCallback((questionGrades: QuestionGradesResponse) => {
+        setClassroomGrades(previous => {
+            if (!previous) return previous;
+
+            return {
+                ...previous,
+                assignments: previous.assignments.map(assignment => ({
+                    ...assignment,
+                    questions: assignment.questions.map(question =>
+                        question.question_id === questionGrades.question_id
+                            ? {
+                                ...question,
+                                question_name: questionGrades.question_name,
+                                max_points: questionGrades.max_points,
+                                submissions: questionGrades.grades.map(grade => ({
+                                    submission_id: grade.submission_id,
+                                    student_id: grade.student_id,
+                                    student_name: grade.student_name,
+                                    score: grade.score,
+                                    code: "",
+                                    console_output: "",
+                                    manual_grade: grade.score,
+                                    show_grade: previous.show_grades,
+                                    is_manual_grade: false,
+                                    edit_mode: false,
+                                })),
+                            }
+                            : question
+                    ),
+                })),
             };
         });
     }, []);
@@ -80,44 +115,53 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
     }, []);
 
     useEffect(() => {
-        fetchWithAuth(`/api/classroom/${classroomInfo.id}/grades`)
-            .then(async r => {
-                if (!r.ok) throw new Error(await r.text());
-                return r.json();
-            })
-            .then(data => {
-                const grades: ClassroomGrades = {
-                    show_grades: false,
-                    assignments: data.assignments.map((a: any) => ({
-                        ...a,
-                        questions: a.questions.map((q: any) => ({
-                            ...q,
-                            submissions: q.submissions.map((s: any) => ({
-                                ...s,
-                                show_grade: false,
-                                edit_mode: false,
-                            }))
-                        }))
-                    }))
-                };
-                setClassroomGrades(grades);
-                // Resume polling for any submissions that were mid-grade when the page loaded
-                for (const a of grades.assignments) {
-                    for (const q of a.questions) {
-                        for (const s of q.submissions) {
-                            if (s.status === 'running') {
-                                addSubmission(s.submission_id);
-                            }
-                        }
-                    }
+        let cancelled = false;
+
+        const loadGrades = async () => {
+            setLoading(true);
+            setErrorMessage("");
+            try {
+                const [gradesResponse, assignmentsResponse] = await Promise.all([
+                    fetchWithAuth(`/api/classroom/${classroomInfo.id}/grades`),
+                    fetchWithAuth(`/api/classroom/${classroomInfo.id}/view_assignments`),
+                ]);
+                if (!gradesResponse.ok) throw new Error(await gradesResponse.text());
+                if (!assignmentsResponse.ok) throw new Error(await assignmentsResponse.text());
+
+                const gradesData = await gradesResponse.json() as ClassroomGradesResponse;
+                const assignmentsJson = await assignmentsResponse.json();
+                const assignmentsData = assignmentsJson['assignments'] as Assignment[];
+                const assignments: AssignmentGrade[] = assignmentsData.map(assignment => ({
+                    assignment_id: assignment.id!,
+                    assignment_name: assignment.name ?? "",
+                    questions: (assignment.questions ?? []).map(question => ({
+                        question_id: question.id!,
+                        question_name: question.header ?? "",
+                        max_points: question.points ?? 0,
+                        prog_lang: question.prog_lang ?? "python",
+                        submissions: [],
+                    })),
+                }));
+
+                if (!cancelled) {
+                    setClassroomGrades({
+                        show_grades: false,
+                        grades: gradesData.grades,
+                        assignments,
+                    });
                 }
-                setLoading(false);
-            })
-            .catch(err => {
-                setErrorMessage(err.message);
-                setLoading(false);
-            });
-    }, [classroomInfo.id, addSubmission]);
+            } catch (err) {
+                if (!cancelled) {
+                    setErrorMessage(err instanceof Error ? err.message : "Could not load grades");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        loadGrades();
+        return () => { cancelled = true; };
+    }, [classroomInfo.id]);
 
     if (errorMessage) return <div className="error">{errorMessage}</div>;
 
@@ -152,10 +196,10 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                             }} />
                     </div>
                     <div className={clsx(currentSection !== 'assignments' && 'hidden')}>
-                        <AssignmentsGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} addSubmission={addSubmission} />
+                        <AssignmentsGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} addSubmission={addSubmission} setQuestionGrades={setQuestionGrades} />
                     </div>
                     <div className={clsx(currentSection !== 'students' && 'hidden')}>
-                        <StudentGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} addSubmission={addSubmission} />
+                        <StudentGrades grades={classroomGrades!.grades} showGrades={classroomGrades!.show_grades} />
                     </div>
                 </>
             }

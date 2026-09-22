@@ -7,8 +7,9 @@ interface ExpandPanelProps {
     grade?: number;
     title: string;
     gap?: boolean;
+    onExpandedChange?: (expanded: boolean) => void;
 }
-function ExpandPanel({children, grade, title, gap=true}: ExpandPanelProps) {
+function ExpandPanel({children, grade, title, gap=true, onExpandedChange}: ExpandPanelProps) {
     const [selected, setSelected] = useState(false);
     const triangle = () => {
         return selected ? "▲" : "▼"; 
@@ -26,9 +27,14 @@ function ExpandPanel({children, grade, title, gap=true}: ExpandPanelProps) {
             gradeState = "poor-grade"
         }
     }
+    const toggleExpanded = () => {
+        const expanded = !selected;
+        setSelected(expanded);
+        onExpandedChange?.(expanded);
+    };
     return (
         <div className="expand-panel">
-            <div className="expand-panel-header" onClick={() => setSelected(!selected)}>
+            <div className="expand-panel-header" onClick={toggleExpanded}>
                 {hasGrade ? 
                     <>  
                         <span className="expand-panel-title center-title">{title}</span>
