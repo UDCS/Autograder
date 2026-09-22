@@ -473,6 +473,34 @@ func (router *HttpRouter) GetClassroomGrades(c echo.Context) error {
 	return c.JSON(http.StatusOK, grades)
 }
 
+func (router *HttpRouter) GetQuestionGrades(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	classroomId, err := uuid.Parse(c.Param("room_id"))
+	if err != nil {
+		logger.Error("could not parse classroom id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("invalid classroom id"))
+	}
+
+	questionId, err := uuid.Parse(c.Param("question_id"))
+	if err != nil {
+		logger.Error("could not parse question id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("invalid question id"))
+	}
+
+	grades, err := router.app.GetQuestionGrades(tokenString, classroomId, questionId)
+	if err != nil {
+		logger.Error("could not get question grades", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, grades)
+}
+
 func (router *HttpRouter) GetUserRole(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 	if err != nil {

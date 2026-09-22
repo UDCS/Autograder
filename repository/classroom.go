@@ -789,6 +789,58 @@ func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.Cla
 	return result, nil
 }
 
+func (store PostgresStore) GetQuestionGrades(classroomId uuid.UUID, questionId uuid.UUID) (models.QuestionGradesResult, error) {
+	result := models.QuestionGradesResult{
+		QuestionId: questionId,
+		Grades:     make([]models.StudentQuestionGrade, 0),
+	}
+
+	err := store.db.QueryRowx(`
+		SELECT q.header AS question_name, COALESCE(SUM(t.points), 0) AS max_points
+		FROM questions q
+		JOIN assignments a ON a.id = q.assignment_id
+		LEFT JOIN testcases t ON t.question_id = q.id
+		WHERE q.id = $1 AND a.classroom_id = $2
+		GROUP BY q.id, q.header
+	`, questionId, classroomId).Scan(&result.QuestionName, &result.MaxPoints)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.QuestionGradesResult{}, fmt.Errorf("question not found in classroom")
+		}
+		return models.QuestionGradesResult{}, err
+	}
+
+	err = store.db.Select(&result.Grades, `
+		WITH testcase_scores AS (
+			SELECT tg.student_id, COALESCE(SUM(tg.score), 0) AS score
+			FROM testcases t
+			JOIN testcase_grades tg ON tg.testcase_id = t.id
+			WHERE t.question_id = $2
+			GROUP BY tg.student_id
+		)
+		SELECT u.id AS student_id,
+		       u.first_name || ' ' || u.last_name AS student_name,
+		       CASE WHEN qgo.is_manual_grade THEN COALESCE(qgo.new_grade, 0)
+		            ELSE COALESCE(ts.score, 0) END AS score,
+		       ss.id AS submission_id
+		FROM user_classroom_matching ucm
+		JOIN users u ON u.id = ucm.user_id
+		LEFT JOIN testcase_scores ts ON ts.student_id = u.id
+		LEFT JOIN question_grade_overrides qgo
+		       ON qgo.student_id = u.id AND qgo.question_id = $2
+		LEFT JOIN student_submissions ss
+		       ON ss.user_id = u.id AND ss.question_id = $2
+		WHERE ucm.classroom_id = $1 AND ucm.user_role IN ('student', 'assistant')
+		ORDER BY CASE ucm.user_role WHEN 'student' THEN 0 ELSE 1 END,
+		         u.last_name, u.first_name, u.id
+	`, classroomId, questionId)
+	if err != nil {
+		return models.QuestionGradesResult{}, err
+	}
+
+	return result, nil
+}
+
 func (store PostgresStore) SetSubmissionStatus(submissionId uuid.UUID, status models.SubmissionStatus) error {
 	_, err := store.db.Exec(
 		"UPDATE student_submissions SET status = $2 WHERE id = $1",

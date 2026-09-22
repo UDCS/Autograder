@@ -50,6 +50,20 @@ type ClassroomGradesResult struct {
 	Grades []StudentAverageGrade `json:"grades"`
 }
 
+type StudentQuestionGrade struct {
+	StudentId    uuid.UUID  `json:"student_id" db:"student_id"`
+	StudentName  string     `json:"student_name" db:"student_name"`
+	Score        int        `json:"score" db:"score"`
+	SubmissionId *uuid.UUID `json:"submission_id" db:"submission_id"`
+}
+
+type QuestionGradesResult struct {
+	QuestionId   uuid.UUID              `json:"question_id"`
+	QuestionName string                 `json:"question_name"`
+	MaxPoints    int                    `json:"max_points"`
+	Grades       []StudentQuestionGrade `json:"grades"`
+}
+
 type GradeUpdate struct {
 	QuestionId    uuid.UUID `json:"question_id"`
 	StudentId     uuid.UUID `json:"student_id"`
