@@ -199,7 +199,7 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                         <AssignmentsGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} addSubmission={addSubmission} setQuestionGrades={setQuestionGrades} />
                     </div>
                     <div className={clsx(currentSection !== 'students' && 'hidden')}>
-                        <StudentGrades grades={classroomGrades!.grades} showGrades={classroomGrades!.show_grades} />
+                        <StudentGrades grades={classroomGrades!.grades} showGrades={classroomGrades!.show_grades} classroomId={classroomInfo.id!} assignments={classroomGrades!.assignments} />
                     </div>
                 </>
             }

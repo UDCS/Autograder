@@ -65,6 +65,20 @@ export interface SubmissionDetailsResponse {
     status: SubmissionStatus;
 }
 
+export interface AssignmentQuestionGrade {
+    question_id: string;
+    question_name: string;
+    max_points: number;
+    score: number;
+}
+
+export interface StudentAssignmentGradesResponse {
+    student_id: string;
+    assignment_id: string;
+    assignment_name: string;
+    grades: AssignmentQuestionGrade[];
+}
+
 export interface StudentAverageGrade {
     student_id: string;
     student_name: string;
