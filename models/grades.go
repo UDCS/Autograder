@@ -73,6 +73,20 @@ type SubmissionDetails struct {
 	Status        SubmissionStatus `json:"status" db:"status"`
 }
 
+type AssignmentQuestionGrade struct {
+	QuestionId   uuid.UUID `json:"question_id" db:"question_id"`
+	QuestionName string    `json:"question_name" db:"question_name"`
+	MaxPoints    int       `json:"max_points" db:"max_points"`
+	Score        int       `json:"score" db:"score"`
+}
+
+type StudentAssignmentGradesResult struct {
+	StudentId      uuid.UUID                 `json:"student_id"`
+	AssignmentId   uuid.UUID                 `json:"assignment_id"`
+	AssignmentName string                    `json:"assignment_name"`
+	Grades         []AssignmentQuestionGrade `json:"grades"`
+}
+
 type GradeUpdate struct {
 	QuestionId    uuid.UUID `json:"question_id"`
 	StudentId     uuid.UUID `json:"student_id"`

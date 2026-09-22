@@ -47,6 +47,7 @@ type Handler interface {
 	GetClassroomGrades(c echo.Context) error
 	GetQuestionGrades(c echo.Context) error
 	GetSubmissionDetails(c echo.Context) error
+	GetStudentAssignmentGrades(c echo.Context) error
 	UpdateClassroomGrades(c echo.Context) error
 	// Grader
 	GradeSubmission(c context.Context) error
@@ -130,6 +131,7 @@ func (router *HttpRouter) SetupRoutes() {
 	classroom.GET("/:room_id/grades", router.GetClassroomGrades)
 	classroom.GET("/:room_id/question/:question_id/grades", router.GetQuestionGrades)
 	classroom.GET("/:room_id/submission/:submission_id", router.GetSubmissionDetails)
+	classroom.GET("/:room_id/assignment/:assignment_id/student/:student_id", router.GetStudentAssignmentGrades)
 	classroom.PATCH("/:room_id/grades", router.UpdateClassroomGrades)
 
 	grader := api.Group("/grader")

@@ -866,6 +866,53 @@ func (store PostgresStore) GetSubmissionDetails(classroomId uuid.UUID, submissio
 	return result, nil
 }
 
+func (store PostgresStore) GetStudentAssignmentGrades(classroomId uuid.UUID, assignmentId uuid.UUID, studentId uuid.UUID) (models.StudentAssignmentGradesResult, error) {
+	result := models.StudentAssignmentGradesResult{
+		StudentId:    studentId,
+		AssignmentId: assignmentId,
+		Grades:       make([]models.AssignmentQuestionGrade, 0),
+	}
+
+	err := store.db.Get(&result.AssignmentName, `
+		SELECT a.name
+		FROM assignments a
+		JOIN user_classroom_matching ucm ON ucm.classroom_id = a.classroom_id
+		WHERE a.id = $2
+		  AND a.classroom_id = $1
+		  AND ucm.user_id = $3
+		  AND ucm.user_role IN ('student', 'assistant')
+		LIMIT 1
+	`, classroomId, assignmentId, studentId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.StudentAssignmentGradesResult{}, fmt.Errorf("assignment or student not found in classroom")
+		}
+		return models.StudentAssignmentGradesResult{}, err
+	}
+
+	err = store.db.Select(&result.Grades, `
+		SELECT q.id AS question_id,
+		       q.header AS question_name,
+		       COALESCE(SUM(t.points), 0) AS max_points,
+		       CASE WHEN qgo.is_manual_grade THEN COALESCE(qgo.new_grade, 0)
+		            ELSE COALESCE(SUM(tg.score), 0) END AS score
+		FROM questions q
+		LEFT JOIN testcases t ON t.question_id = q.id
+		LEFT JOIN testcase_grades tg
+		       ON tg.testcase_id = t.id AND tg.student_id = $2
+		LEFT JOIN question_grade_overrides qgo
+		       ON qgo.question_id = q.id AND qgo.student_id = $2
+		WHERE q.assignment_id = $1
+		GROUP BY q.id, q.header, q.sort_index, qgo.is_manual_grade, qgo.new_grade
+		ORDER BY q.sort_index, q.id
+	`, assignmentId, studentId)
+	if err != nil {
+		return models.StudentAssignmentGradesResult{}, err
+	}
+
+	return result, nil
+}
+
 func (store PostgresStore) SetSubmissionStatus(submissionId uuid.UUID, status models.SubmissionStatus) error {
 	_, err := store.db.Exec(
 		"UPDATE student_submissions SET status = $2 WHERE id = $1",
