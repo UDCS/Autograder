@@ -501,6 +501,34 @@ func (router *HttpRouter) GetQuestionGrades(c echo.Context) error {
 	return c.JSON(http.StatusOK, grades)
 }
 
+func (router *HttpRouter) GetSubmissionDetails(c echo.Context) error {
+	tokenString, err := middlewares.GetAccessToken(c)
+	if err != nil {
+		logger.Error("could not find access token", zap.Error(err))
+		return c.JSON(http.StatusUnauthorized, json_response.NewError("could not find access token"))
+	}
+
+	classroomId, err := uuid.Parse(c.Param("room_id"))
+	if err != nil {
+		logger.Error("could not parse classroom id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("invalid classroom id"))
+	}
+
+	submissionId, err := uuid.Parse(c.Param("submission_id"))
+	if err != nil {
+		logger.Error("could not parse submission id", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError("invalid submission id"))
+	}
+
+	submission, err := router.app.GetSubmissionDetails(tokenString, classroomId, submissionId)
+	if err != nil {
+		logger.Error("could not get submission details", zap.Error(err))
+		return c.JSON(http.StatusBadRequest, json_response.NewError(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, submission)
+}
+
 func (router *HttpRouter) GetUserRole(c echo.Context) error {
 	tokenString, err := middlewares.GetAccessToken(c)
 	if err != nil {

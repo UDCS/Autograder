@@ -39,6 +39,7 @@ type App interface {
 	// Grades
 	GetClassroomGrades(jwksToken string, classroomId uuid.UUID) (models.ClassroomGradesResult, error)
 	GetQuestionGrades(jwksToken string, classroomId uuid.UUID, questionId uuid.UUID) (models.QuestionGradesResult, error)
+	GetSubmissionDetails(jwksToken string, classroomId uuid.UUID, submissionId uuid.UUID) (models.SubmissionDetails, error)
 	UpdateClassroomGrades(jwksToken string, classroomId uuid.UUID, request models.UpdateClassroomGradesRequest) error
 	GetSubmissionStatuses(jwksToken string, submissionIds []uuid.UUID) ([]models.SubmissionStatusResult, error)
 	// Assignments

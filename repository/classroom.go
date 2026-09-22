@@ -841,6 +841,31 @@ func (store PostgresStore) GetQuestionGrades(classroomId uuid.UUID, questionId u
 	return result, nil
 }
 
+func (store PostgresStore) GetSubmissionDetails(classroomId uuid.UUID, submissionId uuid.UUID) (models.SubmissionDetails, error) {
+	var result models.SubmissionDetails
+	err := store.db.Get(&result, `
+		SELECT ss.id AS submission_id,
+		       ss.code,
+		       ss.feedback_full AS console_output,
+		       COALESCE(qgo.is_manual_grade, false) AS is_manual_grade,
+		       COALESCE(qgo.new_grade, 0) AS manual_grade,
+		       ss.status
+		FROM student_submissions ss
+		JOIN questions q ON q.id = ss.question_id
+		JOIN assignments a ON a.id = q.assignment_id
+		LEFT JOIN question_grade_overrides qgo
+		       ON qgo.student_id = ss.user_id AND qgo.question_id = ss.question_id
+		WHERE ss.id = $1 AND a.classroom_id = $2
+	`, submissionId, classroomId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models.SubmissionDetails{}, fmt.Errorf("submission not found in classroom")
+		}
+		return models.SubmissionDetails{}, err
+	}
+	return result, nil
+}
+
 func (store PostgresStore) SetSubmissionStatus(submissionId uuid.UUID, status models.SubmissionStatus) error {
 	_, err := store.db.Exec(
 		"UPDATE student_submissions SET status = $2 WHERE id = $1",

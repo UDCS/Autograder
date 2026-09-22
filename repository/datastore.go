@@ -25,6 +25,7 @@ type Datastore interface {
 	// Grades
 	GetClassroomGrades(classroomId uuid.UUID) (models.ClassroomGradesResult, error)
 	GetQuestionGrades(classroomId uuid.UUID, questionId uuid.UUID) (models.QuestionGradesResult, error)
+	GetSubmissionDetails(classroomId uuid.UUID, submissionId uuid.UUID) (models.SubmissionDetails, error)
 	CreateDefaultSubmission(userId uuid.UUID, questionId uuid.UUID, defaultCode string) (uuid.UUID, error)
 	UpdateClassroomGrades(updates []models.GradeUpdate) error
 	SetSubmissionStatus(submissionId uuid.UUID, status models.SubmissionStatus) error

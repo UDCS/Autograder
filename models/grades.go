@@ -64,6 +64,15 @@ type QuestionGradesResult struct {
 	Grades       []StudentQuestionGrade `json:"grades"`
 }
 
+type SubmissionDetails struct {
+	SubmissionId  uuid.UUID        `json:"submission_id" db:"submission_id"`
+	Code          string           `json:"code" db:"code"`
+	ConsoleOutput string           `json:"console_output" db:"console_output"`
+	IsManualGrade bool             `json:"is_manual_grade" db:"is_manual_grade"`
+	ManualGrade   int              `json:"manual_grade" db:"manual_grade"`
+	Status        SubmissionStatus `json:"status" db:"status"`
+}
+
 type GradeUpdate struct {
 	QuestionId    uuid.UUID `json:"question_id"`
 	StudentId     uuid.UUID `json:"student_id"`
