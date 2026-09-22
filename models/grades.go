@@ -40,22 +40,14 @@ type SubmissionAttempt struct {
 	IsLate      bool             `json:"is_late" db:"is_late"`
 }
 
-type QuestionGradeResult struct {
-	QuestionId   uuid.UUID                 `json:"question_id"`
-	QuestionName string                    `json:"question_name"`
-	MaxPoints    int                       `json:"max_points"`
-	ProgLang     string                    `json:"prog_lang"`
-	Submissions  []QuestionSubmissionGrade `json:"submissions"`
-}
-
-type AssignmentGradeResult struct {
-	AssignmentId   uuid.UUID             `json:"assignment_id"`
-	AssignmentName string                `json:"assignment_name"`
-	Questions      []QuestionGradeResult `json:"questions"`
+type StudentAverageGrade struct {
+	StudentId    uuid.UUID `json:"student_id" db:"student_id"`
+	StudentName  string    `json:"student_name" db:"student_name"`
+	AverageGrade float64   `json:"average_grade" db:"average_grade"`
 }
 
 type ClassroomGradesResult struct {
-	Assignments []AssignmentGradeResult `json:"assignments"`
+	Grades []StudentAverageGrade `json:"grades"`
 }
 
 type GradeUpdate struct {

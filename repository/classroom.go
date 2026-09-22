@@ -743,152 +743,49 @@ func (store PostgresStore) CreateDefaultSubmission(userId uuid.UUID, questionId 
 }
 
 func (store PostgresStore) GetClassroomGrades(classroomId uuid.UUID) (models.ClassroomGradesResult, error) {
-	var assignments []struct {
-		Id   uuid.UUID `db:"id"`
-		Name string    `db:"name"`
-	}
-	err := store.db.Select(&assignments,
-		"SELECT id, name FROM assignments WHERE classroom_id = $1",
-		classroomId,
-	)
-	if err != nil {
-		return models.ClassroomGradesResult{}, err
-	}
-
-	var students []struct {
-		UserId    uuid.UUID `db:"user_id"`
-		FirstName string    `db:"first_name"`
-		LastName  string    `db:"last_name"`
-	}
-	err = store.db.Select(&students, `
-		SELECT u.id AS user_id, u.first_name, u.last_name
+	result := models.ClassroomGradesResult{Grades: make([]models.StudentAverageGrade, 0)}
+	err := store.db.Select(&result.Grades, `
+		WITH question_points AS (
+			SELECT q.id AS question_id, COALESCE(SUM(t.points), 0) AS max_points
+			FROM assignments a
+			JOIN questions q ON q.assignment_id = a.id
+			LEFT JOIN testcases t ON t.question_id = q.id
+			WHERE a.classroom_id = $1
+			GROUP BY q.id
+		),
+		testcase_scores AS (
+			SELECT tg.student_id, t.question_id, SUM(tg.score) AS score
+			FROM assignments a
+			JOIN questions q ON q.assignment_id = a.id
+			JOIN testcases t ON t.question_id = q.id
+			JOIN testcase_grades tg ON tg.testcase_id = t.id
+			WHERE a.classroom_id = $1
+			GROUP BY tg.student_id, t.question_id
+		)
+		SELECT u.id AS student_id,
+		       u.first_name || ' ' || u.last_name AS student_name,
+		       COALESCE(
+		           100.0 * SUM(CASE WHEN qgo.is_manual_grade
+		                            THEN COALESCE(qgo.new_grade, 0)
+		                            ELSE COALESCE(ts.score, 0) END)
+		           / NULLIF(SUM(COALESCE(qp.max_points, 0)), 0),
+		           0
+		       )::double precision AS average_grade
 		FROM user_classroom_matching ucm
-		JOIN users u ON ucm.user_id = u.id
+		JOIN users u ON u.id = ucm.user_id
+		LEFT JOIN assignments a ON a.classroom_id = ucm.classroom_id
+		LEFT JOIN questions q ON q.assignment_id = a.id
+		LEFT JOIN question_points qp ON qp.question_id = q.id
+		LEFT JOIN testcase_scores ts ON ts.student_id = u.id AND ts.question_id = q.id
+		LEFT JOIN question_grade_overrides qgo ON qgo.student_id = u.id AND qgo.question_id = q.id
 		WHERE ucm.classroom_id = $1 AND ucm.user_role IN ('student', 'assistant')
-		ORDER BY
-			CASE ucm.user_role
-				WHEN 'student' THEN 0
-				WHEN 'assistant' THEN 1
-				ELSE 2
-			END,
-			u.last_name, u.first_name
+		GROUP BY u.id, u.first_name, u.last_name
+		ORDER BY MIN(CASE ucm.user_role WHEN 'student' THEN 0 ELSE 1 END),
+		         u.last_name, u.first_name, u.id
 	`, classroomId)
 	if err != nil {
 		return models.ClassroomGradesResult{}, err
 	}
-
-	result := models.ClassroomGradesResult{
-		Assignments: make([]models.AssignmentGradeResult, 0),
-	}
-
-	for _, assignment := range assignments {
-		var questions []struct {
-			Id          uuid.UUID `db:"id"`
-			Header      string    `db:"header"`
-			DefaultCode string    `db:"default_code"`
-			ProgLang    string    `db:"prog_lang"`
-		}
-		err = store.db.Select(&questions,
-			"SELECT id, header, default_code, prog_lang FROM questions WHERE assignment_id = $1",
-			assignment.Id,
-		)
-		if err != nil {
-			return models.ClassroomGradesResult{}, err
-		}
-
-		assignmentResult := models.AssignmentGradeResult{
-			AssignmentId:   assignment.Id,
-			AssignmentName: assignment.Name,
-			Questions:      make([]models.QuestionGradeResult, 0),
-		}
-
-		for _, question := range questions {
-			maxPoints, err := store.GetQuestionPoints(question.Id)
-			if err != nil {
-				return models.ClassroomGradesResult{}, err
-			}
-
-			questionResult := models.QuestionGradeResult{
-				QuestionId:   question.Id,
-				QuestionName: question.Header,
-				MaxPoints:    int(maxPoints),
-				ProgLang:     question.ProgLang,
-				Submissions:  make([]models.QuestionSubmissionGrade, 0),
-			}
-
-			for _, student := range students {
-				var submissionId uuid.UUID
-				var consoleOutput string
-				var code string
-				var status string
-				var submission struct {
-					Id       uuid.UUID `db:"id"`
-					Feedback string    `db:"feedback"`
-					Code     string    `db:"code"`
-					Status   string    `db:"status"`
-				}
-				if subErr := store.db.Get(&submission,
-					"SELECT id, feedback_full AS feedback, code, status FROM student_submissions WHERE user_id=$1 AND question_id=$2",
-					student.UserId, question.Id,
-				); subErr == nil {
-					submissionId = submission.Id
-					consoleOutput = submission.Feedback
-					code = submission.Code
-					status = submission.Status
-				} else {
-					submissionId, _ = store.CreateDefaultSubmission(student.UserId, question.Id, question.DefaultCode)
-					code = question.DefaultCode
-					status = models.SubmissionFailed
-				}
-
-				score, _ := store.GetStudentQuestionGrade(student.UserId, question.Id)
-
-				// Whether the student's most recent grade run was after the deadline.
-				var isLate bool
-				_ = store.db.Get(&isLate, `
-					SELECT (sa.submitted_at > a.due_at)
-					FROM submission_attempts sa
-					JOIN questions q   ON q.id = sa.question_id
-					JOIN assignments a ON a.id = q.assignment_id
-					WHERE sa.user_id = $1 AND sa.question_id = $2
-					ORDER BY sa.submitted_at DESC
-					LIMIT 1
-				`, student.UserId, question.Id)
-
-				var isManualGrade bool
-				var manualGrade int
-				var override struct {
-					IsManualGrade bool `db:"is_manual_grade"`
-					NewGrade      int  `db:"new_grade"`
-				}
-				if overrideErr := store.db.Get(&override,
-					"SELECT is_manual_grade, COALESCE(new_grade, 0) AS new_grade FROM question_grade_overrides WHERE student_id=$1 AND question_id=$2",
-					student.UserId, question.Id,
-				); overrideErr == nil {
-					isManualGrade = override.IsManualGrade
-					manualGrade = override.NewGrade
-				}
-
-				questionResult.Submissions = append(questionResult.Submissions, models.QuestionSubmissionGrade{
-					SubmissionId:  submissionId,
-					StudentId:     student.UserId,
-					StudentName:   student.FirstName + " " + student.LastName,
-					Score:         int(score),
-					Code:          code,
-					ConsoleOutput: consoleOutput,
-					IsManualGrade: isManualGrade,
-					ManualGrade:   manualGrade,
-					Status:        status,
-					IsLate:        isLate,
-				})
-			}
-
-			assignmentResult.Questions = append(assignmentResult.Questions, questionResult)
-		}
-
-		result.Assignments = append(result.Assignments, assignmentResult)
-	}
-
 	return result, nil
 }
 
