@@ -1,4 +1,4 @@
-import { AssignmentGrade, StudentAverageGrade } from "../../models/grades";
+import { AddSubmission, AssignmentGrade, RegisterManualGradeUpdateListener, SaveManualGrade, StudentAverageGrade } from "../../models/grades";
 import "../css/AssignmentsGrades.css"
 import StudentGradePanel from "./StudentGradePanel";
 
@@ -7,9 +7,12 @@ interface StudentGradesProps {
     showGrades: boolean;
     classroomId: string;
     assignments: AssignmentGrade[];
+    addSubmission: AddSubmission;
+    saveManualGrade: SaveManualGrade;
+    registerManualGradeUpdateListener: RegisterManualGradeUpdateListener;
 }
 
-function StudentGrades({ grades, showGrades, classroomId, assignments }: StudentGradesProps) {
+function StudentGrades({ grades, showGrades, classroomId, assignments, addSubmission, saveManualGrade, registerManualGradeUpdateListener }: StudentGradesProps) {
     return (
         <div className="assignments-grades">
             {grades.map(student => (
@@ -21,6 +24,9 @@ function StudentGrades({ grades, showGrades, classroomId, assignments }: Student
                     showGrade={showGrades}
                     classroomId={classroomId}
                     assignments={assignments}
+                    addSubmission={addSubmission}
+                    saveManualGrade={saveManualGrade}
+                    registerManualGradeUpdateListener={registerManualGradeUpdateListener}
                 />
             ))}
         </div>

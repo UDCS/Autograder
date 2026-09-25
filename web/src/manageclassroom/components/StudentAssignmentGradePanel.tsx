@@ -1,21 +1,26 @@
-import { useEffect, useRef, useState } from "react";
-import QuestionScore from "../../components/question/QuestionScore";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Spinner from "../../components/spinner/Spinner";
-import { StudentAssignmentGradesResponse } from "../../models/grades";
+import { AddSubmission, QuestionGrade, QuestionSubmission, RegisterManualGradeUpdateListener, SaveManualGrade, StudentAssignmentGradesResponse } from "../../models/grades";
 import fetchWithAuth from "../../utils/fetcher";
-import "../css/QuestionGradeDropdown.css";
 import ExpandPanel from "./ExpandPanel";
+import QuestionGradeDropdown from "./QuestionGradeDropdown";
 
 interface StudentAssignmentGradePanelProps {
     classroomId: string;
     assignmentId: string;
     assignmentName: string;
+    questions: QuestionGrade[];
     studentId: string;
+    studentName: string;
     showGrade: boolean;
+    addSubmission: AddSubmission;
+    saveManualGrade: SaveManualGrade;
+    registerManualGradeUpdateListener: RegisterManualGradeUpdateListener;
 }
 
 function StudentAssignmentGradePanel(props: StudentAssignmentGradePanelProps) {
     const [grades, setGrades] = useState<StudentAssignmentGradesResponse | null>(null);
+    const [questionSubmissions, setQuestionSubmissions] = useState<Record<string, QuestionSubmission>>({});
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const requestController = useRef<AbortController | null>(null);
@@ -39,7 +44,25 @@ function StudentAssignmentGradePanel(props: StudentAssignmentGradePanelProps) {
             );
             if (!response.ok) throw new Error(await response.text());
 
-            setGrades(await response.json() as StudentAssignmentGradesResponse);
+            const assignmentGrades = await response.json() as StudentAssignmentGradesResponse;
+            setGrades(assignmentGrades);
+            setQuestionSubmissions(Object.fromEntries(
+                assignmentGrades.grades.map(grade => [
+                    grade.question_id,
+                    {
+                        submission_id: grade.submission_id,
+                        student_id: assignmentGrades.student_id,
+                        student_name: props.studentName,
+                        score: grade.score,
+                        code: "",
+                        console_output: "",
+                        manual_grade: grade.score,
+                        show_grade: props.showGrade,
+                        is_manual_grade: false,
+                        edit_mode: false,
+                    },
+                ]),
+            ));
         } catch (error) {
             if (!controller.signal.aborted) {
                 setErrorMessage(error instanceof Error ? error.message : "Could not load assignment grades");
@@ -49,14 +72,51 @@ function StudentAssignmentGradePanel(props: StudentAssignmentGradePanelProps) {
         }
     };
 
+    useEffect(() => {
+        setQuestionSubmissions(previous => Object.fromEntries(
+            Object.entries(previous).map(([questionId, submission]) => [
+                questionId,
+                { ...submission, show_grade: props.showGrade },
+            ]),
+        ));
+    }, [props.showGrade]);
+
+    const updateQuestionSubmission = useCallback((questionId: string, changes: Partial<QuestionSubmission>) => {
+        setQuestionSubmissions(previous => {
+            const submission = previous[questionId];
+            if (!submission) return previous;
+            return {
+                ...previous,
+                [questionId]: { ...submission, ...changes },
+            };
+        });
+    }, []);
+
+    useEffect(() => {
+        if (grades === null) return;
+
+        const unregisterListeners = grades.grades.map(grade =>
+            props.registerManualGradeUpdateListener(
+                grade.question_id,
+                props.studentId,
+                changes => updateQuestionSubmission(grade.question_id, changes),
+            )
+        );
+        return () => unregisterListeners.forEach(unregister => unregister());
+    }, [grades, props.registerManualGradeUpdateListener, props.studentId, updateQuestionSubmission]);
+
     const assignmentPercentage = () => {
         if (grades === null) return undefined;
 
         const totals = grades.grades.reduce(
-            (result, grade) => ({
-                score: result.score + grade.score,
-                maxPoints: result.maxPoints + grade.max_points,
-            }),
+            (result, grade) => {
+                const submission = questionSubmissions[grade.question_id];
+                const score = submission?.is_manual_grade ? submission.manual_grade : submission?.score ?? grade.score;
+                return {
+                    score: result.score + score,
+                    maxPoints: result.maxPoints + grade.max_points,
+                };
+            },
             { score: 0, maxPoints: 0 },
         );
         return totals.maxPoints > 0 ? totals.score / totals.maxPoints * 100 : 0;
@@ -75,18 +135,26 @@ function StudentAssignmentGradePanel(props: StudentAssignmentGradePanelProps) {
                     ? <div className="error">{errorMessage}</div>
                     : grades?.grades.length === 0
                         ? <div>No questions in this assignment.</div>
-                        : grades?.grades.map(grade => (
-                            <div className="question-grade-dropdown" key={grade.question_id}>
-                                <div className="question-grade-header">
-                                    <div className="question-grade-title">{grade.question_name}</div>
-                                    {props.showGrade &&
-                                        <div className="question-grade-button">
-                                            <QuestionScore score={grade.score} points={grade.max_points} numberOnly />
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        ))
+                        : grades?.grades.map(grade => {
+                            const questionSubmission = questionSubmissions[grade.question_id];
+                            if (!questionSubmission) return null;
+
+                            const question = props.questions.find(item => item.question_id === grade.question_id);
+                            return (
+                                <QuestionGradeDropdown
+                                    key={grade.question_id}
+                                    questionSubmission={questionSubmission}
+                                    updateSubmission={(_submissionId, changes) => updateQuestionSubmission(grade.question_id, changes)}
+                                    max_score={grade.max_points}
+                                    title={grade.question_name}
+                                    classroomId={props.classroomId}
+                                    questionId={grade.question_id}
+                                    progLang={question?.prog_lang ?? "python"}
+                                    addSubmission={props.addSubmission}
+                                    saveManualGrade={props.saveManualGrade}
+                                />
+                            );
+                        })
             }
         </ExpandPanel>
     );

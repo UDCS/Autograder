@@ -847,6 +847,13 @@ func (store PostgresStore) GetSubmissionDetails(classroomId uuid.UUID, submissio
 		SELECT ss.id AS submission_id,
 		       ss.code,
 		       ss.feedback_full AS console_output,
+		       COALESCE((
+		           SELECT SUM(tg.score)
+		           FROM testcases t
+		           LEFT JOIN testcase_grades tg
+		                  ON tg.testcase_id = t.id AND tg.student_id = ss.user_id
+		           WHERE t.question_id = ss.question_id
+		       ), 0) AS automatic_score,
 		       COALESCE(qgo.is_manual_grade, false) AS is_manual_grade,
 		       COALESCE(qgo.new_grade, 0) AS manual_grade,
 		       ss.status
@@ -895,15 +902,24 @@ func (store PostgresStore) GetStudentAssignmentGrades(classroomId uuid.UUID, ass
 		       q.header AS question_name,
 		       COALESCE(SUM(t.points), 0) AS max_points,
 		       CASE WHEN qgo.is_manual_grade THEN COALESCE(qgo.new_grade, 0)
-		            ELSE COALESCE(SUM(tg.score), 0) END AS score
+		            ELSE COALESCE(SUM(tg.score), 0) END AS score,
+		       ss.id AS submission_id
 		FROM questions q
 		LEFT JOIN testcases t ON t.question_id = q.id
 		LEFT JOIN testcase_grades tg
 		       ON tg.testcase_id = t.id AND tg.student_id = $2
 		LEFT JOIN question_grade_overrides qgo
 		       ON qgo.question_id = q.id AND qgo.student_id = $2
+		LEFT JOIN LATERAL (
+			SELECT student_submissions.id
+			FROM student_submissions
+			WHERE student_submissions.question_id = q.id
+			  AND student_submissions.user_id = $2
+			ORDER BY student_submissions.updated_at DESC, student_submissions.id DESC
+			LIMIT 1
+		) ss ON TRUE
 		WHERE q.assignment_id = $1
-		GROUP BY q.id, q.header, q.sort_index, qgo.is_manual_grade, qgo.new_grade
+		GROUP BY q.id, q.header, q.sort_index, qgo.is_manual_grade, qgo.new_grade, ss.id
 		ORDER BY q.sort_index, q.id
 	`, assignmentId, studentId)
 	if err != nil {

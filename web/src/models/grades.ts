@@ -60,17 +60,39 @@ export interface SubmissionDetailsResponse {
     submission_id: string;
     code: string;
     console_output: string;
+    automatic_score: number;
     is_manual_grade: boolean;
     manual_grade: number;
     status: SubmissionStatus;
 }
+
+export interface ManualGradeUpdate {
+    question_id: string;
+    student_id: string;
+    automatic_score: number;
+    is_manual_grade: boolean;
+    manual_grade: number;
+}
+
+export type ManualGradeChanges = Pick<QuestionSubmission, "score" | "is_manual_grade" | "manual_grade">;
+export type ManualGradeUpdateListener = (changes: ManualGradeChanges) => void;
+export type RegisterManualGradeUpdateListener = (
+    questionId: string,
+    studentId: string,
+    listener: ManualGradeUpdateListener,
+) => () => void;
+export type SaveManualGrade = (update: ManualGradeUpdate) => Promise<void>;
 
 export interface AssignmentQuestionGrade {
     question_id: string;
     question_name: string;
     max_points: number;
     score: number;
+    submission_id: string | null;
 }
+
+export type SubmissionUpdateListener = (changes: Partial<QuestionSubmission>) => void;
+export type AddSubmission = (submissionId: string, onUpdate?: SubmissionUpdateListener) => void;
 
 export interface StudentAssignmentGradesResponse {
     student_id: string;

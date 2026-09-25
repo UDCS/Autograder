@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Spinner from "../../components/spinner/Spinner";
-import { QuestionGrade, QuestionGradesResponse, QuestionSubmission } from "../../models/grades";
+import { AddSubmission, QuestionGrade, QuestionGradesResponse, QuestionSubmission, SaveManualGrade } from "../../models/grades";
 import fetchWithAuth from "../../utils/fetcher";
 import "../css/QuestionGradePanel.css"
 
@@ -11,11 +11,12 @@ interface QuestionGradePanelProps {
     questionGrade: QuestionGrade;
     updateSubmission: (submissionId: string | null, changes: Partial<QuestionSubmission>, studentId?: string) => void;
     classroomId: string;
-    addSubmission: (submissionId: string) => void;
+    addSubmission: AddSubmission;
     setQuestionGrades: (questionGrades: QuestionGradesResponse) => void;
+    saveManualGrade: SaveManualGrade;
 }
 
-function QuestionGradePanel({questionGrade, updateSubmission, classroomId, addSubmission, setQuestionGrades}: QuestionGradePanelProps) {
+function QuestionGradePanel({questionGrade, updateSubmission, classroomId, addSubmission, setQuestionGrades, saveManualGrade}: QuestionGradePanelProps) {
     const [loading, setLoading] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -54,7 +55,7 @@ function QuestionGradePanel({questionGrade, updateSubmission, classroomId, addSu
 
     const questionSubmissionsToPanels = () => {
         return questionGrade.submissions.map((questionSubmission: QuestionSubmission) => {
-            return <QuestionGradeDropdown key={`${questionGrade.question_id}-${questionSubmission.student_id}`} questionSubmission={questionSubmission} max_score={questionGrade.max_points} updateSubmission={updateSubmission} classroomId={classroomId} questionId={questionGrade.question_id} progLang={questionGrade.prog_lang} addSubmission={addSubmission} />
+            return <QuestionGradeDropdown key={`${questionGrade.question_id}-${questionSubmission.student_id}`} questionSubmission={questionSubmission} max_score={questionGrade.max_points} updateSubmission={updateSubmission} classroomId={classroomId} questionId={questionGrade.question_id} progLang={questionGrade.prog_lang} addSubmission={addSubmission} saveManualGrade={saveManualGrade} />
         });
     }
     return (
