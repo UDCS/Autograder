@@ -6,11 +6,14 @@ import "../css/GradesSubpage.css"
 import AssignmentsGrades from "../components/AssignmentsGrades";
 import StudentGrades from "../components/StudentGrades";
 import clsx from "clsx";
-import { ClassroomGrades, QuestionSubmission, SubmissionStatus } from "../../models/grades";
+import { AddSubmission, AssignmentGrade, ClassroomGrades, ClassroomGradesResponse, ManualGradeChanges, ManualGradeUpdateListener, QuestionGradesResponse, QuestionSubmission, RegisterManualGradeUpdateListener, SaveManualGrade, SubmissionStatus, SubmissionUpdateListener } from "../../models/grades";
+import { Assignment } from "../../models/classroom";
 
 interface GradesSubpageProps {
     classroomInfo: Classroom;
 }
+
+const manualGradeKey = (questionId: string, studentId: string) => `${questionId}:${studentId}`;
 
 function GradesSubpage({classroomInfo}: GradesSubpageProps) {
     const [currentSection, setCurrentSection] = useState<GradeSection>('assignments');
@@ -19,9 +22,11 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
     const [errorMessage, setErrorMessage] = useState<string>("");
 
     const activeSubmissions = useRef<Set<string>>(new Set());
+    const submissionUpdateListeners = useRef<Map<string, Set<SubmissionUpdateListener>>>(new Map());
+    const manualGradeUpdateListeners = useRef<Map<string, Set<ManualGradeUpdateListener>>>(new Map());
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const updateSubmission = useCallback((submissionId: string, changes: Partial<QuestionSubmission>) => {
+    const updateSubmission = useCallback((submissionId: string | null, changes: Partial<QuestionSubmission>, studentId?: string) => {
         setClassroomGrades(prev => {
             if (!prev) return prev;
             return {
@@ -31,7 +36,7 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                     questions: assignment.questions.map(question => ({
                         ...question,
                         submissions: question.submissions.map(submission =>
-                            submission.submission_id === submissionId
+                            submission.submission_id === submissionId && (submissionId !== null || submission.student_id === studentId)
                                 ? { ...submission, ...changes }
                                 : submission
                         )
@@ -41,7 +46,120 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
         });
     }, []);
 
-    const addSubmission = useCallback((submissionId: string) => {
+    const updateManualGrade = useCallback((questionId: string, studentId: string, changes: ManualGradeChanges) => {
+        setClassroomGrades(previous => {
+            if (!previous) return previous;
+            return {
+                ...previous,
+                assignments: previous.assignments.map(assignment => ({
+                    ...assignment,
+                    questions: assignment.questions.map(question =>
+                        question.question_id === questionId
+                            ? {
+                                ...question,
+                                submissions: question.submissions.map(submission =>
+                                    submission.student_id === studentId
+                                        ? { ...submission, ...changes }
+                                        : submission
+                                ),
+                            }
+                            : question
+                    ),
+                })),
+            };
+        });
+    }, []);
+
+    const registerManualGradeUpdateListener: RegisterManualGradeUpdateListener = useCallback((questionId, studentId, listener) => {
+        const key = manualGradeKey(questionId, studentId);
+        const listeners = manualGradeUpdateListeners.current.get(key) ?? new Set();
+        listeners.add(listener);
+        manualGradeUpdateListeners.current.set(key, listeners);
+
+        return () => {
+            const currentListeners = manualGradeUpdateListeners.current.get(key);
+            currentListeners?.delete(listener);
+            if (currentListeners?.size === 0) manualGradeUpdateListeners.current.delete(key);
+        };
+    }, []);
+
+    const refreshStudentAverages = useCallback(async () => {
+        try {
+            const response = await fetchWithAuth(`/api/classroom/${classroomInfo.id}/grades`);
+            if (!response.ok) return;
+
+            const data = await response.json() as ClassroomGradesResponse;
+            setClassroomGrades(previous => previous ? { ...previous, grades: data.grades } : previous);
+        } catch {
+            // The grade was saved successfully; a later page load will refresh the averages.
+        }
+    }, [classroomInfo.id]);
+
+    const saveManualGrade: SaveManualGrade = useCallback(async update => {
+        const response = await fetchWithAuth(`/api/classroom/${classroomInfo.id}/grades`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ updates: [{
+                question_id: update.question_id,
+                student_id: update.student_id,
+                manual_grade: update.is_manual_grade,
+                new_score: update.manual_grade,
+            }]}),
+        });
+        if (!response.ok) throw new Error(await response.text());
+
+        const changes: ManualGradeChanges = {
+            score: update.automatic_score,
+            is_manual_grade: update.is_manual_grade,
+            manual_grade: update.manual_grade,
+        };
+        updateManualGrade(update.question_id, update.student_id, changes);
+        manualGradeUpdateListeners.current
+            .get(manualGradeKey(update.question_id, update.student_id))
+            ?.forEach(listener => listener(changes));
+        await refreshStudentAverages();
+    }, [classroomInfo.id, refreshStudentAverages, updateManualGrade]);
+
+    const setQuestionGrades = useCallback((questionGrades: QuestionGradesResponse) => {
+        setClassroomGrades(previous => {
+            if (!previous) return previous;
+
+            return {
+                ...previous,
+                assignments: previous.assignments.map(assignment => ({
+                    ...assignment,
+                    questions: assignment.questions.map(question =>
+                        question.question_id === questionGrades.question_id
+                            ? {
+                                ...question,
+                                question_name: questionGrades.question_name,
+                                max_points: questionGrades.max_points,
+                                submissions: questionGrades.grades.map(grade => ({
+                                    submission_id: grade.submission_id,
+                                    student_id: grade.student_id,
+                                    student_name: grade.student_name,
+                                    score: grade.score,
+                                    code: "",
+                                    console_output: "",
+                                    manual_grade: grade.score,
+                                    show_grade: previous.show_grades,
+                                    is_manual_grade: false,
+                                    edit_mode: false,
+                                })),
+                            }
+                            : question
+                    ),
+                })),
+            };
+        });
+    }, []);
+
+    const addSubmission: AddSubmission = useCallback((submissionId, onUpdate) => {
+        if (onUpdate) {
+            const listeners = submissionUpdateListeners.current.get(submissionId) ?? new Set();
+            listeners.add(onUpdate);
+            submissionUpdateListeners.current.set(submissionId, listeners);
+        }
         activeSubmissions.current.add(submissionId);
         if (intervalRef.current) return;
         intervalRef.current = setInterval(async () => {
@@ -62,11 +180,14 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                 for (const r of results) {
                     if (r.status !== 'running') {
                         activeSubmissions.current.delete(r.submission_id);
-                        updateSubmission(r.submission_id, {
+                        const changes: Partial<QuestionSubmission> = {
                             status: r.status as SubmissionStatus,
                             score: r.score,
                             console_output: r.console_output,
-                        });
+                        };
+                        updateSubmission(r.submission_id, changes);
+                        submissionUpdateListeners.current.get(r.submission_id)?.forEach(listener => listener(changes));
+                        submissionUpdateListeners.current.delete(r.submission_id);
                     }
                 }
             } catch { /* ignore transient network errors */ }
@@ -76,48 +197,65 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
     useEffect(() => {
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
+            submissionUpdateListeners.current.clear();
+            manualGradeUpdateListeners.current.clear();
         };
     }, []);
 
     useEffect(() => {
-        fetchWithAuth(`/api/classroom/${classroomInfo.id}/grades`)
-            .then(async r => {
-                if (!r.ok) throw new Error(await r.text());
-                return r.json();
-            })
-            .then(data => {
-                const grades: ClassroomGrades = {
-                    show_grades: false,
-                    assignments: data.assignments.map((a: any) => ({
-                        ...a,
-                        questions: a.questions.map((q: any) => ({
-                            ...q,
-                            submissions: q.submissions.map((s: any) => ({
-                                ...s,
-                                show_grade: false,
-                                edit_mode: false,
-                            }))
-                        }))
-                    }))
-                };
-                setClassroomGrades(grades);
-                // Resume polling for any submissions that were mid-grade when the page loaded
-                for (const a of grades.assignments) {
-                    for (const q of a.questions) {
-                        for (const s of q.submissions) {
-                            if (s.status === 'running') {
-                                addSubmission(s.submission_id);
-                            }
-                        }
-                    }
+        let cancelled = false;
+
+        const loadGrades = async () => {
+            setLoading(true);
+            setErrorMessage("");
+            try {
+                const [gradesResponse, assignmentsResponse] = await Promise.all([
+                    fetchWithAuth(`/api/classroom/${classroomInfo.id}/grades`),
+                    fetchWithAuth(`/api/classroom/${classroomInfo.id}/view_assignments`),
+                ]);
+                if (!gradesResponse.ok) throw new Error(await gradesResponse.text());
+                if (!assignmentsResponse.ok) throw new Error(await assignmentsResponse.text());
+
+                const gradesData = await gradesResponse.json() as ClassroomGradesResponse;
+                const assignmentsJson = await assignmentsResponse.json();
+                const assignmentsData = assignmentsJson['assignments'] as Assignment[];
+                const assignments: AssignmentGrade[] = [...assignmentsData]
+                    .sort((first, second) => (first.sort_index ?? 0) - (second.sort_index ?? 0))
+                    .map(assignment => ({
+                        assignment_id: assignment.id!,
+                        assignment_name: assignment.name ?? "",
+                        sort_index: assignment.sort_index ?? 0,
+                        questions: [...(assignment.questions ?? [])]
+                            .sort((first, second) => (first.sort_index ?? 0) - (second.sort_index ?? 0))
+                            .map(question => ({
+                                question_id: question.id!,
+                                question_name: question.header ?? "",
+                                sort_index: question.sort_index ?? 0,
+                                max_points: question.points ?? 0,
+                                prog_lang: question.prog_lang ?? "python",
+                                submissions: [],
+                            })),
+                    }));
+
+                if (!cancelled) {
+                    setClassroomGrades({
+                        show_grades: false,
+                        grades: gradesData.grades,
+                        assignments,
+                    });
                 }
-                setLoading(false);
-            })
-            .catch(err => {
-                setErrorMessage(err.message);
-                setLoading(false);
-            });
-    }, [classroomInfo.id, addSubmission]);
+            } catch (err) {
+                if (!cancelled) {
+                    setErrorMessage(err instanceof Error ? err.message : "Could not load grades");
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        loadGrades();
+        return () => { cancelled = true; };
+    }, [classroomInfo.id]);
 
     if (errorMessage) return <div className="error">{errorMessage}</div>;
 
@@ -152,10 +290,10 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                             }} />
                     </div>
                     <div className={clsx(currentSection !== 'assignments' && 'hidden')}>
-                        <AssignmentsGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} addSubmission={addSubmission} />
+                        <AssignmentsGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} addSubmission={addSubmission} setQuestionGrades={setQuestionGrades} saveManualGrade={saveManualGrade} />
                     </div>
                     <div className={clsx(currentSection !== 'students' && 'hidden')}>
-                        <StudentGrades grades={classroomGrades!} updateSubmission={updateSubmission} classroomId={classroomInfo.id!} showGrades={classroomGrades!.show_grades} addSubmission={addSubmission} />
+                        <StudentGrades grades={classroomGrades!.grades} showGrades={classroomGrades!.show_grades} classroomId={classroomInfo.id!} assignments={classroomGrades!.assignments} addSubmission={addSubmission} saveManualGrade={saveManualGrade} registerManualGradeUpdateListener={registerManualGradeUpdateListener} />
                     </div>
                 </>
             }
