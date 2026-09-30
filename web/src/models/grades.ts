@@ -30,6 +30,7 @@ export interface QuestionSubmission {
 export interface QuestionGrade {
     question_id: string;
     question_name: string;
+    sort_index: number;
     max_points: number;
     prog_lang: string;
     submissions: QuestionSubmission[];  // one per student
@@ -39,6 +40,7 @@ export interface QuestionGrade {
 export interface AssignmentGrade {
     assignment_id: string;
     assignment_name: string;
+    sort_index: number;
     questions: QuestionGrade[];
 }
 

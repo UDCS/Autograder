@@ -219,17 +219,23 @@ function GradesSubpage({classroomInfo}: GradesSubpageProps) {
                 const gradesData = await gradesResponse.json() as ClassroomGradesResponse;
                 const assignmentsJson = await assignmentsResponse.json();
                 const assignmentsData = assignmentsJson['assignments'] as Assignment[];
-                const assignments: AssignmentGrade[] = assignmentsData.map(assignment => ({
-                    assignment_id: assignment.id!,
-                    assignment_name: assignment.name ?? "",
-                    questions: (assignment.questions ?? []).map(question => ({
-                        question_id: question.id!,
-                        question_name: question.header ?? "",
-                        max_points: question.points ?? 0,
-                        prog_lang: question.prog_lang ?? "python",
-                        submissions: [],
-                    })),
-                }));
+                const assignments: AssignmentGrade[] = [...assignmentsData]
+                    .sort((first, second) => (first.sort_index ?? 0) - (second.sort_index ?? 0))
+                    .map(assignment => ({
+                        assignment_id: assignment.id!,
+                        assignment_name: assignment.name ?? "",
+                        sort_index: assignment.sort_index ?? 0,
+                        questions: [...(assignment.questions ?? [])]
+                            .sort((first, second) => (first.sort_index ?? 0) - (second.sort_index ?? 0))
+                            .map(question => ({
+                                question_id: question.id!,
+                                question_name: question.header ?? "",
+                                sort_index: question.sort_index ?? 0,
+                                max_points: question.points ?? 0,
+                                prog_lang: question.prog_lang ?? "python",
+                                submissions: [],
+                            })),
+                    }));
 
                 if (!cancelled) {
                     setClassroomGrades({

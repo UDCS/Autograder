@@ -45,6 +45,13 @@ function StudentAssignmentGradePanel(props: StudentAssignmentGradePanelProps) {
             if (!response.ok) throw new Error(await response.text());
 
             const assignmentGrades = await response.json() as StudentAssignmentGradesResponse;
+            const questionSortIndexes = new Map(
+                props.questions.map(question => [question.question_id, question.sort_index]),
+            );
+            assignmentGrades.grades.sort((first, second) =>
+                (questionSortIndexes.get(first.question_id) ?? Number.MAX_SAFE_INTEGER)
+                - (questionSortIndexes.get(second.question_id) ?? Number.MAX_SAFE_INTEGER)
+            );
             setGrades(assignmentGrades);
             setQuestionSubmissions(Object.fromEntries(
                 assignmentGrades.grades.map(grade => [
