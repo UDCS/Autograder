@@ -7,7 +7,7 @@ import CodeEditor from "../../components/editor/CodeEditor";
 import BlueButton from "../../components/buttons/BlueButton";
 import ConsoleOutput from "../../components/assignment/ConsoleOutput";
 import Spinner from "../../components/spinner/Spinner";
-import { QuestionSubmission, SubmissionAttempt } from "../../models/grades";
+import { AddSubmission, QuestionSubmission, SaveManualGrade, SubmissionAttempt, SubmissionDetailsResponse } from "../../models/grades";
 
 const formatAttemptTime = (iso: string) =>
     new Date(iso).toLocaleString(undefined, {
@@ -17,24 +17,32 @@ const formatAttemptTime = (iso: string) =>
 
 interface QGDProps {
     questionSubmission: QuestionSubmission;
-    updateSubmission: (submissionId: string, changes: Partial<QuestionSubmission>) => void;
+    updateSubmission: (submissionId: string | null, changes: Partial<QuestionSubmission>, studentId?: string) => void;
     max_score: number;
     title?: string;
     classroomId: string;
     questionId: string;
     progLang: string;
-    addSubmission: (submissionId: string) => void;
+    addSubmission: AddSubmission;
+    saveManualGrade: SaveManualGrade;
 }
-function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission, title, classroomId, questionId, progLang, addSubmission}: QGDProps) {
+function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission, title, classroomId, questionId, progLang, addSubmission, saveManualGrade}: QGDProps) {
     const [selected, setSelected] = useState(false);
     const [fontSize, setFontSize] = useState(16);
     const [manualGrade, setManualGrade] = useState<boolean>(questionSubmission.is_manual_grade);
+    const [manualScore, setManualScore] = useState<number>(questionSubmission.manual_grade);
     const [editable, setEditable] = useState<boolean>(questionSubmission.edit_mode);
     const [gradeChanged, setGradeChanged] = useState<boolean>(false);
+    const [gradeSaving, setGradeSaving] = useState<boolean>(false);
+    const [gradeError, setGradeError] = useState<string>("");
     const [history, setHistory] = useState<SubmissionAttempt[] | null>(null);
     const [historyLoading, setHistoryLoading] = useState<boolean>(false);
     const [historyExpanded, setHistoryExpanded] = useState<boolean>(false);
+    const [detailsLoading, setDetailsLoading] = useState<boolean>(false);
+    const [detailsLoaded, setDetailsLoaded] = useState<boolean>(false);
+    const [detailsError, setDetailsError] = useState<string>("");
     const resubmitLockRef = useRef<boolean>(false);
+    const detailsRequestController = useRef<AbortController | null>(null);
 
     const triangle = () => selected ? "▲" : "▼";
     const displayScore = questionSubmission.is_manual_grade ? questionSubmission.manual_grade : questionSubmission.score;
@@ -49,6 +57,48 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
     const visibleHistory = historyExpanded ? sortedHistory : sortedHistory.slice(0, 3);
     const hiddenCount = sortedHistory.length - visibleHistory.length;
 
+    const loadSubmissionDetails = async () => {
+        if (detailsLoaded || detailsLoading) return;
+        if (questionSubmission.submission_id === null) {
+            setDetailsLoaded(true);
+            return;
+        }
+
+        const controller = new AbortController();
+        detailsRequestController.current = controller;
+        setDetailsLoading(true);
+        setDetailsError("");
+
+        try {
+            const response = await fetchWithAuth(
+                `/api/classroom/${classroomId}/submission/${questionSubmission.submission_id}`,
+                { signal: controller.signal },
+            );
+            if (!response.ok) throw new Error(await response.text());
+
+            const details = await response.json() as SubmissionDetailsResponse;
+            const { automatic_score, ...submissionDetails } = details;
+            updateSubmission(
+                details.submission_id,
+                { ...submissionDetails, score: automatic_score },
+                questionSubmission.student_id,
+            );
+            setDetailsLoaded(true);
+        } catch (error) {
+            if (!controller.signal.aborted) {
+                setDetailsError(error instanceof Error ? error.message : "Could not load submission details");
+            }
+        } finally {
+            if (!controller.signal.aborted) setDetailsLoading(false);
+        }
+    };
+
+    const toggleSelected = () => {
+        const expanded = !selected;
+        setSelected(expanded);
+        if (expanded) void loadSubmissionDetails();
+    };
+
     const loadHistory = () => {
         setHistoryLoading(true);
         fetchWithAuth(`/api/grader/question/${questionId}/submissions/history?student_id=${questionSubmission.student_id}`)
@@ -60,17 +110,26 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
 
     // Load history the first time the panel is expanded.
     useEffect(() => {
-        if (selected && history === null && !historyLoading) loadHistory();
-    }, [selected]);
+        if (selected && questionSubmission.submission_id !== null && history === null && !historyLoading) loadHistory();
+    }, [selected, questionSubmission.submission_id]);
 
     // Refresh history once a grade run finishes (status leaves 'running').
     useEffect(() => {
-        if (selected && status !== 'running' && history !== null) loadHistory();
+        if (selected && questionSubmission.submission_id !== null && status !== 'running' && history !== null) loadHistory();
     }, [status]);
+
+    useEffect(() => {
+        setManualGrade(questionSubmission.is_manual_grade);
+        setManualScore(questionSubmission.manual_grade);
+    }, [questionSubmission.is_manual_grade, questionSubmission.manual_grade]);
+
+    useEffect(() => {
+        return () => detailsRequestController.current?.abort();
+    }, []);
 
     return (
         <div className="question-grade-dropdown">
-            <div className="question-grade-header" onClick={() => setSelected(!selected)}>
+            <div className="question-grade-header" onClick={toggleSelected}>
                 <div className="question-grade-title">
                     {title ?? questionSubmission.student_name}
                 </div>
@@ -84,13 +143,20 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
             </div>
             {selected &&
                 <div className="question-grade-body">
+                    {detailsLoading
+                        ? <Spinner />
+                        : detailsError
+                            ? <div className="error">{detailsError}</div>
+                            : questionSubmission.submission_id === null
+                                ? <div>No submission yet.</div>
+                                : <>
                     <div className="question-grade-row">
                         <div className="question-grade-label">
                             Show Grade:
                         </div>
                         <div className="question-checkbox-parent">
                             <input type="checkbox" className="question-grade-checkbox" checked={questionSubmission.show_grade}
-                            onChange={(e) => updateSubmission(questionSubmission.submission_id, { show_grade: e.target.checked })} />
+                            onChange={(e) => updateSubmission(questionSubmission.submission_id, { show_grade: e.target.checked }, questionSubmission.student_id)} />
                         </div>
                     </div>
                     <div className="question-grade-row">
@@ -102,32 +168,44 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                                 checked={manualGrade}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                     setManualGrade(e.target.checked);
-                                    updateSubmission(questionSubmission.submission_id, { is_manual_grade: e.target.checked });
                                     setGradeChanged(true);
+                                    setGradeError("");
                                 }}/>
                             <div className="manual-score-parent">
                                 {manualGrade && <>
                                     <div className="question-grade-label">Score:</div>
                                     <input className="manual-score-input" type="number"
-                                    value={questionSubmission.manual_grade}
+                                    value={manualScore}
                                     onChange={(e) => {
-                                        updateSubmission(questionSubmission.submission_id, { manual_grade: e.target.valueAsNumber });
+                                        setManualScore(e.target.valueAsNumber);
                                         setGradeChanged(true);
+                                        setGradeError("");
                                     }} />
                                 </>}
-                                {gradeChanged && <BlueButton className="question-button" onClick={() => {
-                                    fetchWithAuth(`/api/classroom/${classroomId}/grades`, {
-                                        method: "PATCH",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ updates: [{
+                                {gradeChanged && <BlueButton className="question-button" disabled={gradeSaving} onClick={async () => {
+                                    if (manualGrade && !Number.isFinite(manualScore)) {
+                                        setGradeError("Enter a valid manual score");
+                                        return;
+                                    }
+                                    setGradeSaving(true);
+                                    setGradeError("");
+                                    try {
+                                        const savedManualScore = Number.isFinite(manualScore) ? manualScore : 0;
+                                        await saveManualGrade({
                                             question_id: questionId,
                                             student_id: questionSubmission.student_id,
-                                            manual_grade: manualGrade,
-                                            new_score: questionSubmission.manual_grade,
-                                        }]})
-                                    });
-                                    setGradeChanged(false);
-                                }}>Update Grade</BlueButton>}
+                                            automatic_score: questionSubmission.score,
+                                            is_manual_grade: manualGrade,
+                                            manual_grade: savedManualScore,
+                                        });
+                                        setGradeChanged(false);
+                                    } catch (error) {
+                                        setGradeError(error instanceof Error ? error.message : "Could not update grade");
+                                    } finally {
+                                        setGradeSaving(false);
+                                    }
+                                }}>{gradeSaving ? "Updating..." : "Update Grade"}</BlueButton>}
+                                {gradeError && <div className="error">{gradeError}</div>}
                             </div>
                         </div>
                     </div>
@@ -139,7 +217,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                             <input type="checkbox" className="question-grade-checkbox" checked={editable}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                     setEditable(e.target.checked);
-                                    updateSubmission(questionSubmission.submission_id, { edit_mode: e.target.checked });
+                                    updateSubmission(questionSubmission.submission_id, { edit_mode: e.target.checked }, questionSubmission.student_id);
                                 }} />
                         </div>
                     </div>
@@ -171,7 +249,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                     </div>
                     <EditorHeader progLang={progLang} fontSize={fontSize} onFontSizeChange={setFontSize} />
                     <CodeEditor fontSize={fontSize} editable={editable} value={questionSubmission.code} language={progLang}
-                        onChange={(newCode) => updateSubmission(questionSubmission.submission_id, { code: newCode })} />
+                        onChange={(newCode) => updateSubmission(questionSubmission.submission_id, { code: newCode }, questionSubmission.student_id)} />
                     <div className="question-button-row">
                         <BlueButton className="question-button" onClick={() => {
                             fetchWithAuth(`/api/classroom/question/${questionId}/submission`, {
@@ -187,7 +265,7 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                             // Prevent spam: ignore clicks while a grade run is in flight or still running.
                             if (resubmitLockRef.current || isRunning) return;
                             resubmitLockRef.current = true;
-                            updateSubmission(questionSubmission.submission_id, { status: 'running' });
+                            updateSubmission(questionSubmission.submission_id, { status: 'running' }, questionSubmission.student_id);
                             fetchWithAuth(`/api/grader/question/${questionId}`, {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
@@ -196,12 +274,18 @@ function QuestionGradeDropdown({questionSubmission, max_score, updateSubmission,
                                     code: questionSubmission.code,
                                 })
                             }).then(r => r.json())
-                              .then(data => addSubmission(data.submission_id))
+                              .then(data => {
+                                  updateSubmission(questionSubmission.submission_id, { submission_id: data.submission_id }, questionSubmission.student_id);
+                                  addSubmission(data.submission_id, changes => {
+                                      updateSubmission(data.submission_id, changes, questionSubmission.student_id);
+                                  });
+                              })
                               .finally(() => { resubmitLockRef.current = false; });
                         }}>{isRunning ? "Grading..." : "Resubmit Code"}</BlueButton>
                         {isRunning && <Spinner />}
                     </div>
                     <ConsoleOutput output={questionSubmission.console_output}></ConsoleOutput>
+                    </>}
                 </div>
             }
         </div>

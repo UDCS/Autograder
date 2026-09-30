@@ -636,6 +636,78 @@ func (app *GraderApp) GetClassroomGrades(jwksToken string, classroomId uuid.UUID
 	return app.store.GetClassroomGrades(classroomId)
 }
 
+func (app *GraderApp) GetQuestionGrades(jwksToken string, classroomId uuid.UUID, questionId uuid.UUID) (models.QuestionGradesResult, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return models.QuestionGradesResult{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return models.QuestionGradesResult{}, fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return models.QuestionGradesResult{}, fmt.Errorf("user not in classroom")
+		}
+		if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return models.QuestionGradesResult{}, fmt.Errorf("user does not have permission to view question grades")
+		}
+	}
+
+	return app.store.GetQuestionGrades(classroomId, questionId)
+}
+
+func (app *GraderApp) GetSubmissionDetails(jwksToken string, classroomId uuid.UUID, submissionId uuid.UUID) (models.SubmissionDetails, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return models.SubmissionDetails{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return models.SubmissionDetails{}, fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return models.SubmissionDetails{}, fmt.Errorf("user not in classroom")
+		}
+		if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return models.SubmissionDetails{}, fmt.Errorf("user does not have permission to view submission details")
+		}
+	}
+
+	return app.store.GetSubmissionDetails(classroomId, submissionId)
+}
+
+func (app *GraderApp) GetStudentAssignmentGrades(jwksToken string, classroomId uuid.UUID, assignmentId uuid.UUID, studentId uuid.UUID) (models.StudentAssignmentGradesResult, error) {
+	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
+	if err != nil {
+		return models.StudentAssignmentGradesResult{}, fmt.Errorf("invalid authorization credentials")
+	}
+
+	userInfo, err := app.store.GetUserInfo(claims.Subject)
+	if err != nil {
+		return models.StudentAssignmentGradesResult{}, fmt.Errorf("error retrieving user info")
+	}
+
+	if userInfo.UserRole != models.Admin {
+		user, err := app.store.GetUserClassroomInfo(userInfo.Id, classroomId)
+		if err != nil {
+			return models.StudentAssignmentGradesResult{}, fmt.Errorf("user not in classroom")
+		}
+		if user.UserRole != models.Instructor && user.UserRole != models.Assistant {
+			return models.StudentAssignmentGradesResult{}, fmt.Errorf("user does not have permission to view student assignment grades")
+		}
+	}
+
+	return app.store.GetStudentAssignmentGrades(classroomId, assignmentId, studentId)
+}
+
 func (app *GraderApp) GetSubmissionStatuses(jwksToken string, submissionIds []uuid.UUID) ([]models.SubmissionStatusResult, error) {
 	claims, err := jwt_token.ParseAccessTokenString(jwksToken, app.authConfig.JWT.Secret)
 	if err != nil {

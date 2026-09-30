@@ -40,22 +40,53 @@ type SubmissionAttempt struct {
 	IsLate      bool             `json:"is_late" db:"is_late"`
 }
 
-type QuestionGradeResult struct {
-	QuestionId   uuid.UUID                 `json:"question_id"`
-	QuestionName string                    `json:"question_name"`
-	MaxPoints    int                       `json:"max_points"`
-	ProgLang     string                    `json:"prog_lang"`
-	Submissions  []QuestionSubmissionGrade `json:"submissions"`
-}
-
-type AssignmentGradeResult struct {
-	AssignmentId   uuid.UUID             `json:"assignment_id"`
-	AssignmentName string                `json:"assignment_name"`
-	Questions      []QuestionGradeResult `json:"questions"`
+type StudentAverageGrade struct {
+	StudentId    uuid.UUID `json:"student_id" db:"student_id"`
+	StudentName  string    `json:"student_name" db:"student_name"`
+	AverageGrade float64   `json:"average_grade" db:"average_grade"`
 }
 
 type ClassroomGradesResult struct {
-	Assignments []AssignmentGradeResult `json:"assignments"`
+	Grades []StudentAverageGrade `json:"grades"`
+}
+
+type StudentQuestionGrade struct {
+	StudentId    uuid.UUID  `json:"student_id" db:"student_id"`
+	StudentName  string     `json:"student_name" db:"student_name"`
+	Score        int        `json:"score" db:"score"`
+	SubmissionId *uuid.UUID `json:"submission_id" db:"submission_id"`
+}
+
+type QuestionGradesResult struct {
+	QuestionId   uuid.UUID              `json:"question_id"`
+	QuestionName string                 `json:"question_name"`
+	MaxPoints    int                    `json:"max_points"`
+	Grades       []StudentQuestionGrade `json:"grades"`
+}
+
+type SubmissionDetails struct {
+	SubmissionId   uuid.UUID        `json:"submission_id" db:"submission_id"`
+	Code           string           `json:"code" db:"code"`
+	ConsoleOutput  string           `json:"console_output" db:"console_output"`
+	AutomaticScore int              `json:"automatic_score" db:"automatic_score"`
+	IsManualGrade  bool             `json:"is_manual_grade" db:"is_manual_grade"`
+	ManualGrade    int              `json:"manual_grade" db:"manual_grade"`
+	Status         SubmissionStatus `json:"status" db:"status"`
+}
+
+type AssignmentQuestionGrade struct {
+	QuestionId   uuid.UUID  `json:"question_id" db:"question_id"`
+	QuestionName string     `json:"question_name" db:"question_name"`
+	MaxPoints    int        `json:"max_points" db:"max_points"`
+	Score        int        `json:"score" db:"score"`
+	SubmissionId *uuid.UUID `json:"submission_id" db:"submission_id"`
+}
+
+type StudentAssignmentGradesResult struct {
+	StudentId      uuid.UUID                 `json:"student_id"`
+	AssignmentId   uuid.UUID                 `json:"assignment_id"`
+	AssignmentName string                    `json:"assignment_name"`
+	Grades         []AssignmentQuestionGrade `json:"grades"`
 }
 
 type GradeUpdate struct {
