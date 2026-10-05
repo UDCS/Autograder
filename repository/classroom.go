@@ -136,22 +136,17 @@ func (store PostgresStore) GetQuestionPoints(questionId uuid.UUID) (uint16, erro
 }
 
 func (store PostgresStore) GetStudentQuestionGrade(userId uuid.UUID, questionId uuid.UUID) (uint16, error) {
-	var grade uint16 = 0
-	testcases, err := store.GetQuestionTestcases(questionId)
-	if err != nil {
-		return 0, err
-	}
-	for _, testcase := range testcases {
-		testcaseId := testcase.Id
-		var gradeAtTestcase uint16
-		_ = store.db.Get(
-			&gradeAtTestcase,
-			"SELECT score FROM testcase_grades WHERE student_id=$1 AND testcase_id=$2",
-			userId, testcaseId,
-		)
-		grade += gradeAtTestcase
-	}
-	return grade, nil
+	var grade uint16
+	err := store.db.Get(
+		&grade,
+		`SELECT COALESCE(SUM(tg.score), 0)
+		 FROM testcases t
+		 LEFT JOIN testcase_grades tg
+		        ON tg.testcase_id = t.id AND tg.student_id = $1
+		 WHERE t.question_id = $2`,
+		userId, questionId,
+	)
+	return grade, err
 }
 
 func (store PostgresStore) UserOwnsSubmission(userId uuid.UUID, submissionId uuid.UUID) bool {
@@ -217,46 +212,97 @@ func (store PostgresStore) GetViewAssignments(userId uuid.UUID, classroomId uuid
 	sort.Slice(assignments, func(i int, j int) bool {
 		return assignments[i].SortIndex < assignments[j].SortIndex
 	})
-	for assignmentIndex := 0; assignmentIndex < len(assignments); assignmentIndex++ {
-		var questions []models.Question
-		err = store.db.Select(
-			&questions,
-			"SELECT id, assignment_id, header, body, prog_lang, sort_index FROM questions WHERE assignment_id = $1;",
-			assignments[assignmentIndex].Id,
+
+	if len(assignments) == 0 {
+		return assignments, nil
+	}
+
+	type viewQuestionRow struct {
+		Id                  uuid.UUID       `db:"id"`
+		AssignmentId        uuid.UUID       `db:"assignment_id"`
+		Header              string          `db:"header"`
+		Body                string          `db:"body"`
+		ProgrammingLanguage models.ProgLang `db:"prog_lang"`
+		SortIndex           uint8           `db:"sort_index"`
+		Points              uint16          `db:"points"`
+		Score               uint16          `db:"score"`
+		SubmissionId        *uuid.UUID      `db:"submission_id"`
+		SubmissionStatus    string          `db:"submission_status"`
+		ConsoleOutput       string          `db:"console_output"`
+	}
+
+	var questionRows []viewQuestionRow
+	err = store.db.Select(&questionRows, `
+		WITH question_scores AS (
+			SELECT q.id AS question_id,
+			       COALESCE(SUM(t.points), 0) AS points,
+			       COALESCE(SUM(tg.score), 0) AS score
+			FROM assignments a
+			JOIN questions q ON q.assignment_id = a.id
+			LEFT JOIN testcases t ON t.question_id = q.id
+			LEFT JOIN testcase_grades tg
+			       ON tg.testcase_id = t.id AND tg.student_id = $2
+			WHERE a.classroom_id = $1
+			  AND a.assignment_mode = 'view'
+			GROUP BY q.id
 		)
-		if err != nil {
-			return []models.Assignment{}, err
+		SELECT q.id,
+		       q.assignment_id,
+		       q.header,
+		       q.body,
+		       q.prog_lang,
+		       q.sort_index,
+		       question_scores.points,
+		       question_scores.score,
+		       ss.id AS submission_id,
+		       COALESCE(ss.status::text, '') AS submission_status,
+		       COALESCE(ss.feedback, '') AS console_output
+		FROM assignments a
+		JOIN questions q ON q.assignment_id = a.id
+		JOIN question_scores ON question_scores.question_id = q.id
+		LEFT JOIN LATERAL (
+			SELECT student_submissions.id,
+			       student_submissions.status,
+			       student_submissions.feedback
+			FROM student_submissions
+			WHERE student_submissions.user_id = $2
+			  AND student_submissions.question_id = q.id
+			ORDER BY student_submissions.updated_at DESC, student_submissions.id DESC
+			LIMIT 1
+		) ss ON TRUE
+		WHERE a.classroom_id = $1
+		  AND a.assignment_mode = 'view'
+		ORDER BY a.sort_index, q.sort_index, q.id`,
+		classroomId, userId,
+	)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+
+	assignmentIndexes := make(map[uuid.UUID]int, len(assignments))
+	for i := range assignments {
+		assignmentIndexes[assignments[i].Id] = i
+		assignments[i].Questions = make([]models.Question, 0)
+	}
+
+	for _, row := range questionRows {
+		assignmentIndex, ok := assignmentIndexes[row.AssignmentId]
+		if !ok {
+			continue
 		}
-		for questionIndex := range questions {
-			questionId := questions[questionIndex].Id
-			score, err := store.GetStudentQuestionGrade(userId, questionId)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
-				return []models.Assignment{}, err
-			}
-			points, err := store.GetQuestionPoints(questionId)
-			if err != nil {
-				return []models.Assignment{}, err
-			}
-			questions[questionIndex].Points = points
-			questions[questionIndex].Score = score
-			var submissionInfo struct {
-				Id       uuid.UUID `db:"id"`
-				Status   string    `db:"status"`
-				Feedback string    `db:"feedback"`
-			}
-			if subErr := store.db.Get(&submissionInfo,
-				"SELECT id, status, feedback FROM student_submissions WHERE user_id=$1 AND question_id=$2",
-				userId, questionId,
-			); subErr == nil {
-				questions[questionIndex].SubmissionId = &submissionInfo.Id
-				questions[questionIndex].SubmissionStatus = submissionInfo.Status
-				questions[questionIndex].ConsoleOutput = submissionInfo.Feedback
-			}
-		}
-		sort.Slice(questions, func(i int, j int) bool {
-			return questions[i].SortIndex < questions[j].SortIndex
+		assignments[assignmentIndex].Questions = append(assignments[assignmentIndex].Questions, models.Question{
+			Id:                  row.Id,
+			AssignmentId:        row.AssignmentId,
+			Header:              row.Header,
+			Body:                row.Body,
+			ProgrammingLanguage: row.ProgrammingLanguage,
+			SortIndex:           row.SortIndex,
+			Points:              row.Points,
+			Score:               row.Score,
+			SubmissionId:        row.SubmissionId,
+			SubmissionStatus:    row.SubmissionStatus,
+			ConsoleOutput:       row.ConsoleOutput,
 		})
-		assignments[assignmentIndex].Questions = questions
 	}
 
 	return assignments, nil
@@ -266,48 +312,137 @@ func (store PostgresStore) GetVerboseAssignments(userId uuid.UUID, classroomId u
 	var assignments []models.Assignment
 	err := store.db.Select(
 		&assignments,
-		"SELECT id, classroom_id, name, description, assignment_mode, to_char(due_at AT TIME ZONE $2, 'YYYY-MM-DD') AS due_at, created_at, updated_at, sort_index FROM assignments WHERE classroom_id = $1;",
+		"SELECT id, classroom_id, name, description, assignment_mode, to_char(due_at AT TIME ZONE $2, 'YYYY-MM-DD') AS due_at, created_at, updated_at, sort_index FROM assignments WHERE classroom_id = $1 ORDER BY sort_index, id;",
 		classroomId, store.timeZone,
 	)
 	if err != nil {
 		return []models.Assignment{}, err
 	}
-	sort.Slice(assignments, func(i int, j int) bool {
-		return assignments[i].SortIndex < assignments[j].SortIndex
-	})
-	for assignmentIndex := 0; assignmentIndex < len(assignments); assignmentIndex++ {
-		var questions []models.Question
-		err = store.db.Select(
-			&questions,
-			"SELECT id, assignment_id, header, body, prog_lang, default_code, solution_code, sort_index FROM questions WHERE assignment_id = $1;",
-			assignments[assignmentIndex].Id,
-		)
-		if err != nil {
-			return []models.Assignment{}, err
+	if len(assignments) == 0 {
+		return assignments, nil
+	}
+
+	var questions []models.Question
+	err = store.db.Select(&questions, `
+		SELECT q.id, q.assignment_id, q.header, q.body, q.prog_lang,
+		       q.default_code, q.solution_code, q.sort_index
+		FROM questions q
+		JOIN assignments a ON a.id = q.assignment_id
+		WHERE a.classroom_id = $1
+		ORDER BY a.sort_index, q.sort_index, q.id`, classroomId)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+
+	var testcases []models.Testcase
+	err = store.db.Select(&testcases, `
+		SELECT t.id, t.name, t.question_id, t.type, t.points, t.timeout_seconds
+		FROM testcases t
+		JOIN questions q ON q.id = t.question_id
+		JOIN assignments a ON a.id = q.assignment_id
+		WHERE a.classroom_id = $1
+		ORDER BY t.question_id, t.id`, classroomId)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+
+	var textBodies []models.TextTestcaseBody
+	err = store.db.Select(&textBodies, `
+		SELECT tt.testcase_id, tt.inputs, tt.outputs, tt.hidden
+		FROM text_testcases tt
+		JOIN testcases t ON t.id = tt.testcase_id
+		JOIN questions q ON q.id = t.question_id
+		JOIN assignments a ON a.id = q.assignment_id
+		WHERE a.classroom_id = $1`, classroomId)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+
+	var bashFiles []models.File
+	err = store.db.Select(&bashFiles, `
+		SELECT bf.id, bf.testcase_id, bf.name, bf.suffix, bf.body, bf.primary_bash
+		FROM bash_testcase_files bf
+		JOIN testcases t ON t.id = bf.testcase_id
+		JOIN questions q ON q.id = t.question_id
+		JOIN assignments a ON a.id = q.assignment_id
+		WHERE a.classroom_id = $1
+		ORDER BY bf.testcase_id, bf.primary_bash DESC, bf.id`, classroomId)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+
+	type questionScoreRow struct {
+		QuestionId uuid.UUID `db:"question_id"`
+		Score      uint16    `db:"score"`
+	}
+	var scoreRows []questionScoreRow
+	err = store.db.Select(&scoreRows, `
+		SELECT q.id AS question_id, COALESCE(SUM(tg.score), 0) AS score
+		FROM questions q
+		JOIN assignments a ON a.id = q.assignment_id
+		LEFT JOIN testcases t ON t.question_id = q.id
+		LEFT JOIN testcase_grades tg
+		       ON tg.testcase_id = t.id AND tg.student_id = $2
+		WHERE a.classroom_id = $1
+		GROUP BY q.id`, classroomId, userId)
+	if err != nil {
+		return []models.Assignment{}, err
+	}
+
+	textBodiesByTestcase := make(map[uuid.UUID]models.TextTestcaseBody, len(textBodies))
+	for _, body := range textBodies {
+		textBodiesByTestcase[body.TestcaseId] = body
+	}
+	bashBodiesByTestcase := make(map[uuid.UUID]models.BashTestcaseBody)
+	for _, file := range bashFiles {
+		body := bashBodiesByTestcase[file.TestcaseId]
+		if file.PrimaryBash {
+			body.PrimaryBashFile = file
+		} else {
+			body.OtherFiles = append(body.OtherFiles, file)
 		}
-		for questionIndex := range questions {
-			question := &questions[questionIndex]
-			questionId := question.Id
-			testcases, err := store.GetQuestionTestcases(questionId)
-			if err != nil {
-				return []models.Assignment{}, err
+		bashBodiesByTestcase[file.TestcaseId] = body
+	}
+
+	testcasesByQuestion := make(map[uuid.UUID][]models.Testcase)
+	pointsByQuestion := make(map[uuid.UUID]uint64)
+	for i := range testcases {
+		testcase := &testcases[i]
+		if testcase.Type == models.Text {
+			testcase.TestcaseBody = textBodiesByTestcase[testcase.Id]
+		} else {
+			body := bashBodiesByTestcase[testcase.Id]
+			if body.OtherFiles == nil {
+				body.OtherFiles = make([]models.File, 0)
 			}
-			points, err := store.GetQuestionPoints(questionId)
-			if err != nil {
-				return []models.Assignment{}, err
-			}
-			score, err := store.GetStudentQuestionGrade(userId, questionId)
-			if err != nil {
-				return []models.Assignment{}, err
-			}
-			question.Testcases = testcases
-			question.Points = points
-			question.Score = score
+			testcase.TestcaseBody = body
 		}
-		sort.Slice(questions, func(i int, j int) bool {
-			return questions[i].SortIndex < questions[j].SortIndex
-		})
-		assignments[assignmentIndex].Questions = questions
+		testcasesByQuestion[testcase.QuestionId] = append(testcasesByQuestion[testcase.QuestionId], *testcase)
+		pointsByQuestion[testcase.QuestionId] += testcase.Points
+	}
+
+	scoresByQuestion := make(map[uuid.UUID]uint16, len(scoreRows))
+	for _, row := range scoreRows {
+		scoresByQuestion[row.QuestionId] = row.Score
+	}
+
+	questionsByAssignment := make(map[uuid.UUID][]models.Question)
+	for i := range questions {
+		question := &questions[i]
+		question.Testcases = testcasesByQuestion[question.Id]
+		if question.Testcases == nil {
+			question.Testcases = make([]models.Testcase, 0)
+		}
+		question.Points = uint16(pointsByQuestion[question.Id])
+		question.Score = scoresByQuestion[question.Id]
+		questionsByAssignment[question.AssignmentId] = append(questionsByAssignment[question.AssignmentId], *question)
+	}
+
+	for i := range assignments {
+		assignments[i].Questions = questionsByAssignment[assignments[i].Id]
+		if assignments[i].Questions == nil {
+			assignments[i].Questions = make([]models.Question, 0)
+		}
 	}
 
 	return assignments, nil
@@ -686,33 +821,14 @@ func (store PostgresStore) DeleteClassroom(request models.DeleteClassroomRequest
 }
 
 func (store PostgresStore) UpdateSubmissionCode(request models.UpdateSubmissionRequest) error {
-	var exists bool
-	err := store.db.Get(
-		&exists,
-		"SELECT EXISTS (SELECT * FROM student_submissions WHERE user_id=$1 AND question_id=$2)",
-		request.UserId, request.QuestionId,
+	_, err := store.db.Exec(`
+		INSERT INTO student_submissions (id, user_id, question_id, code, updated_at)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (user_id, question_id)
+		DO UPDATE SET code = EXCLUDED.code, updated_at = EXCLUDED.updated_at`,
+		request.Id, request.UserId, request.QuestionId, request.Code, request.UpdatedAt,
 	)
-	if err != nil {
-		return err
-	}
-
-	if exists {
-		_, err = store.db.Exec("UPDATE student_submissions SET code=$1, updated_at=$2 WHERE user_id=$3 AND question_id=$4",
-			request.Code, request.UpdatedAt, request.UserId, request.QuestionId,
-		)
-		if err != nil {
-			return err
-		}
-	} else {
-		_, err = store.db.Exec("INSERT INTO student_submissions (id, user_id, question_id, code, updated_at) VALUES ($1, $2, $3, $4, $5)",
-			request.Id, request.UserId, request.QuestionId, request.Code, request.UpdatedAt,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return err
 }
 
 func (store PostgresStore) UpdateClassroomGrades(updates []models.GradeUpdate) error {
@@ -732,8 +848,13 @@ func (store PostgresStore) UpdateClassroomGrades(updates []models.GradeUpdate) e
 
 func (store PostgresStore) CreateDefaultSubmission(userId uuid.UUID, questionId uuid.UUID, defaultCode string) (uuid.UUID, error) {
 	submissionId := uuid.New()
-	_, err := store.db.Exec(
-		"INSERT INTO student_submissions (id, user_id, question_id, code, updated_at) VALUES ($1, $2, $3, $4, NOW())",
+	err := store.db.Get(
+		&submissionId,
+		`INSERT INTO student_submissions (id, user_id, question_id, code, updated_at)
+		 VALUES ($1, $2, $3, $4, NOW())
+		 ON CONFLICT (user_id, question_id)
+		 DO UPDATE SET user_id = EXCLUDED.user_id
+		 RETURNING id`,
 		submissionId, userId, questionId, defaultCode,
 	)
 	if err != nil {
