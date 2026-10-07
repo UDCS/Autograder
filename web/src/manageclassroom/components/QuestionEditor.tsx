@@ -77,7 +77,7 @@ function QuestionEditor({question, onDelete, onMoveUp, onMoveDown, isFirst, isLa
             <div className={clsx(selected && "question-body", !selected && "hidden")}>
                 <div className="description">
                     <div className="label">Question Description:</div>
-                    <TextArea placeholder="Question Description" rows={5} value={question.body} onChange={handleDescriptionChange} />
+                    <TextArea placeholder="Question Description" rows={5} value={question.body} onChange={handleDescriptionChange} autoResize/>
                 </div>
                 <div className="prog-lang">
                     <div className="label">

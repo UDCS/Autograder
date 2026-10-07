@@ -159,7 +159,7 @@ function AssignmentEditor({assignmentId, onDelete, onMoveUp, onMoveDown, isFirst
                 </div>
                 <div className="description">
                     <div className="label">Assignment Description:</div>
-                    <TextArea placeholder="Assignment Description" rows={5} value={assignment.description} onChange={handleAssignmentDescriptionChange} />
+                    <TextArea placeholder="Assignment Description" rows={5} value={assignment.description} onChange={handleAssignmentDescriptionChange} autoResize/>
                 </div>
                 <div className="questions">
                     {...questionsToComponents()}
