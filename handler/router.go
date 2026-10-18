@@ -61,7 +61,7 @@ type HttpRouter struct {
 	engine *echo.Echo
 	app    service.App
 }
-
+ 
 func New(app service.App) *HttpRouter {
 	e := echo.New()
 	// e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache") // TODO: figure out how to set HTTPS

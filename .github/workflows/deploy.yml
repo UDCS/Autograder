@@ -1,0 +1,103 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - live  # or your default branch
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      - name: Build frontend
+        run: |
+          cd web
+          yarn install
+          yarn build
+
+      - name: Build and Test
+        run: |
+          go mod tidy
+          go test ./...
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Download Cloud SQL Proxy v2
+        run: |
+          curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.10.0/cloud-sql-proxy.linux.amd64
+          chmod +x cloud-sql-proxy
+      
+      - name: Create cloudsql directory
+        run: |
+          sudo mkdir /cloudsql && sudo chown $USER /cloudsql
+          echo '${{ secrets.GCP_SA_KEY }}' > /tmp/gcp-key.json
+          chmod 600 /tmp/gcp-key.json
+
+      - name: Start Cloud SQL Proxy
+        run: |
+          ./cloud-sql-proxy udcs-autograder:us-central1:autograder-db \
+            --address 127.0.0.1 \
+            --port 1234 \
+            --credentials-file=/tmp/gcp-key.json &
+
+          # Wait a few seconds to let the proxy start
+          sleep 5
+          
+      - name: Run Goose Migrations
+        run: |
+          go install github.com/pressly/goose/v3/cmd/goose@latest
+          export PATH=$PATH:$(go env GOPATH)/bin
+          goose -dir db/migrations postgres "user=${{ secrets.DB_USER }} password=${{ secrets.DB_PASSWORD }} dbname=${{ secrets.DB_NAME }} host=127.0.0.1 port=1234 sslmode=disable" up
+      
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${{secrets.MAIN_REGION}}-docker.pkg.dev"
+
+      - name: Build and push Docker image
+        run: |
+          cd grader
+          IMAGE="${{secrets.MAIN_REGION}}-docker.pkg.dev/${{secrets.GCP_PROJECT_ID}}/cloud-run-source-deploy/autograder-grader"
+          docker build -t "$IMAGE:latest" .
+          docker push "$IMAGE:latest"
+          cd ..
+
+      - name: Update Grader Job
+        run: |
+          gcloud run jobs update grader-job \
+            --image="${{secrets.MAIN_REGION}}-docker.pkg.dev/${{secrets.GCP_PROJECT_ID}}/cloud-run-source-deploy/autograder-grader:latest" \
+            --region="${{secrets.GRADER_REGION}}" \
+            --project="${{secrets.GCP_PROJECT_ID}}"
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with: 
+          service: autograder-api
+          region: ${{secrets.MAIN_REGION}}
+          source: .
+          project_id: ${{secrets.GCP_PROJECT_ID}}
+          # The Cloud SQL connection name uses the *instance* name (autograder-db),
+          # not the database name (DB_NAME, "autograder"). --set- rather than --add-
+          # so the list is replaced instead of accumulating stale entries.
+          flags: --set-cloudsql-instances="${{secrets.GCP_PROJECT_ID}}:${{secrets.MAIN_REGION}}:autograder-db" --timeout=600s --port=8080
+          env_vars: |
+            DB_HOST=cloudsql
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            EMAIL=${{ secrets.AUTOGRADER_EMAIL_ADDRESS }}
+            PASS=${{secrets.AUTOGRADER_EMAIL_APP_PW}}
+            BASE_URL=${{secrets.BASE_URL}}

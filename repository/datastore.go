@@ -97,6 +97,15 @@ func New(dbConfig *config.Db, timeZone string) PostgresStore {
 	db.SetConnMaxLifetime(dbConfig.ConnMaxLifetime)
 	db.SetConnMaxIdleTime(dbConfig.ConnMaxIdleTime)
 
+	// Cap connections per container. Cloud Run can run up to maxScale instances
+	// concurrently, each with its own pool, so the instance-wide ceiling is
+	// maxScale * MaxOpenConns -- that has to stay under the database's
+	// max_connections, which scales with the Cloud SQL machine tier.
+	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(2)
+	db.SetConnMaxLifetime(30 * time.Minute)
+	db.SetConnMaxIdleTime(5 * time.Minute)
+
 	return PostgresStore{
 		db:       db,
 		timeZone: timeZone,
@@ -104,6 +113,6 @@ func New(dbConfig *config.Db, timeZone string) PostgresStore {
 }
 
 func getConnStringFromConfig(dbConfig *config.Db) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.DBName, dbConfig.SslMode)
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s",
+		dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.SslMode)
 }

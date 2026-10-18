@@ -1,25 +1,26 @@
 server:
-  port: 8080
+  # Quoted because Server.Port is a string; Cloud Run overrides it via $PORT anyway.
+  port: "8080"
 
 app:
   timezone: America/Chicago
 
 db:
-  host: localhost
-  port: 5432
-  user: postgres
-  password: postgres
-  dbname: autograder
-  sslmode: disable
   # Keep this bounded below Cloud SQL's capacity. Account for every running app instance.
   max_open_conns: 5
   max_idle_conns: 2
   conn_max_lifetime: 30m
   conn_max_idle_time: 5m
+  host: "cloudsql"
+  port: "5432"
+  user: "postgres"
+  password: "postgres"
+  dbname: "autograder"
+  sslmode: "disable"
 
 auth:
   jwt:
-    secret: secret # Change this to a long random string
+    secret: "dev-jwt-secret"  # Will be overridden by JWT_SECRET env var 
     access_token_duration: 1h
     refresh_token_duration: 168h
     session_max_duration: 336h
