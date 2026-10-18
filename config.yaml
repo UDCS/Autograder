@@ -6,6 +6,11 @@ app:
   timezone: America/Chicago
 
 db:
+  # Keep this bounded below Cloud SQL's capacity. Account for every running app instance.
+  max_open_conns: 5
+  max_idle_conns: 2
+  conn_max_lifetime: 30m
+  conn_max_idle_time: 5m
   host: "cloudsql"
   port: "5432"
   user: "postgres"

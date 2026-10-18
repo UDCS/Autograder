@@ -92,6 +92,10 @@ type PostgresStore struct {
 func New(dbConfig *config.Db, timeZone string) PostgresStore {
 	ConnString := getConnStringFromConfig(dbConfig)
 	db := sqlx.MustConnect("postgres", ConnString)
+	db.SetMaxOpenConns(dbConfig.MaxOpenConns)
+	db.SetMaxIdleConns(dbConfig.MaxIdleConns)
+	db.SetConnMaxLifetime(dbConfig.ConnMaxLifetime)
+	db.SetConnMaxIdleTime(dbConfig.ConnMaxIdleTime)
 
 	// Cap connections per container. Cloud Run can run up to maxScale instances
 	// concurrently, each with its own pool, so the instance-wide ceiling is
