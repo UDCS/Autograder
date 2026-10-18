@@ -145,29 +145,33 @@ function AssignmentsSubpage({classroomInfo, active}: AssignmentsSubpageProps) {
     } 
 
     useEffect(() => {
-        var isError = false;
+        const controller = new AbortController();
 
         const getAssignments = async () => {
-            var response = await fetchWithAuth(`/api/classroom/${classroomInfo.id!}/verbose_assignments`);
-            var jsonResponse;
-            if (response.ok) {
-                jsonResponse = await response.json();
-            } else {
-                isError = true;
-            }
+            const response = await fetchWithAuth(
+                `/api/classroom/${classroomInfo.id!}/verbose_assignments`,
+                { signal: controller.signal },
+            );
+            if (!response.ok) throw new Error(`Failed to load assignments: ${response.statusText}`);
+            const jsonResponse = await response.json();
             const receivedAssignments = jsonResponse["assignments"];
             for (let assignment of receivedAssignments) {
                 if (assignment.id) assignmentStore[assignment.id] = assignment;
             }
         }
-        (async function () {
-            if (loading) {
+
+        void (async function () {
+            try {
                 await getAssignments();
-                if (isError) return;
                 setLoading(false);
+            } catch (err) {
+                if (err instanceof DOMException && err.name === "AbortError") return;
+                console.error("Failed to load assignments:", err);
             }
         })();
-    })
+
+        return () => controller.abort();
+    }, [classroomInfo.id])
     
     return (
         <>

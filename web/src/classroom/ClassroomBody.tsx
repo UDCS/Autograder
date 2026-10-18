@@ -69,74 +69,53 @@ function ClassroomBody() {
     }
 
     useEffect(() => {
-        var isError = false;
-        const verifyLogin = async () => {
-            try {
-                var response = await fetchWithAuth('/api/auth/valid_login');
-                if (response.ok) {
-                    var json = await response.json();
-                    if (json['message'] != 'true') {
-                        isError = true;
-                        setErrorMsg("You need to be logged in to view classrooms");
-                        stopLoading();
-                    }
-                } else {
-                    isError = true;
-                    setErrorMsg("You need to be logged in to view classrooms");
-                    stopLoading();
-                }
-            } catch (err){
-                console.error("Fetch error: ", err);
-            }
-        };
-        const getClassroomName = async () => {
-            var response = await fetchWithAuth(`/api/classroom/${classroomId}`);
-            if (response.ok) {
-                var json = await response.json();
-                setClassroomName(json["name"]);
-            } else {
-                isError = true;
-                setErrorMsg("Either the classroom does not exist or you are not part of this classroom");
-                stopLoading();
-            }
-        }
-        const getAssignments = async () => {
-            var response = await fetchWithAuth(`/api/classroom/${classroomId}/view_assignments`);
-            if (response.ok) {
-                var json = await response.json();
-                setAssignments(json['assignments']);
-            } else {
-                console.error(response.statusText);
-            }
-        };
-        const getRole = async () => {
-            var response = await fetchWithAuth(`/api/classroom/role/${classroomId}`);
-            if (response.ok) {
-                var role = await response.json();
-                if (role == "instructor" || role == "admin") {
-                    setCanEditClassroom(true);
-                }
-            }
-        }
-        const stopLoading = () => {
-            setLoading(false);
-        }
+        const controller = new AbortController();
 
-        if (loading) {
-            verifyLogin().then(() => {
-                    if (!isError) {
-                        getClassroomName().then(() => {
-                            if (!isError) {
-                                getAssignments().then(() => {
-                                    getRole().then(stopLoading);
-                                });
-                            }
-                        });
-                    }
+        const loadClassroom = async () => {
+            try {
+                const requestInit = { signal: controller.signal };
+                const loginResponse = await fetchWithAuth('/api/auth/valid_login', requestInit);
+                const loginJson = loginResponse.ok ? await loginResponse.json() : null;
+                if (!loginResponse.ok || loginJson?.message !== 'true') {
+                    setErrorMsg("You need to be logged in to view classrooms");
+                    return;
                 }
-            )
-        } 
-    });
+
+                const [classroomResponse, assignmentsResponse, roleResponse] = await Promise.all([
+                    fetchWithAuth(`/api/classroom/${classroomId}`, requestInit),
+                    fetchWithAuth(`/api/classroom/${classroomId}/view_assignments`, requestInit),
+                    fetchWithAuth(`/api/classroom/role/${classroomId}`, requestInit),
+                ]);
+
+                if (!classroomResponse.ok) {
+                    setErrorMsg("Either the classroom does not exist or you are not part of this classroom");
+                    return;
+                }
+                if (!assignmentsResponse.ok) {
+                    throw new Error(`Failed to load assignments: ${assignmentsResponse.statusText}`);
+                }
+
+                const [classroomJson, assignmentsJson, role] = await Promise.all([
+                    classroomResponse.json(),
+                    assignmentsResponse.json(),
+                    roleResponse.ok ? roleResponse.json() : Promise.resolve(null),
+                ]);
+
+                setClassroomName(classroomJson["name"]);
+                setAssignments(assignmentsJson["assignments"]);
+                setCanEditClassroom(role === "instructor" || role === "admin");
+            } catch (err) {
+                if (err instanceof DOMException && err.name === "AbortError") return;
+                console.error("Fetch error: ", err);
+                setErrorMsg("Something went wrong while loading the classroom");
+            } finally {
+                if (!controller.signal.aborted) setLoading(false);
+            }
+        };
+
+        void loadClassroom();
+        return () => controller.abort();
+    }, [classroomId]);
 
     return (<>
         {!loading?

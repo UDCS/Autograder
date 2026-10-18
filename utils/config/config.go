@@ -26,12 +26,16 @@ type (
 	}
 
 	Db struct {
-		Host     string
-		Port     string
-		User     string
-		Password string
-		DBName   string
-		SslMode  string
+		Host            string
+		Port            string
+		User            string
+		Password        string
+		DBName          string
+		SslMode         string
+		MaxOpenConns    int           `mapstructure:"max_open_conns"`
+		MaxIdleConns    int           `mapstructure:"max_idle_conns"`
+		ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
+		ConnMaxIdleTime time.Duration `mapstructure:"conn_max_idle_time"`
 	}
 
 	Auth struct {
@@ -61,6 +65,10 @@ func GetConfig() *Config {
 		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 		viper.SetDefault("app.timezone", "America/Chicago")
 		viper.SetDefault("auth.jwt.session_max_duration", "336h")
+		viper.SetDefault("db.max_open_conns", 5)
+		viper.SetDefault("db.max_idle_conns", 2)
+		viper.SetDefault("db.conn_max_lifetime", "30m")
+		viper.SetDefault("db.conn_max_idle_time", "5m")
 
 		if err := viper.ReadInConfig(); err != nil {
 			panic(err)

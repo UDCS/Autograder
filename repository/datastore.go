@@ -92,6 +92,10 @@ type PostgresStore struct {
 func New(dbConfig *config.Db, timeZone string) PostgresStore {
 	ConnString := getConnStringFromConfig(dbConfig)
 	db := sqlx.MustConnect("postgres", ConnString)
+	db.SetMaxOpenConns(dbConfig.MaxOpenConns)
+	db.SetMaxIdleConns(dbConfig.MaxIdleConns)
+	db.SetConnMaxLifetime(dbConfig.ConnMaxLifetime)
+	db.SetConnMaxIdleTime(dbConfig.ConnMaxIdleTime)
 
 	return PostgresStore{
 		db:       db,
