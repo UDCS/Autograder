@@ -1,13 +1,14 @@
 import clsx from "clsx";
-import React, { TextareaHTMLAttributes, useEffect, useRef, useState } from "react";
+import React, { CSSProperties, TextareaHTMLAttributes, useEffect, useRef, useState } from "react";
 import "./TextArea.css";
 
 type TextAreaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange'> & {
   onChange?: (newText: string) => void;
   autoResize?: boolean;
+  lineSpacing?: CSSProperties["lineHeight"];
 };
 
-function TextArea({ className, onChange, value, autoResize, ...props }: TextAreaProps) {
+function TextArea({ className, onChange, value, autoResize, lineSpacing, style, ...props }: TextAreaProps) {
 
   const [text, setText] = useState(value ?? "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -40,6 +41,7 @@ function TextArea({ className, onChange, value, autoResize, ...props }: TextArea
       className={clsx("textarea", className)}
       onChange={handleChange}
       value={text}
+      style={{...style, ...(lineSpacing !== undefined && {lineHeight: lineSpacing}),}}
       {...props}
     />
   );
