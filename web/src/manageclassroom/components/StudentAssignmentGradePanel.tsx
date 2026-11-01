@@ -24,16 +24,18 @@ function StudentAssignmentGradePanel(props: StudentAssignmentGradePanelProps) {
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const requestController = useRef<AbortController | null>(null);
+    const requestInProgress = useRef(false);
 
     useEffect(() => {
         return () => requestController.current?.abort();
     }, []);
 
-    const loadGrades = async (expanded: boolean) => {
-        if (!expanded || grades !== null || loading) return;
+    const loadGrades = useCallback(async () => {
+        if (grades !== null || requestInProgress.current) return;
 
         const controller = new AbortController();
         requestController.current = controller;
+        requestInProgress.current = true;
         setLoading(true);
         setErrorMessage("");
 
@@ -75,9 +77,17 @@ function StudentAssignmentGradePanel(props: StudentAssignmentGradePanelProps) {
                 setErrorMessage(error instanceof Error ? error.message : "Could not load assignment grades");
             }
         } finally {
+            requestInProgress.current = false;
             if (!controller.signal.aborted) setLoading(false);
         }
-    };
+    }, [grades, props.assignmentId, props.classroomId, props.questions, props.showGrade, props.studentId, props.studentName]);
+
+    // Assignment panels are mounted when the student row is expanded. Load each
+    // assignment at that point so its percentage is visible before the user
+    // opens the assignment itself.
+    useEffect(() => {
+        void loadGrades();
+    }, [loadGrades]);
 
     useEffect(() => {
         setQuestionSubmissions(previous => Object.fromEntries(
@@ -134,7 +144,9 @@ function StudentAssignmentGradePanel(props: StudentAssignmentGradePanelProps) {
             title={grades?.assignment_name ?? props.assignmentName}
             grade={props.showGrade ? assignmentPercentage() : undefined}
             gap={false}
-            onExpandedChange={loadGrades}
+            onExpandedChange={(expanded) => {
+                if (expanded) void loadGrades();
+            }}
         >
             {loading
                 ? <Spinner />
