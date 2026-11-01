@@ -13,6 +13,8 @@
 }
 .questionDescription {
     font-size: 100%;
+    line-height: 2;
+    white-space: pre-wrap;
     font-family: 'Azeret Mono';
 }
 .resetStarterCodeParent {
