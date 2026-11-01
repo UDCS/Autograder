@@ -21,4 +21,6 @@
     font-family: "Azeret Mono";
     font-weight: lighter;
     font-size: 125%;
+    line-height: 2;
+    white-space: pre-wrap;
 }
